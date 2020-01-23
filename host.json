@@ -1,3 +1,12 @@
 {
-    "version": "2.0"
+    "version": "2.0",
+    "extensions": {
+        "durableTask": {
+            "hubName": "stateapiusermanagement",
+            "storageProvider": {
+              "connectionStringName": "LCU-STORAGE-CONNECTION"
+            },
+            "partitionCount": 4
+        }
+    }
 }

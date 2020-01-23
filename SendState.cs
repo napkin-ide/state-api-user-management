@@ -12,6 +12,7 @@ using System.Security.Claims;
 using Microsoft.Azure.WebJobs.Extensions.EventGrid;
 using Microsoft.Azure.EventGrid.Models;
 using LCU.State.API.NapkinIDE.User.Management.Utils;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
@@ -19,11 +20,15 @@ namespace LCU.State.API.NapkinIDE.User.Management
     {
         [FunctionName("SendState")]
         public static async Task Run([BlobTrigger("state/{statePath}")] string state, string statePath, ILogger logger,
-            [Blob("state/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/__config.lcu", FileAccess.Read)] string stateCfgStr)
+            [Blob("state", FileAccess.Read)] CloudBlobContainer blobContainer)
         {
             var stateDetails = StateUtils.LoadStateDetails(statePath);
 
-            var stateCfg = StateUtils.ParseStateConfig(stateCfgStr);
+            var stateCfgPath = $"{stateDetails.EnterpriseAPIKey}/{stateDetails.HubName}/__config.lcu";
+
+            var stateCfgBlob = blobContainer.GetBlockBlobReference(stateCfgPath);
+
+            var stateCfg = StateUtils.ParseStateConfig(await stateCfgBlob.DownloadTextAsync());
 
             var groupName = StateUtils.BuildGroupName(stateDetails, stateCfg);
 

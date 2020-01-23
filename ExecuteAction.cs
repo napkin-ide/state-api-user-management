@@ -7,27 +7,29 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using LCU.Presentation.State.ReqRes;
+using Fathym;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
     public static class ExecuteAction
     {
         [FunctionName("ExecuteAction")]
-        public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Admin, "get", "post", Route = null)] HttpRequest req,
-            ILogger log)
+        public static async Task<Status> Run([HttpTrigger(AuthorizationLevel.Admin, "post", Route = null)] HttpRequest req,
+             ILogger log)//[OrchestrationTrigger]IDurableOrchestrationContext context,
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
+            log.LogInformation("Executing action");
 
-            string name = req.Query["name"];
+            var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
+            var actionReq = requestBody?.FromJSON<ExecuteActionRequest>();
 
-            return name != null
-                ? (ActionResult)new OkObjectResult($"Hello, {name}")
-                : new BadRequestObjectResult("Please pass a name on the query string or in the request body");
+            log.LogInformation($"{actionReq.ToJSON()}");
+
+            //  TODO
+
+            return Status.Success;
         }
     }
 }
