@@ -17,7 +17,7 @@ namespace LCU.State.API.NapkinIDE.User.Management
     {
         [FunctionName("ExecuteAction")]
         public static async Task<Status> Run([HttpTrigger(AuthorizationLevel.Admin, "post", Route = null)] HttpRequest req,
-             ILogger log)//[OrchestrationTrigger]IDurableOrchestrationContext context,
+             ILogger log, [DurableClient] IDurableOrchestrationClient actions)
         {
             log.LogInformation("Executing action");
 
@@ -27,7 +27,7 @@ namespace LCU.State.API.NapkinIDE.User.Management
 
             log.LogInformation($"{actionReq.ToJSON()}");
 
-            //  TODO
+            string instanceId = await actions.StartNewAsync(actionReq.Type, actionReq);
 
             return Status.Success;
         }

@@ -4,9 +4,9 @@
         "durableTask": {
             "hubName": "stateapiusermanagement",
             "storageProvider": {
-              "connectionStringName": "LCU-STORAGE-CONNECTION"
-            },
-            "partitionCount": 4
+              "connectionStringName": "LCU-STORAGE-CONNECTION",
+              "partitionCount": 4
+            }
         }
     }
 }

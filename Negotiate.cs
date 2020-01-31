@@ -18,7 +18,7 @@ namespace LCU.State.API.NapkinIDE.User.Management
             [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req,
             [SignalRConnectionInfo(HubName = "user-management")] SignalRConnectionInfo connectionInfo)//, UserId = "{headers.x-ms-client-principal-id}"
         {
-                // var context = await StaticServiceHubContextStore.Get().GetAsync(HubName);
+            // var context = await StaticServiceHubContextStore.Get().GetAsync(HubName);
 
             return connectionInfo;
         }

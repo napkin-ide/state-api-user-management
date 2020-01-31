@@ -18,7 +18,7 @@ namespace LCU.State.API.NapkinIDE.User.Management
 {
     public static class SendState
     {
-        [FunctionName("SendState")]
+        // [FunctionName("SendState")]
         public static async Task Run([BlobTrigger("state/{statePath}")] string state, string statePath, ILogger logger,
             [Blob("state", FileAccess.Read)] CloudBlobContainer blobContainer)
         {
