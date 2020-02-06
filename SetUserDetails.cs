@@ -6,45 +6,25 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using LCU.Presentation.State.ReqRes;
+using Fathym;
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
     public static class SetUserDetails
     {
         [FunctionName("SetUserDetails")]
-        public static async Task<List<string>> RunOrchestrator(
-            [OrchestrationTrigger] DurableOrchestrationContext context)
+        public static async Task<Status> RunOrchestrator([OrchestrationTrigger] IDurableOrchestrationContext context)
         {
-            var outputs = new List<string>();
+            var username = "";
 
-            // Replace "hello" with the name of your Durable Activity Function.
-            outputs.Add(await context.CallActivityAsync<string>("SetUserDetails_Hello", "Tokyo"));
-            outputs.Add(await context.CallActivityAsync<string>("SetUserDetails_Hello", "Seattle"));
-            outputs.Add(await context.CallActivityAsync<string>("SetUserDetails_Hello", "London"));
+            var actReq = context.GetInput<ExecuteActionRequest>();
 
-            // returns ["Hello Tokyo!", "Hello Seattle!", "Hello London!"]
-            return outputs;
-        }
+            var entityId = new EntityId(nameof(UserManagementStateEntity), username);
 
-        [FunctionName("SetUserDetails_Hello")]
-        public static string SayHello([ActivityTrigger] string name, ILogger log)
-        {
-            log.LogInformation($"Saying hello to {name}.");
-            return $"Hello {name}!";
-        }
+            context.SignalEntity(entityId, "SetUserDetails", actReq.Arguments);
 
-        [FunctionName("SetUserDetails_HttpStart")]
-        public static async Task<HttpResponseMessage> HttpStart(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")]HttpRequestMessage req,
-            [OrchestrationClient]DurableOrchestrationClient starter,
-            ILogger log)
-        {
-            // Function input comes from the request content.
-            string instanceId = await starter.StartNewAsync("SetUserDetails", null);
-
-            log.LogInformation($"Started orchestration with ID = '{instanceId}'.");
-
-            return starter.CreateCheckStatusResponse(req, instanceId);
+            return Status.Success;
         }
     }
 }

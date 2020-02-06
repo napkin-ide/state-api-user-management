@@ -14,6 +14,7 @@ using System.Runtime.Serialization;
 using LCU.State.API.NapkinIDE.User.Management.Utils;
 using Fathym.API;
 using Fathym;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
@@ -27,9 +28,10 @@ namespace LCU.State.API.NapkinIDE.User.Management
     public static class ConnectToState
     {
         [FunctionName("ConnectToState")]
-        public static async Task<ConnectToStateResponse> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")]HttpRequest req, ILogger logger, ClaimsPrincipal claimsPrincipal,
-            [SignalR(HubName = "{headers.lcu-hub-name}")]IAsyncCollector<SignalRGroupAction> signalRGroupActions,
-            [Blob("state/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/__config.lcu", FileAccess.Read)] string stateCfgStr)
+        public static async Task<ConnectToStateResponse> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")]HttpRequest req, ILogger logger, 
+            ClaimsPrincipal claimsPrincipal, [DurableClient] IDurableEntityClient entity,
+            [SignalR(HubName = "usermanagement")]IAsyncCollector<SignalRGroupAction> signalRGroupActions)
+            // [Blob("state/{headers.lcu-ent-api-key}/usermanagement/__config.lcu", FileAccess.Read)] string stateCfgStr
         {
             try
             {
@@ -37,13 +39,11 @@ namespace LCU.State.API.NapkinIDE.User.Management
 
                 logger.LogInformation($"Connecting to state {stateDetails.HubName}.");
 
-                var stateCfg = stateCfgStr.FromJSON<LCUStateConfiguration>();
+                var groupName = await groupClient(signalRGroupActions, stateDetails);
 
-                var context = await StaticServiceHubContextStore.Get().GetAsync("HubName");
+                var entityId = new EntityId(nameof(UserManagementStateEntity), stateDetails.Username);
 
-                var userIdClaim = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier);
-
-                var groupName = await groupClient(signalRGroupActions, stateCfg, stateDetails);
+                await entity.SignalEntityAsync(entityId, "$Init", stateDetails);
 
                 return new ConnectToStateResponse()
                 {
@@ -59,10 +59,10 @@ namespace LCU.State.API.NapkinIDE.User.Management
             }
         }
 
-        private static async Task<string> groupClient(IAsyncCollector<SignalRGroupAction> signalRGroupActions, LCUStateConfiguration stateCfg,
+        private static async Task<string> groupClient(IAsyncCollector<SignalRGroupAction> signalRGroupActions,
             StateDetails stateDetails)
         {
-            var groupName = StateUtils.BuildGroupName(stateDetails, stateCfg);
+            var groupName = StateUtils.BuildGroupName(stateDetails);
 
             await signalRGroupActions.AddAsync(
                 new SignalRGroupAction

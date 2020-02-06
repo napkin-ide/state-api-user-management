@@ -13,10 +13,10 @@ namespace LCU.State.API.NapkinIDE.User.Management
 {
     public static class Negotiate
     {
-        [FunctionName("Negotiate")]
+        [FunctionName("negotiate")]
         public static SignalRConnectionInfo Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req,
-            [SignalRConnectionInfo(HubName = "user-management")] SignalRConnectionInfo connectionInfo)//, UserId = "{headers.x-ms-client-principal-id}"
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", "options")] HttpRequest req,
+            [SignalRConnectionInfo(HubName = "usermanagement")] SignalRConnectionInfo connectionInfo)//, UserId = "{headers.x-ms-client-principal-id}"
         {
             // var context = await StaticServiceHubContextStore.Get().GetAsync(HubName);
 

@@ -8,24 +8,27 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using Microsoft.Azure.WebJobs.Extensions.SignalRService;
+using LCU.State.API.NapkinIDE.User.Management.Utils;
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
     [Serializable]
     public class UserManagementState
     {
+        
         #region Properties        
-        public virtual string FirstName { get; set; }
+        public virtual string FirstName { get; protected set; }
 
-        public virtual string LastName { get; set; }
+        public virtual string LastName { get; protected set; }
 
-        public virtual string Username { get; protected set; }
+        public virtual StateDetails StateDetails { get; protected set; }
         #endregion
 
         #region Constructors
-        public UserManagementState(string username)
+        public UserManagementState(StateDetails stateDetails)
         {
-            this.Username = username;
+            this.StateDetails = stateDetails;
         }
         #endregion
 
@@ -41,16 +44,16 @@ namespace LCU.State.API.NapkinIDE.User.Management
 
     public static class UserManagementStateEntity
     {
-        [FunctionName("UserManagementState")]
+        [FunctionName("UserManagementStateEntity")]
         public static void Run([EntityTrigger] IDurableEntityContext ctx, ILogger log)
         {
             var action = ctx.OperationName.ToLowerInvariant();
 
-            var state = action == "$Init" ? new UserManagementState(ctx.GetInput<string>()) : ctx.GetState<UserManagementState>();
+            var state = action == "$init" ? new UserManagementState(ctx.GetInput<StateDetails>()) : ctx.GetState<UserManagementState>();
 
             switch (action)
             {
-                case "SetUserDetails":
+                case "setuserdetails":
                     (string FirstName, string LastName) dets = ctx.GetInput<(string, string)>();
 
                     state.SetUserDetails(dets.FirstName, dets.LastName);
@@ -58,6 +61,8 @@ namespace LCU.State.API.NapkinIDE.User.Management
             }
 
             ctx.SetState(state);
+
+            ctx.StartNewOrchestration("SendState", state);
 
             // ctx.Return(state);
         }

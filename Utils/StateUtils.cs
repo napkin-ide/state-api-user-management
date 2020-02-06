@@ -11,9 +11,9 @@ namespace LCU.State.API.NapkinIDE.User.Management.Utils
 {
     public static class StateUtils
     {
-        public static string BuildGroupName(StateDetails stateDetails, LCUStateConfiguration stateCfg)
+        public static string BuildGroupName(StateDetails stateDetails)
         {
-            var username = stateCfg.UseUsername ? $"{stateDetails.Username}|" : null;
+            var username = !stateDetails.Username.IsNullOrEmpty() ? $"{stateDetails.Username}|" : null;
 
             return $"{stateDetails.EnterpriseAPIKey}|{stateDetails.HubName}|{username}{stateDetails.stateKey}".ToMD5Hash();
         }
@@ -66,7 +66,7 @@ namespace LCU.State.API.NapkinIDE.User.Management.Utils
             return new StateDetails()
             {
                 EnterpriseAPIKey = entApiKey,
-                HubName = hubName,
+                HubName = hubName.Replace('-', '_'),
                 stateKey = stateKey,
                 Username = username
             };
@@ -80,14 +80,14 @@ namespace LCU.State.API.NapkinIDE.User.Management.Utils
 
             var stateKey = StateUtils.LoadStateKey(req);
 
-            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+            var userIdClaim = user?.FindFirst(ClaimTypes.NameIdentifier);
 
             return new StateDetails()
             {
                 EnterpriseAPIKey = entApiKey,
-                HubName = hubName,
+                HubName = hubName.Replace('-', '_'),
                 stateKey = stateKey,
-                Username = userIdClaim.Value
+                Username = userIdClaim?.Value ?? LoadUsernameMock(req)
             };
         }
 
@@ -110,6 +110,13 @@ namespace LCU.State.API.NapkinIDE.User.Management.Utils
             var splits = statePath.Split('/');
 
             return splits.Length > 3 ? splits[2] : null;
+        }
+
+        public static string LoadUsernameMock(HttpRequest req)
+        {
+            var unMock = req.Headers["lcu-username-mock"];
+
+            return unMock;
         }
 
         public static LCUStateConfiguration ParseStateConfig(string stateCfgStr)

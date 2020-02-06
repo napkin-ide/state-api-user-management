@@ -16,7 +16,7 @@ namespace LCU.State.API.NapkinIDE.User.Management
     public static class ExecuteAction
     {
         [FunctionName("ExecuteAction")]
-        public static async Task<Status> Run([HttpTrigger(AuthorizationLevel.Admin, "post", Route = null)] HttpRequest req,
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Admin, "post", Route = null)] HttpRequest req,
              ILogger log, [DurableClient] IDurableOrchestrationClient actions)
         {
             log.LogInformation("Executing action");
@@ -27,9 +27,18 @@ namespace LCU.State.API.NapkinIDE.User.Management
 
             log.LogInformation($"{actionReq.ToJSON()}");
 
-            string instanceId = await actions.StartNewAsync(actionReq.Type, actionReq);
+            try
+            {
+                string instanceId = await actions.StartNewAsync(actionReq.Type, actionReq);
 
-            return Status.Success;
+                return actions.CreateCheckStatusResponse(req, instanceId);
+            }
+            catch
+            {
+                log.LogError("Issue invoking action", actionReq);
+                
+                return new OkResult();
+            }
         }
     }
 }
