@@ -26,23 +26,25 @@ namespace LCU.State.API.NapkinIDE.User.Management
         }
 
         [FunctionName("EmitState")]
-        public static async Task<Status> EmitState([ActivityTrigger] UserManagementState state, ILogger log)
+        public static async Task<Status> EmitState([ActivityTrigger] UserManagementState state, ILogger log,
+            [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages)
         {
             var stateDetails = state.StateDetails;
 
-            // var stateCfgPath = $"{stateDetails.EnterpriseAPIKey}/{stateDetails.HubName}/__config.lcu";
-
-            // var stateCfgBlob = blobContainer.GetBlockBlobReference(stateCfgPath);
-
-            // var stateCfg = StateUtils.ParseStateConfig(await stateCfgBlob.DownloadTextAsync());
-
             var groupName = StateUtils.BuildGroupName(stateDetails);
 
-            var context = await StateUtils.LoadHubContext(stateDetails.HubName);
+            var sendMethod = $"ReceiveState";//=>{groupName}";
 
-            var sendMethod = $"ReceiveState=>{groupName}";
+            await signalRMessages.AddAsync(new SignalRMessage()
+            {
+                Target = sendMethod,
+                GroupName = "Test",//groupName,
+                Arguments = new[] { state }
+            });
 
-            await context.Clients.Group(groupName).SendCoreAsync(sendMethod, new[] { state });
+            // var context = await StateUtils.LoadHubContext(stateDetails.HubName);
+
+            // await context.Clients.Group(groupName).SendCoreAsync(sendMethod, new[] { state });
 
             return Status.Success;
         }

@@ -15,7 +15,7 @@ namespace LCU.State.API.NapkinIDE.User.Management.Utils
         {
             var username = !stateDetails.Username.IsNullOrEmpty() ? $"{stateDetails.Username}|" : null;
 
-            return $"{stateDetails.EnterpriseAPIKey}|{stateDetails.HubName}|{username}{stateDetails.stateKey}".ToMD5Hash();
+            return $"{stateDetails.EnterpriseAPIKey}|{stateDetails.HubName}|{username}{stateDetails.StateKey}".ToMD5Hash();
         }
 
         public static string LoadEntApiKey(string statePath)
@@ -67,7 +67,7 @@ namespace LCU.State.API.NapkinIDE.User.Management.Utils
             {
                 EnterpriseAPIKey = entApiKey,
                 HubName = hubName.Replace('-', '_'),
-                stateKey = stateKey,
+                StateKey = stateKey,
                 Username = username
             };
         }
@@ -86,8 +86,8 @@ namespace LCU.State.API.NapkinIDE.User.Management.Utils
             {
                 EnterpriseAPIKey = entApiKey,
                 HubName = hubName.Replace('-', '_'),
-                stateKey = stateKey,
-                Username = userIdClaim?.Value ?? LoadUsernameMock(req)
+                StateKey = stateKey,
+                Username = userIdClaim?.Value ?? LoadUsername(req)
             };
         }
 
@@ -112,9 +112,9 @@ namespace LCU.State.API.NapkinIDE.User.Management.Utils
             return splits.Length > 3 ? splits[2] : null;
         }
 
-        public static string LoadUsernameMock(HttpRequest req)
+        public static string LoadUsername(HttpRequest req)
         {
-            var unMock = req.Headers["lcu-username-mock"];
+            var unMock = req.Headers["x-ms-client-principal-id"];
 
             return unMock;
         }

@@ -16,13 +16,11 @@ namespace LCU.State.API.NapkinIDE.User.Management
         [FunctionName("SetUserDetails")]
         public static async Task<Status> RunOrchestrator([OrchestrationTrigger] IDurableOrchestrationContext context)
         {
-            var username = "";
+            var actArgs = context.GetInput<ExecuteActionArguments>();
 
-            var actReq = context.GetInput<ExecuteActionRequest>();
+            var entityId = new EntityId(nameof(UserManagementStateEntity), actArgs.StateDetails.Username);
 
-            var entityId = new EntityId(nameof(UserManagementStateEntity), username);
-
-            context.SignalEntity(entityId, "SetUserDetails", actReq.Arguments);
+            context.SignalEntity(entityId, "SetUserDetails", actArgs.ActionRequest);
 
             return Status.Success;
         }

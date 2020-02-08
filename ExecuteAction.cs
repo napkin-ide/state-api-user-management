@@ -10,16 +10,26 @@ using Newtonsoft.Json;
 using LCU.Presentation.State.ReqRes;
 using Fathym;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using LCU.State.API.NapkinIDE.User.Management.Utils;
+using System.Security.Claims;
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
+    public class ExecuteActionArguments
+    {
+        public virtual ExecuteActionRequest ActionRequest { get; set; }
+
+        public virtual StateDetails StateDetails { get; set; }
+    }
     public static class ExecuteAction
     {
         [FunctionName("ExecuteAction")]
         public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Admin, "post", Route = null)] HttpRequest req,
-             ILogger log, [DurableClient] IDurableOrchestrationClient actions)
+            ClaimsPrincipal claimsPrincipal, ILogger log, [DurableClient] IDurableOrchestrationClient actions)
         {
             log.LogInformation("Executing action");
+
+                var stateDetails = StateUtils.LoadStateDetails(req, claimsPrincipal);
 
             var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
@@ -29,14 +39,18 @@ namespace LCU.State.API.NapkinIDE.User.Management
 
             try
             {
-                string instanceId = await actions.StartNewAsync(actionReq.Type, actionReq);
+                string instanceId = await actions.StartNewAsync(actionReq.Type, new ExecuteActionArguments()
+                {
+                    ActionRequest = actionReq,
+                    StateDetails = stateDetails
+                });
 
                 return actions.CreateCheckStatusResponse(req, instanceId);
             }
             catch
             {
-                log.LogError("Issue invoking action", actionReq);
-                
+                log.LogError($"Issue invoking action: {actionReq.ToJSON()}");
+
                 return new OkResult();
             }
         }

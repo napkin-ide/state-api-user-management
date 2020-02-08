@@ -14,7 +14,7 @@ namespace LCU.State.API.NapkinIDE.User.Management.Utils
         
         public virtual string HubName { get; set; }
         
-        public virtual string stateKey { get; set; }
+        public virtual string StateKey { get; set; }
         
         public virtual string Username { get; set; }
     }

@@ -30,7 +30,7 @@ namespace LCU.State.API.NapkinIDE.User.Management
         [FunctionName("ConnectToState")]
         public static async Task<ConnectToStateResponse> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")]HttpRequest req, ILogger logger, 
             ClaimsPrincipal claimsPrincipal, [DurableClient] IDurableEntityClient entity,
-            [SignalR(HubName = "usermanagement")]IAsyncCollector<SignalRGroupAction> signalRGroupActions)
+            [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRGroupAction> signalRGroupActions)
             // [Blob("state/{headers.lcu-ent-api-key}/usermanagement/__config.lcu", FileAccess.Read)] string stateCfgStr
         {
             try
@@ -38,6 +38,8 @@ namespace LCU.State.API.NapkinIDE.User.Management
                 var stateDetails = StateUtils.LoadStateDetails(req, claimsPrincipal);
 
                 logger.LogInformation($"Connecting to state {stateDetails.HubName}.");
+
+                var context = await StateUtils.LoadHubContext(stateDetails.HubName);
 
                 var groupName = await groupClient(signalRGroupActions, stateDetails);
 
@@ -68,7 +70,7 @@ namespace LCU.State.API.NapkinIDE.User.Management
                 new SignalRGroupAction
                 {
                     UserId = stateDetails.Username,
-                    GroupName = groupName,
+                    GroupName = "Test",//groupName,
                     Action = GroupAction.Add
                 });
 

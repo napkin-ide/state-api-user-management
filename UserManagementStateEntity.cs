@@ -10,19 +10,26 @@ using Newtonsoft.Json;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using LCU.State.API.NapkinIDE.User.Management.Utils;
+using Fathym;
+using LCU.Presentation.State.ReqRes;
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
     [Serializable]
     public class UserManagementState
     {
-        
-        #region Properties        
-        public virtual string FirstName { get; protected set; }
+        #region Constants
+        public const string HUB_NAME = "usermanagement";
+        #endregion
 
-        public virtual string LastName { get; protected set; }
+        #region Properties 
+        public virtual string Country { get; set; }
 
-        public virtual StateDetails StateDetails { get; protected set; }
+        public virtual string FullName { get; set; }
+
+        public virtual string Handle { get; set; }
+
+        public virtual StateDetails StateDetails { get; set; }
         #endregion
 
         #region Constructors
@@ -33,11 +40,13 @@ namespace LCU.State.API.NapkinIDE.User.Management
         #endregion
 
         #region API Methods
-        public virtual void SetUserDetails(string firstName, string lastName)
+        public virtual void SetUserDetails(string fullName, string country, string handle)
         {
-            FirstName = firstName;
-            
-            LastName = lastName;
+            Country = country;
+
+            FullName = fullName;
+
+            Handle = handle;
         }
         #endregion
     }
@@ -49,14 +58,18 @@ namespace LCU.State.API.NapkinIDE.User.Management
         {
             var action = ctx.OperationName.ToLowerInvariant();
 
-            var state = action == "$init" ? new UserManagementState(ctx.GetInput<StateDetails>()) : ctx.GetState<UserManagementState>();
+            var state = ctx.GetState<UserManagementState>();
+
+            if (action == "$init" && state == null)
+                state = new UserManagementState(ctx.GetInput<StateDetails>());
 
             switch (action)
             {
                 case "setuserdetails":
-                    (string FirstName, string LastName) dets = ctx.GetInput<(string, string)>();
+                    var actionReq = ctx.GetInput<ExecuteActionRequest>();
 
-                    state.SetUserDetails(dets.FirstName, dets.LastName);
+                    state.SetUserDetails(actionReq.Arguments.Metadata["FullName"].ToString(),
+                        actionReq.Arguments.Metadata["Country"].ToString(), actionReq.Arguments.Metadata["Handle"].ToString());
                     break;
             }
 

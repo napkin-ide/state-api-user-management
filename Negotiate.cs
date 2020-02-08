@@ -16,10 +16,8 @@ namespace LCU.State.API.NapkinIDE.User.Management
         [FunctionName("negotiate")]
         public static SignalRConnectionInfo Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", "options")] HttpRequest req,
-            [SignalRConnectionInfo(HubName = "usermanagement")] SignalRConnectionInfo connectionInfo)//, UserId = "{headers.x-ms-client-principal-id}"
+            [SignalRConnectionInfo(HubName = UserManagementState.HUB_NAME, UserId = "{headers.x-ms-client-principal-id}")] SignalRConnectionInfo connectionInfo)
         {
-            // var context = await StaticServiceHubContextStore.Get().GetAsync(HubName);
-
             return connectionInfo;
         }
     }
