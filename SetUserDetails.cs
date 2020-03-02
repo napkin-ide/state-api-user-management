@@ -14,32 +14,40 @@ using System;
 using Fathym.API;
 using System.IO;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.WebJobs.Extensions.SignalRService;
+using System.Runtime.Serialization;
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
     [Serializable]
+    [DataContract]
     public class SetUserDetailsRequest : BaseRequest
     {
+        [DataMember]
+        public virtual string Country { get; set; }
 
+        [DataMember]
+        public virtual string FullName { get; set; }
+
+        [DataMember]
+        public virtual string Handle { get; set; }
     }
 
     public static class SetUserDetails
     {
         [FunctionName("SetUserDetails")]
         public static async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
-            [Blob("state-api/usermanagement", FileAccess.Write)] CloudBlobDirectory directory)
+            [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
+            [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
-            log.LogInformation($"Executing SetUserDetails Action.");
+            return await stateBlob.WithStateAction<UserManagementState, SetUserDetailsRequest>(req, log, async (state, userDetsReq) =>
+            {
+                log.LogInformation($"Executing SetUserDetails Action.");
 
-            var actArgs = await req.LoadBody<ExecuteActionArguments>();
+                state.SetUserDetails(userDetsReq.FullName, userDetsReq.Country, userDetsReq.Handle);
 
-            var entityId = new EntityId(typeof(UserManagementState).Name, actArgs.StateDetails.Username);
-
-            log.LogInformation($"Loading entity {entityId}");
-            
-            // context.SignalEntity(entityId, "SetUserDetails", actArgs.ActionRequest);
-
-            return Status.Success;
+                return state;
+            });
         }
     }
 }
