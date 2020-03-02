@@ -8,19 +8,36 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using LCU.Presentation.State.ReqRes;
 using Fathym;
+using LCU.StateAPI;
+using Microsoft.AspNetCore.Http;
+using System;
+using Fathym.API;
+using System.IO;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
+    [Serializable]
+    public class SetUserDetailsRequest : BaseRequest
+    {
+
+    }
+
     public static class SetUserDetails
     {
         [FunctionName("SetUserDetails")]
-        public static async Task<Status> RunOrchestrator([OrchestrationTrigger] IDurableOrchestrationContext context)
+        public static async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
+            [Blob("state-api/usermanagement", FileAccess.Write)] CloudBlobDirectory directory)
         {
-            var actArgs = context.GetInput<ExecuteActionArguments>();
+            log.LogInformation($"Executing SetUserDetails Action.");
 
-            var entityId = new EntityId(nameof(UserManagementStateEntity), actArgs.StateDetails.Username);
+            var actArgs = await req.LoadBody<ExecuteActionArguments>();
 
-            context.SignalEntity(entityId, "SetUserDetails", actArgs.ActionRequest);
+            var entityId = new EntityId(typeof(UserManagementState).Name, actArgs.StateDetails.Username);
+
+            log.LogInformation($"Loading entity {entityId}");
+            
+            // context.SignalEntity(entityId, "SetUserDetails", actArgs.ActionRequest);
 
             return Status.Success;
         }

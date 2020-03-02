@@ -8,10 +8,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using Microsoft.Azure.WebJobs.Extensions.SignalRService;
-using LCU.State.API.NapkinIDE.User.Management.Utils;
 using Fathym;
 using LCU.Presentation.State.ReqRes;
+using LCU.StateAPI.Utilities;
+using LCU.StateAPI;
+using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
@@ -28,15 +29,11 @@ namespace LCU.State.API.NapkinIDE.User.Management
         public virtual string FullName { get; set; }
 
         public virtual string Handle { get; set; }
-
-        public virtual StateDetails StateDetails { get; set; }
         #endregion
 
         #region Constructors
-        public UserManagementState(StateDetails stateDetails)
-        {
-            this.StateDetails = stateDetails;
-        }
+        public UserManagementState()
+        { }
         #endregion
 
         #region API Methods
@@ -51,33 +48,47 @@ namespace LCU.State.API.NapkinIDE.User.Management
         #endregion
     }
 
-    public static class UserManagementStateEntity
-    {
-        [FunctionName("UserManagementStateEntity")]
-        public static void Run([EntityTrigger] IDurableEntityContext ctx, ILogger log)
-        {
-            var action = ctx.OperationName.ToLowerInvariant();
+    // public static class UserManagementStateEntity
+    // {
+    //     [FunctionName("UserManagementState")]
+    //     public static async Task Run([EntityTrigger] IDurableEntityContext ctx, ILogger log,
+    //         [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages)
+    //     {
+    //         log.LogInformation($"Executing UserManagementState entity.");
 
-            var state = ctx.GetState<UserManagementState>();
+    //         await ctx.WithEntityState<UserManagementState>(signalRMessages, log, async (state, actionReq) =>
+    //         {
+    //             switch (actionReq.Type)
+    //             {
+    //                 case "SetUserDetails":
+    //                     state.SetUserDetails(actionReq.Arguments.Metadata["FullName"].ToString(),
+    //                         actionReq.Arguments.Metadata["Country"].ToString(), actionReq.Arguments.Metadata["Handle"].ToString());
+    //                     break;
+    //             }
+    //         });
 
-            if (action == "$init" && state == null)
-                state = new UserManagementState(ctx.GetInput<StateDetails>());
+    //         // var action = ctx.OperationName.ToLowerInvariant();
 
-            switch (action)
-            {
-                case "setuserdetails":
-                    var actionReq = ctx.GetInput<ExecuteActionRequest>();
+    //         // var state = ctx.GetState<UserManagementState>();
 
-                    state.SetUserDetails(actionReq.Arguments.Metadata["FullName"].ToString(),
-                        actionReq.Arguments.Metadata["Country"].ToString(), actionReq.Arguments.Metadata["Handle"].ToString());
-                    break;
-            }
+    //         // if (action == "$init" && state == null)
+    //         //     state = new UserManagementState(ctx.GetInput<StateDetails>());
 
-            ctx.SetState(state);
+    //         // log.LogInformation($"UserManagementState state loaded.");
 
-            ctx.StartNewOrchestration("SendState", state);
+    //         // switch (action)
+    //         // {
+    //         // }
 
-            // ctx.Return(state);
-        }
-    }
+    //         // ctx.SetState(state);
+
+    //         // log.LogInformation($"UserManagementState state set.");
+
+    //         // ctx.StartNewOrchestration("SendState", state);
+
+    //         // log.LogInformation($"UserManagementState state sent.");
+
+    //         // ctx.Return(state);
+    //     }
+    // }
 }
