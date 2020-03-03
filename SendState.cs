@@ -8,18 +8,27 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
     public static class SendState
     {
-        [FunctionName("SendState")]
-        public static async Task<Status> RunOrchestrator(
-            [OrchestrationTrigger] IDurableOrchestrationContext context)
-        {
-            var state = context.GetInput<UserManagementState>();
+        // public const string BLOB_TRIGGER_PATH= "state-api/{entApiKey}/usermanagement/{username}/{stateKey}";
 
-            return await context.CallActivityAsync<Status>("EmitState", state);
-        }
+        // [FunctionName("SendState")]
+        // public static async Task Run(ILogger log,
+        //     [BlobTrigger(BLOB_TRIGGER_PATH)] CloudBlockBlob stateBlob,
+        //     string entApiKey, string username, string stateKey,
+        //     [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages)
+        // {
+        //     await signalRMessages.EmitState<UserManagementState>(stateBlob, new StateDetails()
+        //     {
+        //         EnterpriseAPIKey = entApiKey,
+        //         HubName = UserManagementState.HUB_NAME, 
+        //         StateKey = stateKey, 
+        //         Username = username
+        //     }, log);
+        // }
     }
 }

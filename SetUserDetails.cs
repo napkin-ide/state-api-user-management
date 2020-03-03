@@ -40,7 +40,7 @@ namespace LCU.State.API.NapkinIDE.User.Management
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
-            return await stateBlob.WithStateAction<UserManagementState, SetUserDetailsRequest>(req, log, async (state, userDetsReq) =>
+            return await stateBlob.WithStateAction<UserManagementState, SetUserDetailsRequest>(req, signalRMessages, log, async (state, userDetsReq) =>
             {
                 log.LogInformation($"Executing SetUserDetails Action.");
 
