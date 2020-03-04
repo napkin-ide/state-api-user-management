@@ -2,19 +2,32 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using LCU.Personas.Client.Applications;
+using LCU.Personas.Client.Enterprises;
+using LCU.Personas.Client.Identity;
+using LCU.Personas.Client.Security;
+using System.Linq;
+using System;
+using LCU.StateAPI;
 
-[assembly: WebJobsStartup(typeof(LCU.State.API.NapkinIDE.User.Management.Startup))]
+[assembly: FunctionsStartup(typeof(LCU.State.API.NapkinIDE.User.Management.Startup))]
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
-    public class Startup : IWebJobsStartup
+    public class Startup : StateAPIStartup
     {
-        public void Configure(IWebJobsBuilder builder)
-        {
-            builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+        #region Fields
+        #endregion
 
-            builder.AddExtension<LCUStateDetailsExtensionConfigProvider>();
-        }
+        #region Constructors
+        public Startup()
+        { }
+        #endregion
+
+        #region API Methods
+        #endregion
     }
 }

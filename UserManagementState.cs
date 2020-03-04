@@ -15,6 +15,7 @@ using LCU.StateAPI;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Newtonsoft.Json.Converters;
 using System.Runtime.Serialization;
+using System.Collections.Generic;
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
@@ -28,13 +29,10 @@ namespace LCU.State.API.NapkinIDE.User.Management
 
         #region Properties 
         [DataMember]
-        public virtual string Country { get; set; }
+        public virtual List<JourneyDetail> Details { get; set; }
 
         [DataMember]
-        public virtual string FullName { get; set; }
-
-        [DataMember]
-        public virtual string Handle { get; set; }
+        public virtual List<JourneyPersona> Personas { get; set; }
 
         [JsonConverter(typeof(StringEnumConverter))]
         [DataMember]
@@ -47,20 +45,40 @@ namespace LCU.State.API.NapkinIDE.User.Management
         #endregion
 
         #region API Methods
-        public virtual void SetUserDetails(string fullName, string country, string handle)
-        {
-            Country = country;
-
-            FullName = fullName;
-
-            Handle = handle;
-        }
-        
         public virtual void SetUserType(UserTypes userType)
         {
             UserType = userType;
         }
         #endregion
+    }
+
+    [DataContract]
+    public class JourneyPersona
+    {
+        [DataMember]
+        public virtual List<string> Descriptions { get; set; }
+
+        [DataMember]
+        public virtual IDictionary<string, List<string>> DetailLookupCategories { get; set; }
+
+        [DataMember]
+        public virtual string Lookup { get; set; }
+
+        [DataMember]
+        public virtual string Name { get; set; }
+    }
+
+    [DataContract]
+    public class JourneyDetail
+    {
+        [DataMember]
+        public virtual string Description { get; set; }
+
+        [DataMember]
+        public virtual string Lookup { get; set; }
+
+        [DataMember]
+        public virtual string Name { get; set; }
     }
 
     [DataContract]
