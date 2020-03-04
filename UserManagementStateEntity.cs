@@ -13,10 +13,13 @@ using LCU.Presentation.State.ReqRes;
 using LCU.StateAPI.Utilities;
 using LCU.StateAPI;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
+using Newtonsoft.Json.Converters;
+using System.Runtime.Serialization;
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
     [Serializable]
+    [DataContract]
     public class UserManagementState
     {
         #region Constants
@@ -24,11 +27,18 @@ namespace LCU.State.API.NapkinIDE.User.Management
         #endregion
 
         #region Properties 
+        [DataMember]
         public virtual string Country { get; set; }
 
+        [DataMember]
         public virtual string FullName { get; set; }
 
+        [DataMember]
         public virtual string Handle { get; set; }
+
+        [JsonConverter(typeof(StringEnumConverter))]
+        [DataMember]
+        public virtual UserTypes UserType { get; set; }
         #endregion
 
         #region Constructors
@@ -45,7 +55,25 @@ namespace LCU.State.API.NapkinIDE.User.Management
 
             Handle = handle;
         }
+        
+        public virtual void SetUserType(UserTypes userType)
+        {
+            UserType = userType;
+        }
         #endregion
+    }
+
+    [DataContract]
+    public enum UserTypes
+    {
+        [EnumMember]
+        Develop,
+
+        [EnumMember]
+        Design,
+
+        [EnumMember]
+        Manage
     }
 
     // public static class UserManagementStateEntity
