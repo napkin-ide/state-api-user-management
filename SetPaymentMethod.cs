@@ -15,27 +15,27 @@ using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
-    [Serializable]
-    [DataContract]
-    public class SetUserTypeRequest : BaseRequest
-    {
-        [DataMember]
-        public virtual UserTypes UserType { get; set; }
-    }
+        [Serializable]
+        [DataContract]
+        public class SetPaymentMethodRequest : BaseRequest
+        {
+            [DataMember]
+            public virtual string MethodID { get; set; }
+        }
 
-    public static class SetUserType
+    public static class SetPaymentMethod
     {
-        [FunctionName("SetUserType")]
+        [FunctionName("SetPaymentMethod")]
         public static async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
-            return await stateBlob.WithStateHarness<UserManagementState, SetUserTypeRequest, UserManagementStateHarness>(req, signalRMessages, log,
-                async (harness, userDetsReq) =>
+            return await stateBlob.WithStateHarness<UserManagementState, SetPaymentMethodRequest, UserManagementStateHarness>(req, signalRMessages, log, 
+                async (harness, payReq) =>
             {
-                log.LogInformation($"Executing SetUserDetails Action.");
+                log.LogInformation($"Executing SetUserSetupStep Action.");
 
-                harness.SetUserType(userDetsReq.UserType);
+                harness.SetPaymentMethod(payReq.MethodID);
             });
         }
     }

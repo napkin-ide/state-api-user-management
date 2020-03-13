@@ -27,29 +27,64 @@ namespace LCU.State.API.NapkinIDE.User.Management
         public const string HUB_NAME = "usermanagement";
         #endregion
 
-        #region Properties 
         [DataMember]
         public virtual List<JourneyDetail> Details { get; set; }
 
         [DataMember]
+        public virtual string DevOpsAppID { get; set; }
+
+        [DataMember]
+        public virtual string DevOpsClientSecret { get; set; }
+
+        [DataMember]
+        public virtual string DevOpsScopes { get; set; }
+
+        [DataMember]
+        public virtual string EnvironmentLookup { get; set; }
+
+        [DataMember]
+        public virtual MetadataModel EnvSettings { get; set; }
+        
+		[DataMember]
+        public virtual bool HasDevOpsOAuth { get; set; }
+
+		[DataMember]
+        public virtual string Host { get; set; }
+
+        [DataMember]
+        public virtual bool Loading { get; set; }
+
+        [DataMember]
+        public virtual string NewEnterpriseAPIKey { get; set; }
+
+        [DataMember]
+        public virtual string OrganizationDescription { get; set; }
+
+        [DataMember]
+        public virtual string OrganizationLookup { get; set; }
+
+        [DataMember]
+        public virtual string OrganizationName { get; set; }
+
+        [DataMember]
+        public virtual string PaymentMethodID { get; set; }
+
+        [DataMember]
         public virtual List<JourneyPersona> Personas { get; set; }
 
-        [JsonConverter(typeof(StringEnumConverter))]
         [DataMember]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public virtual NapkinIDESetupStepTypes SetupStep { get; set; }
+
+        [DataMember]
+        public virtual string Terms { get; set; }
+
+        [DataMember]
+        public virtual bool TermsAccepted { get; set; }
+
+        [DataMember]
+        [JsonConverter(typeof(StringEnumConverter))]
         public virtual UserTypes UserType { get; set; }
-        #endregion
-
-        #region Constructors
-        public UserManagementState()
-        { }
-        #endregion
-
-        #region API Methods
-        public virtual void SetUserType(UserTypes userType)
-        {
-            UserType = userType;
-        }
-        #endregion
     }
 
     [DataContract]
@@ -79,6 +114,41 @@ namespace LCU.State.API.NapkinIDE.User.Management
 
         [DataMember]
         public virtual string Name { get; set; }
+    }
+
+    [DataContract]
+    public enum NapkinIDESetupStepTypes
+    {
+        [EnumMember]
+        OrgDetails,
+
+        [EnumMember]
+        AzureSetup,
+
+        [EnumMember]
+        Billing,
+
+        [EnumMember]
+        Review,
+
+        [EnumMember]
+        Complete
+    }
+
+    [DataContract]
+    public class AzureInfaSettings
+    {
+        [DataMember]
+        public virtual string AzureTenantID { get; set; }
+        
+        [DataMember]
+        public virtual string AzureSubID { get; set; }
+        
+        [DataMember]
+        public virtual string AzureAppID { get; set; }
+        
+        [DataMember]
+        public virtual string AzureAppAuthKey { get; set; }
     }
 
     [DataContract]

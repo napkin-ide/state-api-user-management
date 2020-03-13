@@ -17,25 +17,25 @@ namespace LCU.State.API.NapkinIDE.User.Management
 {
     [Serializable]
     [DataContract]
-    public class SetUserTypeRequest : BaseRequest
+    public class SetNapkinIDESetupStepRequest : BaseRequest
     {
         [DataMember]
-        public virtual UserTypes UserType { get; set; }
+        public virtual NapkinIDESetupStepTypes Step { get; set; }
     }
 
-    public static class SetUserType
+    public static class SetNapkinIDESetupStep
     {
-        [FunctionName("SetUserType")]
+        [FunctionName("SetNapkinIDESetupStep")]
         public static async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
-            return await stateBlob.WithStateHarness<UserManagementState, SetUserTypeRequest, UserManagementStateHarness>(req, signalRMessages, log,
-                async (harness, userDetsReq) =>
+            return await stateBlob.WithStateHarness<UserManagementState, SetNapkinIDESetupStepRequest, UserManagementStateHarness>(req, signalRMessages, log,
+                async (harness, setupReq) =>
             {
-                log.LogInformation($"Executing SetUserDetails Action.");
+                log.LogInformation($"Executing SetUserSetupStep Action.");
 
-                harness.SetUserType(userDetsReq.UserType);
+                harness.SetNapkinIDESetupStep(setupReq.Step);
             });
         }
     }
