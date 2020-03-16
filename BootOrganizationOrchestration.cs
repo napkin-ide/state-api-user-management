@@ -123,11 +123,13 @@ namespace LCU.State.API.NapkinIDE.User.Management
                         harness.UpdateBootOption("DevOps",
                             status: Status.Success.Clone("DevOps Environment Configured"),
                             loading: false);
+
+                        harness.UpdateBootOption("Infrastructure", status: Status.Initialized.Clone("Deploying Environment Infrastructure..."));
                     });
 
             return status;
         }
-       
+
         [FunctionName("BootOrganizationOrchestration_Infrastructure")]
         public virtual async Task<Status> BootInfrastructure([ActivityTrigger] StateActionContext stateCtxt, ILogger log,
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
@@ -140,7 +142,7 @@ namespace LCU.State.API.NapkinIDE.User.Management
 
                     await harness.BootDAFInfrastructure(devOpsArch, stateCtxt.StateDetails.EnterpriseAPIKey, stateCtxt.StateDetails.Username);
 
-                    harness.UpdateBootOption("Infrastructure", status: Status.Initialized.Clone("Deploying Environment Infrastructure..."));
+                    harness.UpdateBootOption("Infrastructure", status: Status.Initialized.Clone("Committing Environment Infrastructure as Code..."));
                 });
         }
         #endregion
