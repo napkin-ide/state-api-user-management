@@ -14,6 +14,9 @@ using System.Runtime.Serialization;
 using LCU.Personas.Client.Enterprises;
 using LCU.Personas.Client.DevOps;
 using LCU.StateAPI.Utilities;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using System.Net.Http;
+using LCU.Presentation.State.ReqRes;
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
@@ -39,119 +42,36 @@ namespace LCU.State.API.NapkinIDE.User.Management
             this.devOpsArch = devOpsArch;
 
             this.entArch = entArch;
-            
+
             this.entMgr = entMgr;
         }
         #endregion
 
         #region API Methods
         [FunctionName("BootOrganization")]
-        public virtual async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
+        public virtual async Task<IActionResult> Run([HttpTrigger] HttpRequest req, ILogger log,
+            [DurableClient] IDurableOrchestrationClient starter,
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             var stateDetails = StateUtils.LoadStateDetails(req);
 
-            var status = await initializeBoot(req, log, signalRMessages, stateBlob);
+            await initializeBoot(req, log, signalRMessages, stateBlob);
 
-            if (status)
-                status = await bootEnvironment(req, log, signalRMessages, stateBlob, stateDetails);
+            var instanceId = await starter.StartNewAsync("BootOrganizationOrchestration",
+                $"{stateDetails.EnterpriseAPIKey}-{stateDetails.HubName}-{stateDetails.Username}-{stateDetails.StateKey}", new StateActionContext()
+                {
+                    ActionRequest = await req.LoadBody<ExecuteActionRequest>(),
+                    StateDetails = stateDetails
+                });
 
-            if (status)
-                status = await bootDevOps(req, log, signalRMessages, stateBlob, stateDetails);
+            log.LogInformation($"Started orchestration with ID = '{instanceId}'.");
 
-            if (status)
-                status = await bootInfrastructure(req, log, signalRMessages, stateBlob, stateDetails);
-
-            return status;
+            return starter.CreateCheckStatusResponse(req, instanceId);
         }
         #endregion
 
         #region Helpers
-        protected virtual async Task<Status> bootDevOps(HttpRequest req, ILogger log, IAsyncCollector<SignalRMessage> signalRMessages,
-            CloudBlockBlob stateBlob, StateDetails stateDetails)
-        {
-            var status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(req, signalRMessages, log,
-                async (harness, reqData) =>
-            {
-                log.LogInformation($"Configuring Project DevOps...");
-
-                await harness.BootIaC(devOpsArch, stateDetails.EnterpriseAPIKey, stateDetails.Username);
-
-                harness.UpdateBootOption("DevOps", 
-                    status: Status.Initialized.Clone("Configuring DevOps Environment Package Feeds..."));
-            });
-
-            if (status)
-                status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(req, signalRMessages, log,
-                    async (harness, reqData) =>
-                {
-                    log.LogInformation($"Configuring Project DevOps...");
-
-                    await harness.BootLCUFeeds(devOpsArch, stateDetails.EnterpriseAPIKey, stateDetails.Username);
-
-                    harness.UpdateBootOption("DevOps", 
-                        status: Status.Initialized.Clone("Configuring DevOps Environment Task Library..."));
-                });
-
-            if (status)
-                status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(req, signalRMessages, log,
-                    async (harness, reqData) =>
-                {
-                    log.LogInformation($"Configuring Project DevOps...");
-
-                    await harness.BootTaskLibrary(devOpsArch, stateDetails.EnterpriseAPIKey, stateDetails.Username);
-
-                    harness.UpdateBootOption("DevOps", 
-                        status: Status.Initialized.Clone("Configuring DevOps Environment with Infrastructure as Code builds and releases..."));
-                });
-
-            if (status)
-                status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(req, signalRMessages, log,
-                    async (harness, reqData) =>
-                {
-                    log.LogInformation($"Configuring Project DevOps...");
-
-                    await harness.BootIaCBuildsAndReleases(devOpsArch, stateDetails.EnterpriseAPIKey, stateDetails.Username);
-
-                    harness.UpdateBootOption("DevOps", 
-                        status: Status.Success.Clone("DevOps Environment Configured"), 
-                        loading: false);
-                });
-
-            return status;
-        }
-
-        protected virtual async Task<Status> bootEnvironment(HttpRequest req, ILogger log, IAsyncCollector<SignalRMessage> signalRMessages,
-            CloudBlockBlob stateBlob, StateDetails stateDetails)
-        {
-            return await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(req, signalRMessages, log,
-                async (harness, reqData) =>
-            {
-                log.LogInformation($"Configuring Project Environment...");
-
-                await harness.BootOrganizationEnvironment(entArch, entMgr, devOpsArch, stateDetails.EnterpriseAPIKey, stateDetails.Username);
-
-                harness.UpdateBootOption("Project", status: Status.Success.Clone("Project Environment Configured"), loading: false);
-
-                harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Configuring DevOps Environment..."));
-            });
-        }
-
-        protected virtual async Task<Status> bootInfrastructure(HttpRequest req, ILogger log, IAsyncCollector<SignalRMessage> signalRMessages,
-            CloudBlockBlob stateBlob, StateDetails stateDetails)
-        {
-            return await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(req, signalRMessages, log,
-                async (harness, reqData) =>
-            {
-                log.LogInformation($"Configuring Project Environment...");
-
-                await harness.BootDAFInfrastructure(devOpsArch, stateDetails.EnterpriseAPIKey, stateDetails.Username);
-
-                harness.UpdateBootOption("Infrastructure", status: Status.Initialized.Clone("Deploying Environment Infrastructure..."));
-            });
-        }
-
         protected virtual async Task<Status> initializeBoot(HttpRequest req, ILogger log, IAsyncCollector<SignalRMessage> signalRMessages,
             CloudBlockBlob stateBlob)
         {
