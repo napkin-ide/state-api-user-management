@@ -28,6 +28,9 @@ namespace LCU.State.API.NapkinIDE.User.Management
         #endregion
 
         [DataMember]
+        public virtual List<BootOption> BootOptions { get; set; }
+
+        [DataMember]
         public virtual List<JourneyDetail> Details { get; set; }
 
         [DataMember]
@@ -44,12 +47,15 @@ namespace LCU.State.API.NapkinIDE.User.Management
 
         [DataMember]
         public virtual MetadataModel EnvSettings { get; set; }
-        
-		[DataMember]
+
+        [DataMember]
         public virtual bool HasDevOpsOAuth { get; set; }
 
-		[DataMember]
+        [DataMember]
         public virtual string Host { get; set; }
+
+        [DataMember]
+        public virtual List<string> HostOptions { get; set; }
 
         [DataMember]
         public virtual bool Loading { get; set; }
@@ -75,6 +81,9 @@ namespace LCU.State.API.NapkinIDE.User.Management
         [DataMember]
         [JsonConverter(typeof(StringEnumConverter))]
         public virtual NapkinIDESetupStepTypes SetupStep { get; set; }
+   
+        [DataMember]
+        public virtual string Template { get; set; }
 
         [DataMember]
         public virtual string Terms { get; set; }
@@ -117,6 +126,29 @@ namespace LCU.State.API.NapkinIDE.User.Management
     }
 
     [DataContract]
+    public class BootOption
+    {
+        [DataMember]
+        public virtual string Description { get; set; }
+
+        [DataMember]
+        public virtual bool Loading { get; set; }
+
+        [DataMember]
+        public virtual string Lookup { get; set; }
+
+        [DataMember]
+        public virtual string Name { get; set; }
+
+        [DataMember]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public virtual NapkinIDESetupStepTypes? SetupStep { get; set; }
+
+        [DataMember]
+        public virtual Status Status { get; set; }
+ }
+
+    [DataContract]
     public enum NapkinIDESetupStepTypes
     {
         [EnumMember]
@@ -124,9 +156,6 @@ namespace LCU.State.API.NapkinIDE.User.Management
 
         [EnumMember]
         AzureSetup,
-
-        [EnumMember]
-        Billing,
 
         [EnumMember]
         Review,
@@ -140,13 +169,13 @@ namespace LCU.State.API.NapkinIDE.User.Management
     {
         [DataMember]
         public virtual string AzureTenantID { get; set; }
-        
+
         [DataMember]
         public virtual string AzureSubID { get; set; }
-        
+
         [DataMember]
         public virtual string AzureAppID { get; set; }
-        
+
         [DataMember]
         public virtual string AzureAppAuthKey { get; set; }
     }

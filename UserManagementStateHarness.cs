@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -17,6 +18,8 @@ using Newtonsoft.Json.Converters;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
 using LCU.Personas.Client.Enterprises;
+using LCU.Personas.Client.DevOps;
+using LCU.Personas.Enterprises;
 
 namespace LCU.State.API.NapkinIDE.User.Management
 {
@@ -35,6 +38,139 @@ namespace LCU.State.API.NapkinIDE.User.Management
         #endregion
 
         #region API Methods
+        public virtual async Task BootOrganizationEnvironment(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr,
+            DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
+        {
+            if (State.NewEnterpriseAPIKey.IsNullOrEmpty())
+            {
+                var entRes = await entArch.CreateEnterprise(new CreateEnterpriseRequest()
+                {
+                    Description = State.OrganizationDescription ?? State.OrganizationName,
+                    Host = State.Host,
+                    Name = State.OrganizationName
+                }, parentEntApiKey, username);
+
+                State.NewEnterpriseAPIKey = entRes.Model?.PrimaryAPIKey;
+            }
+
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var envResp = await devOpsArch.EnsureEnvironment(new Personas.DevOps.EnsureEnvironmentRequest()
+                {
+                    EnvSettings = State.EnvSettings,
+                    OrganizationLookup = State.OrganizationLookup,
+                }, State.NewEnterpriseAPIKey);
+
+                State.EnvironmentLookup = envResp.Model?.Lookup;
+            }
+            else if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+                await entMgr.SaveEnvironmentSettings(State.EnvSettings, State.NewEnterpriseAPIKey, State.EnvironmentLookup);
+
+        }
+
+        public virtual async Task<Status> BootIaC(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureInfrastructureRepo(State.NewEnterpriseAPIKey, username, State.EnvironmentLookup, devOpsEntApiKey: parentEntApiKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.Success;
+        }
+
+        public virtual async Task<Status> BootIaCBuildsAndReleases(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureInfrastructureBuildAndRelease(State.NewEnterpriseAPIKey, username, State.EnvironmentLookup, devOpsEntApiKey: parentEntApiKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.Success;
+        }
+
+        public virtual async Task<Status> BootDAFInfrastructure(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.SetEnvironmentInfrastructure(new Personas.DevOps.SetEnvironmentInfrastructureRequest()
+                {
+                    Template = State.Template ?? "fathym\\daf-state-setup"
+                }, State.NewEnterpriseAPIKey, State.EnvironmentLookup, username, devOpsEntApiKey: parentEntApiKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.Success;
+        }
+
+        public virtual async Task<Status> BootLCUFeeds(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureLCUFeed(new Personas.DevOps.EnsureLCUFeedRequest()
+                {
+                    EnvironmentLookup = State.EnvironmentLookup
+                }, State.NewEnterpriseAPIKey, username, devOpsEntApiKey: parentEntApiKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.Success;
+        }
+
+        public virtual async Task<Status> BootTaskLibrary(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureTaskTlibrary(State.NewEnterpriseAPIKey, username, State.EnvironmentLookup, devOpsEntApiKey: parentEntApiKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.Success;
+        }
+
+        public virtual void ConfigureInfrastructure(string infraType, bool useDefaultSettings, MetadataModel settings)
+        {
+            var envLookup = $"{State.OrganizationLookup}-prd";
+
+            State.EnvSettings = settings;
+
+            SetNapkinIDESetupStep(NapkinIDESetupStepTypes.Review);
+        }
+
+        public virtual void ConfigureBootOptions()
+        {
+            State.BootOptions = new List<BootOption>();
+
+            State.BootOptions.Add(new BootOption()
+            {
+                Name = "Project Details Configured",
+                Lookup = "Project",
+                Description = "Used for data configuration, project setup, and default secure-hosting",
+                SetupStep = NapkinIDESetupStepTypes.OrgDetails
+            });
+
+            State.BootOptions.Add(new BootOption()
+            {
+                Name = "Connected with DevOps",
+                Lookup = "DevOps",
+                Description = "Source Control, Builds, Deployment"
+            });
+
+            State.BootOptions.Add(new BootOption()
+            {
+                Name = "Infrastructure Connected",
+                Lookup = "Infrastructure",
+                Description = "A scalable, cost effective infrastructure configuration",
+                SetupStep = NapkinIDESetupStepTypes.AzureSetup
+            });
+        }
+
         public virtual void ConfigurePersonas()
         {
             // if (state.Personas.IsNullOrEmpty())
@@ -88,7 +224,6 @@ namespace LCU.State.API.NapkinIDE.User.Management
                     }
                 }
             };
-
         }
 
         public virtual void ConfigureJourneys()
@@ -175,22 +310,82 @@ namespace LCU.State.API.NapkinIDE.User.Management
             if (State.OrganizationName.IsNullOrEmpty())
                 State.SetupStep = NapkinIDESetupStepTypes.OrgDetails;
         }
-        
+
         public virtual async Task HasDevOpsOAuth(EnterpriseManagerClient entMgr, string entApiKey, string username)
         {
             var hasDevOps = await entMgr.HasDevOpsOAuth(entApiKey, username);
 
             State.HasDevOpsOAuth = hasDevOps.Status;
         }
-       
-        public virtual void SetPaymentMethod(string methodId)
+
+        public virtual async Task LoadRegistrationHosts(EnterpriseManagerClient entMgr, string entApiKey)
         {
-            State.PaymentMethodID = methodId;
+            if (State.HostOptions.IsNullOrEmpty())
+            {
+                var regHosts = await entMgr.ListRegistrationHosts(entApiKey);
+
+                State.HostOptions = regHosts.Model;
+            }
+        }
+
+        public virtual void SecureHost()
+        {
+            var root = State.HostOptions.FirstOrDefault();
+
+            State.Host = $"{State.OrganizationLookup}.{root}";
+        }
+
+        public virtual void SetBootOptionsLoading()
+        {
+            State.BootOptions.ForEach(bo =>
+            {
+                bo.Loading = true;
+            });
+        }
+
+        public virtual void UpdateBootOption(string bootOptionLookup, Status status = null, bool? loading = null)
+        {
+            var bootOption = State.BootOptions.FirstOrDefault(bo => bo.Lookup == bootOptionLookup);
+
+            if (bootOption != null)
+            {
+                if (status != null)
+                    bootOption.Status = status;
+
+                if (loading.HasValue)
+                    bootOption.Loading = loading.Value;
+            }
         }
 
         public virtual void SetNapkinIDESetupStep(NapkinIDESetupStepTypes step)
         {
             State.SetupStep = step;
+
+            if (State.SetupStep == NapkinIDESetupStepTypes.Review)
+                ConfigureBootOptions();
+        }
+
+        public virtual void SetOrganizationDetails(string name, string description, string lookup, bool accepted)
+        {
+            if (!name.IsNullOrEmpty())
+                SetNapkinIDESetupStep(NapkinIDESetupStepTypes.AzureSetup);
+            else
+                SetNapkinIDESetupStep(NapkinIDESetupStepTypes.OrgDetails);
+
+            State.OrganizationName = name;
+
+            State.OrganizationDescription = description;
+
+            State.OrganizationLookup = lookup;
+
+            State.TermsAccepted = accepted;
+
+            SecureHost();
+        }
+
+        public virtual void SetPaymentMethod(string methodId)
+        {
+            State.PaymentMethodID = methodId;
         }
 
         public virtual void SetUserType(UserTypes userType)

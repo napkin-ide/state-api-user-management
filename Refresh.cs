@@ -37,7 +37,7 @@ namespace LCU.State.API.NapkinIDE.User.Management
 
         [FunctionName("Refresh")]
         public virtual async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
-            [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages, ClaimsPrincipal user,
+            [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             return await stateBlob.WithStateHarness<UserManagementState, RefreshRequest, UserManagementStateHarness>(req, signalRMessages, log,
@@ -45,7 +45,7 @@ namespace LCU.State.API.NapkinIDE.User.Management
             {
                 log.LogInformation($"Refresh");
 
-                var stateDetails = StateUtils.LoadStateDetails(req, user);
+                var stateDetails = StateUtils.LoadStateDetails(req);
 
                 harness.ConfigureJourneys();
 
@@ -55,7 +55,10 @@ namespace LCU.State.API.NapkinIDE.User.Management
 
                 harness.DetermineSetupStep();
 
-                await harness.HasDevOpsOAuth(entMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username);
+                await Task.WhenAll(new[]{
+                    harness.LoadRegistrationHosts(entMgr, stateDetails.EnterpriseAPIKey),
+                    harness.HasDevOpsOAuth(entMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username)
+                });
             });
         }
     }
