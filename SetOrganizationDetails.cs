@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Runtime.Serialization;
-using LCU.State.API.NapkinIDE.User.Management;
+using LCU.State.API.NapkinIDE.UserManagement;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Fathym;

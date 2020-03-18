@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 using Microsoft.Azure.WebJobs.Host.Protocols;
 using System.Reflection;
 
-namespace LCU.State.API.NapkinIDE.User.Management
+namespace LCU.State.API.NapkinIDE.UserManagement
 {
     public class LCUStateAttribute : Attribute, IConnectionProvider
     {

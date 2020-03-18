@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Runtime.Serialization;
 using Fathym;
-using LCU.State.API.NapkinIDE.User.Management;
+using LCU.State.API.NapkinIDE.UserManagement;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.WindowsAzure.Storage.Blob;
 

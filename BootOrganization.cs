@@ -18,7 +18,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using System.Net.Http;
 using LCU.Presentation.State.ReqRes;
 
-namespace LCU.State.API.NapkinIDE.User.Management
+namespace LCU.State.API.NapkinIDE.UserManagement
 {
     [Serializable]
     [DataContract]

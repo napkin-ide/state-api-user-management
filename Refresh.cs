@@ -19,7 +19,7 @@ using LCU.StateAPI.Utilities;
 using System.Security.Claims;
 using LCU.Personas.Client.Enterprises;
 
-namespace LCU.State.API.NapkinIDE.User.Management
+namespace LCU.State.API.NapkinIDE.UserManagement
 {
     [Serializable]
     [DataContract]

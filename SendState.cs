@@ -10,7 +10,7 @@ using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 
-namespace LCU.State.API.NapkinIDE.User.Management
+namespace LCU.State.API.NapkinIDE.UserManagement
 {
     public static class SendState
     {

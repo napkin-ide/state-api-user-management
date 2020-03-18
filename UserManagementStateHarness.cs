@@ -20,8 +20,9 @@ using System.Collections.Generic;
 using LCU.Personas.Client.Enterprises;
 using LCU.Personas.Client.DevOps;
 using LCU.Personas.Enterprises;
+using LCU.Personas.Client.Applications;
 
-namespace LCU.State.API.NapkinIDE.User.Management
+namespace LCU.State.API.NapkinIDE.UserManagement
 {
     public class UserManagementStateHarness : LCUStateHarness<UserManagementState>
     {
@@ -107,6 +108,84 @@ namespace LCU.State.API.NapkinIDE.User.Management
                 return Status.Success;
         }
 
+        public virtual async Task<Status> BootHost(EnterpriseArchitectClient entArch, string parentEntApiKey)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await entArch.EnsureHost(new EnsureHostRequest()
+                {
+                    EnviromentLookup = State.EnvironmentLookup
+                }, State.NewEnterpriseAPIKey, State.Host, State.EnvironmentLookup, parentEntApiKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.Success;
+        }
+
+        public virtual async Task<Status> BootHostAuthApp(EnterpriseArchitectClient entArch)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await entArch.EnsureHostAuthApp(State.NewEnterpriseAPIKey, State.Host, State.EnvironmentLookup);
+
+                return resp.Status;
+            }
+            else
+                return Status.Success;
+        }
+
+        public virtual async Task<Status> BootHostSSL(EnterpriseArchitectClient entArch, string parentEntApiKey)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await entArch.EnsureHostsSSL(new EnsureHostsSSLRequest()
+                {
+                    Hosts = new List<string>() { State.Host }
+                }, State.NewEnterpriseAPIKey, State.EnvironmentLookup, parentEntApiKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.Success;
+        }
+
+        public virtual async Task<Status> BootMicroAppsRuntime(EnterpriseArchitectClient entArch)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await entArch.EnsureLCURuntime(State.NewEnterpriseAPIKey, State.EnvironmentLookup);
+
+                return resp.Status;
+            }
+            else
+                return Status.Success;
+        }
+
+        public virtual async Task<Status> BootDataApps(ApplicationDeveloperClient appDev)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await appDev.ConfigureNapkinIDEForDataApps(State.NewEnterpriseAPIKey, State.Host);
+
+                return resp.Status;
+            }
+            else
+                return Status.Success;
+        }
+
+        public virtual async Task<Status> BootDataFlow(ApplicationDeveloperClient appDev)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await appDev.ConfigureNapkinIDEForDataFlows(State.NewEnterpriseAPIKey, State.Host);
+
+                return resp.Status;
+            }
+            else
+                return Status.Success;
+        }
+
         public virtual async Task<Status> BootLCUFeeds(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
         {
             if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
@@ -168,6 +247,20 @@ namespace LCU.State.API.NapkinIDE.User.Management
                 Lookup = "Infrastructure",
                 Description = "A scalable, cost effective infrastructure configuration",
                 SetupStep = NapkinIDESetupStepTypes.AzureSetup
+            });
+
+            State.BootOptions.Add(new BootOption()
+            {
+                Name = "Domain Configuration",
+                Lookup = "Domain",
+                Description = "User Security, Host Setup, Free Open Source SSL"
+            });
+
+            State.BootOptions.Add(new BootOption()
+            {
+                Name = "Micro-Application Orchestration",
+                Lookup = "MicroApps",
+                Description = "Low Code Unit Runtime, Data Flow LCU, Data Applications LCU"
             });
         }
 

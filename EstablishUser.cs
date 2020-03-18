@@ -13,7 +13,7 @@ using Fathym;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.WindowsAzure.Storage.Blob;
 
-namespace LCU.State.API.NapkinIDE.User.Management
+namespace LCU.State.API.NapkinIDE.UserManagement
 {
         [Serializable]
         [DataContract]
