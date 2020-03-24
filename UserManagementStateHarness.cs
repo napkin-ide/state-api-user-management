@@ -21,6 +21,7 @@ using LCU.Personas.Client.Enterprises;
 using LCU.Personas.Client.DevOps;
 using LCU.Personas.Enterprises;
 using LCU.Personas.Client.Applications;
+using Fathym.API;
 
 namespace LCU.State.API.NapkinIDE.UserManagement
 {
@@ -112,12 +113,17 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         {
             if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
-                var resp = await entArch.EnsureHost(new EnsureHostRequest()
-                {
-                    EnviromentLookup = State.EnvironmentLookup
-                }, State.NewEnterpriseAPIKey, State.Host, State.EnvironmentLookup, parentEntApiKey);
+                // var response = await entArch.EnsureHost(new EnsureHostRequest()
+                // {
+                //     EnviromentLookup = State.EnvironmentLookup
+                // }, State.NewEnterpriseAPIKey, State.Host, State.EnvironmentLookup, parentEntApiKey);
+                var response = await entArch.Post<EnsureHostRequest, BaseResponse>($"hosting/{State.NewEnterpriseAPIKey}/hosts/{State.Host}/ensure?envLookup={State.EnvironmentLookup}&parentEntApiKey={parentEntApiKey}",
+                    new EnsureHostRequest()
+                    {
+                        EnviromentLookup = State.EnvironmentLookup
+                    });
 
-                return resp.Status;
+                return response.Status;
             }
             else
                 return Status.Success;
@@ -212,6 +218,26 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             else
                 return Status.Success;
         }
+
+        public virtual async Task<Status> CanFinalize(EnterpriseManagerClient entMgr, string parentEntApiKey, string username)
+        {
+            var status = Status.GeneralError;
+
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var canFinalize = await entMgr.EnsureInfraBuiltAndReleased(State.NewEnterpriseAPIKey, username, State.EnvironmentLookup, parentEntApiKey);
+
+                status = canFinalize.Status;
+            }
+
+            return status;
+        }
+
+        public virtual void CompleteBoot()
+        {
+            State.Booted = true;
+        }
+
 
         public virtual void ConfigureInfrastructure(string infraType, bool useDefaultSettings, MetadataModel settings)
         {

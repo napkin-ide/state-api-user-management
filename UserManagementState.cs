@@ -26,6 +26,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         #region Constants
         public const string HUB_NAME = "usermanagement";
         #endregion
+        
+        [DataMember]
+        public virtual bool Booted { get; set; }
 
         [DataMember]
         public virtual List<BootOption> BootOptions { get; set; }
