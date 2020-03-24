@@ -58,12 +58,19 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             await initializeBoot(req, log, signalRMessages, stateBlob);
 
-            var instanceId = await starter.StartNewAsync("BootOrganizationOrchestration",
-                $"{stateDetails.EnterpriseAPIKey}-{stateDetails.HubName}-{stateDetails.Username}-{stateDetails.StateKey}", new StateActionContext()
-                {
-                    ActionRequest = await req.LoadBody<ExecuteActionRequest>(),
-                    StateDetails = stateDetails
-                });
+            var instanceId = $"{stateDetails.EnterpriseAPIKey}-{stateDetails.HubName}-{stateDetails.Username}-{stateDetails.StateKey}";
+
+            var instanceStatus = await starter.GetStatusAsync(instanceId, false);
+
+            if (instanceStatus != null && (instanceStatus.RuntimeStatus == OrchestrationRuntimeStatus.ContinuedAsNew ||
+                instanceStatus.RuntimeStatus == OrchestrationRuntimeStatus.Pending || instanceStatus.RuntimeStatus == OrchestrationRuntimeStatus.Running))
+                await starter.TerminateAsync(instanceId, "Restarting orchestration");
+
+            instanceId = await starter.StartNewAsync("BootOrganizationOrchestration", instanceId, new StateActionContext()
+            {
+                ActionRequest = await req.LoadBody<ExecuteActionRequest>(),
+                StateDetails = stateDetails
+            });
 
             log.LogInformation($"Started orchestration with ID = '{instanceId}'.");
 
