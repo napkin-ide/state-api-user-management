@@ -17,6 +17,7 @@ using LCU.StateAPI.Utilities;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using System.Net.Http;
 using LCU.Presentation.State.ReqRes;
+using LCU.StateAPI;
 
 namespace LCU.State.API.NapkinIDE.UserManagement
 {

@@ -245,6 +245,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             State.EnvSettings = settings;
 
+            State.Booted = false;
+
             SetNapkinIDESetupStep(NapkinIDESetupStepTypes.Review);
         }
 
