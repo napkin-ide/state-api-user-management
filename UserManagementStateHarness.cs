@@ -239,13 +239,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         }
 
 
-        public virtual void ConfigureInfrastructure(string infraType, bool useDefaultSettings, MetadataModel settings)
+        public virtual void ConfigureInfrastructure(string infraType, bool useDefaultSettings, MetadataModel settings, string template)
         {
             var envLookup = $"{State.OrganizationLookup}-prd";
 
+            State.Booted = false;
+
             State.EnvSettings = settings;
 
-            State.Booted = false;
+            State.Template = template;
 
             SetNapkinIDESetupStep(NapkinIDESetupStepTypes.Review);
         }
