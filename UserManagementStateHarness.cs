@@ -100,7 +100,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             {
                 var resp = await devOpsArch.SetEnvironmentInfrastructure(new Personas.DevOps.SetEnvironmentInfrastructureRequest()
                 {
-                    Template = State.Template ?? "fathym\\daf-state-setup"
+                    Template = State.Template
                 }, State.NewEnterpriseAPIKey, State.EnvironmentLookup, username, devOpsEntApiKey: parentEntApiKey);
 
                 return resp.Status;
@@ -290,6 +290,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 Lookup = "MicroApps",
                 Description = "Low Code Unit Runtime, Data Flow LCU, Data Applications LCU"
             });
+        }
+
+        public virtual void ConfigureInfrastructureOptions()
+        {
+            State.InfrastructureOptions = new Dictionary<string, string>();
+
+            State.InfrastructureOptions["fathym\\daf-state-setup"] = "Low Code Unit™ Runtime";
+            
+            State.InfrastructureOptions["fathym\\daf-iot-full-setup"] = "Low Code Unit™ Runtime w/ IoT";
         }
 
         public virtual void ConfigurePersonas()

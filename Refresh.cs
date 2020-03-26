@@ -47,6 +47,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
+                harness.ConfigureInfrastructureOptions();
+
                 harness.ConfigureJourneys();
 
                 harness.ConfigurePersonas();
