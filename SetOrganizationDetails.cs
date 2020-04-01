@@ -42,6 +42,8 @@ namespace LCU.State.API.NapkinIDE.Setup
                 log.LogInformation($"Executing SetUserDetails Action.");
 
                 harness.SetOrganizationDetails(reqData.Name, reqData.Description, reqData.Lookup, true);
+
+                return Status.Success;
             });
         }
     }

@@ -36,6 +36,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 log.LogInformation($"Executing SetUserSetupStep Action.");
 
                 harness.SetNapkinIDESetupStep(setupReq.Step);
+
+                return Status.Success;
             });
         }
     }

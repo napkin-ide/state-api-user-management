@@ -89,6 +89,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         public virtual NapkinIDESetupStepTypes SetupStep { get; set; }
    
         [DataMember]
+        public virtual Status Status { get; set; }
+
+        [DataMember]
         public virtual string Template { get; set; }
 
         [DataMember]

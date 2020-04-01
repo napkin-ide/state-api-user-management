@@ -36,6 +36,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 log.LogInformation($"Executing SetUserSetupStep Action.");
 
                 harness.SetPaymentMethod(payReq.MethodID);
+
+                return Status.Success;
             });
         }
     }

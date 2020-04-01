@@ -63,6 +63,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                     harness.LoadRegistrationHosts(entMgr, stateDetails.EnterpriseAPIKey),
                     harness.HasDevOpsOAuth(entMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username)
                 });
+
+                return Status.Success;
             });
         }
     }

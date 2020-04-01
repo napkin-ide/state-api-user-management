@@ -65,7 +65,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             if (instanceStatus != null && (instanceStatus.RuntimeStatus == OrchestrationRuntimeStatus.ContinuedAsNew ||
                 instanceStatus.RuntimeStatus == OrchestrationRuntimeStatus.Pending || instanceStatus.RuntimeStatus == OrchestrationRuntimeStatus.Running))
+            {
                 await starter.TerminateAsync(instanceId, "Restarting orchestration");
+
+                await Task.Delay(5000);
+            }
 
             instanceId = await starter.StartNewAsync("BootOrganizationOrchestration", instanceId, new StateActionContext()
             {
@@ -89,6 +93,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 harness.SetBootOptionsLoading();
 
                 harness.UpdateBootOption("Project", status: Status.Initialized.Clone("Configuring Project Environment..."));
+
+                harness.UpdateStatus(null);
+
+                return Status.Success;
             });
         }
         #endregion

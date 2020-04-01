@@ -45,6 +45,8 @@ namespace LCU.State.API.NapkinIDE.Setup
                 log.LogInformation($"Executing SetUserDetails Action.");
 
                 harness.ConfigureInfrastructure(reqData.InfrastructureType, reqData.UseDefaultSettings, reqData.Settings, reqData.Template);
+
+                return Status.Success;
             });
         }
     }

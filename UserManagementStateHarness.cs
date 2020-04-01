@@ -40,9 +40,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         #endregion
 
         #region API Methods
-        public virtual async Task BootOrganizationEnvironment(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr,
+        public virtual async Task<Status> BootOrganizationEnvironment(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr,
             DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
         {
+            var status = Status.Success;
+
             if (State.NewEnterpriseAPIKey.IsNullOrEmpty())
             {
                 var entRes = await entArch.CreateEnterprise(new CreateEnterpriseRequest()
@@ -53,9 +55,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 }, parentEntApiKey, username);
 
                 State.NewEnterpriseAPIKey = entRes.Model?.PrimaryAPIKey;
+
+                status = entRes.Status;
             }
 
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && State.EnvironmentLookup.IsNullOrEmpty())
+            if (status && !State.NewEnterpriseAPIKey.IsNullOrEmpty() && State.EnvironmentLookup.IsNullOrEmpty())
             {
                 var envResp = await devOpsArch.EnsureEnvironment(new Personas.DevOps.EnsureEnvironmentRequest()
                 {
@@ -64,10 +68,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 }, State.NewEnterpriseAPIKey);
 
                 State.EnvironmentLookup = envResp.Model?.Lookup;
+
+                status = envResp.Status;
             }
             else if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
                 await entMgr.SaveEnvironmentSettings(State.EnvSettings, State.NewEnterpriseAPIKey, State.EnvironmentLookup);
 
+            UpdateStatus(status);
+
+            return status;
         }
 
         public virtual async Task<Status> BootIaC(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
@@ -299,7 +308,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             State.InfrastructureOptions = new Dictionary<string, string>();
 
             State.InfrastructureOptions["fathym\\daf-state-setup"] = "Low Code Unit™ Runtime";
-            
+
             State.InfrastructureOptions["fathym\\daf-iot-full-setup"] = "Low Code Unit™ Runtime w/ IoT";
         }
 
@@ -473,6 +482,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             {
                 bo.Loading = true;
             });
+        }
+
+        public virtual void UpdateStatus(Status status)
+        {
+            State.Status = status;
         }
 
         public virtual void UpdateBootOption(string bootOptionLookup, Status status = null, bool? loading = null)
