@@ -55,31 +55,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
-            var stateDetails = StateUtils.LoadStateDetails(req);
-
             await initializeBoot(req, log, signalRMessages, stateBlob);
 
-            var instanceId = $"{stateDetails.EnterpriseAPIKey}-{stateDetails.HubName}-{stateDetails.Username}-{stateDetails.StateKey}";
-
-            var instanceStatus = await starter.GetStatusAsync(instanceId, false);
-
-            if (instanceStatus != null && (instanceStatus.RuntimeStatus == OrchestrationRuntimeStatus.ContinuedAsNew ||
-                instanceStatus.RuntimeStatus == OrchestrationRuntimeStatus.Pending || instanceStatus.RuntimeStatus == OrchestrationRuntimeStatus.Running))
-            {
-                await starter.TerminateAsync(instanceId, "Restarting orchestration");
-
-                await Task.Delay(5000);
-            }
-
-            instanceId = await starter.StartNewAsync("BootOrganizationOrchestration", instanceId, new StateActionContext()
-            {
-                ActionRequest = await req.LoadBody<ExecuteActionRequest>(),
-                StateDetails = stateDetails
-            });
-
-            log.LogInformation($"Started orchestration with ID = '{instanceId}'.");
-
-            return starter.CreateCheckStatusResponse(req, instanceId);
+            return await starter.StartAction("BootOrganizationOrchestration", req, log);
         }
         #endregion
 
