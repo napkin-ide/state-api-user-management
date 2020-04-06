@@ -92,10 +92,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         public virtual Status Status { get; set; }
 
 		[DataMember]
-		public virtual List<object> SubscribersActive { get; set;}
+		public virtual List<string> SubscribersActive { get; set;}
 
 		[DataMember]
-		public virtual List<object> SubscribersLimited { get; set;}
+		public virtual List<string> SubscribersLimited { get; set;}
 
         [DataMember]
         public virtual string Template { get; set; }

@@ -464,13 +464,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         public virtual async Task ListSubscribers(IdentityManagerClient idMgr, string entApiKey, string isLimited) 
         {
             // Get the list of subscribers based on subscriber status
-            var subscriberResp = await idMgr.ListSubscribers(entApiKey, isLimited).Result;
+            var subscriberResp = await idMgr.ListSubscribers(entApiKey, isLimited);
 
             // Update subscriber state
             if (isLimited == "true") {
-                State.SubscribersLimited = subscriberResp;
+                State.SubscribersLimited = subscriberResp.Model;
             } else {
-                State.SubscribersActive = subscriberResp;
+                State.SubscribersActive = subscriberResp.Model;
             }
             
         }
