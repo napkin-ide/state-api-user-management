@@ -79,9 +79,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         public virtual string OrganizationName { get; set; }
 
         [DataMember]
-        public virtual string PaymentMethodID { get; set; }
-
-        [DataMember]
         public virtual List<JourneyPersona> Personas { get; set; }
 
         [DataMember]

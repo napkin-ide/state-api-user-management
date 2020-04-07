@@ -545,11 +545,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             SecureHost();
         }
 
-        public virtual void SetPaymentMethod(string methodId)
-        {
-            State.PaymentMethodID = methodId;
-        }
-
         public virtual void SetUserType(UserTypes userType)
         {
             State.UserType = userType;

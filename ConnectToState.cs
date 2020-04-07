@@ -23,7 +23,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRGroupAction> signalRGroupActions,
             [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
-            return await signalRMessages.ConnectToState<UserManagementState>(req, log, claimsPrincipal, stateBlob, signalRGroupActions);
+            var stateDetails = StateUtils.LoadStateDetails(req);
+
+            if (stateDetails.StateKey == "billing")
+                return await signalRMessages.ConnectToState<UserBillingState>(req, log, claimsPrincipal, stateBlob, signalRGroupActions);
+            else
+                return await signalRMessages.ConnectToState<UserManagementState>(req, log, claimsPrincipal, stateBlob, signalRGroupActions);
         }
     }
 }
