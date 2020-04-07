@@ -300,7 +300,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             {
                 Name = "Micro-Application Orchestration",
                 Lookup = "MicroApps",
-                Description = "Low-Code Unit™ Runtime, Data Flow LCU, Data Applications LCU"
+                Description = "Low-Code Unit™ Runtime, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™"
             });
         }
 
@@ -376,7 +376,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 {
                     Name = "SPAs with Angular",
                     Lookup = "AngularSPA",
-                    Description = "Create and host your next Angular application with Fathym's Low-Code™ Unit."
+                    Description = "Create and host your next Angular application with Fathym's Low-Code Unit™."
                 },
                 new JourneyDetail()
                 {
