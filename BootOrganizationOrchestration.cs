@@ -378,7 +378,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                     var status = await harness.BootMicroAppsRuntime(entArch);
 
                     if (status)
-                        harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Configuring Data Apps Low Code Unit..."));
+                        harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Configuring Data Apps Low-Code Unit™..."));
                     else
                         harness.UpdateBootOption("MicroApps", status: Status.GeneralError.Clone("Error Configuring Micro-Applicatinos Runtime"));
 
@@ -391,14 +391,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
                     {
-                        log.LogInformation($"Booting data apps Low Code Unit...");
+                        log.LogInformation($"Booting data apps Low-Code Unit™...");
 
                         var status = await harness.BootDataApps(appDev);
 
                         if (status)
-                            harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Configuring Data Flow Low Code Unit..."));
+                            harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Configuring Data Flow Low-Code Unit™..."));
                         else
-                            harness.UpdateBootOption("MicroApps", status: Status.GeneralError.Clone("Error Configuring Data Applications Low Code Unit"));
+                            harness.UpdateBootOption("MicroApps", status: Status.GeneralError.Clone("Error Configuring Data Applications Low-Code Unit™"));
 
                         harness.UpdateStatus(status);
 
@@ -409,7 +409,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
                     {
-                        log.LogInformation($"Booting data flow Low Code Unit...");
+                        log.LogInformation($"Booting data flow Low-Code Unit™...");
 
                         var status = await harness.BootDataFlow(appDev);
 
@@ -420,7 +420,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                             harness.CompleteBoot();
                         }
                         else
-                            harness.UpdateBootOption("MicroApps", status: Status.GeneralError.Clone("Error Configuring Data Flow Low Code Unit"));
+                            harness.UpdateBootOption("MicroApps", status: Status.GeneralError.Clone("Error Configuring Data Flow Low-Code Unit™"));
 
                         harness.UpdateStatus(status);
 
