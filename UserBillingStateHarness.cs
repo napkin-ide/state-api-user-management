@@ -96,6 +96,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             State.PaymentStatus = completeResp.Status;
         }
+
+        public virtual void ResetStateCheck()
+        {
+            if (State.PaymentStatus)
+                State = new UserBillingState();
+        }
         #endregion
     }
 }

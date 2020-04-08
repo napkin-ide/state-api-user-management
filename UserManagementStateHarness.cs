@@ -460,19 +460,22 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             State.HasDevOpsOAuth = hasDevOps.Status;
         }
 
-        
-        public virtual async Task ListSubscribers(IdentityManagerClient idMgr, string entApiKey, string isLimited) 
+
+        public virtual async Task ListSubscribers(IdentityManagerClient idMgr, string entApiKey, string isLimited)
         {
             // Get the list of subscribers based on subscriber status
             var subscriberResp = await idMgr.ListSubscribers(entApiKey, isLimited);
 
             // Update subscriber state
-            if (isLimited == "true") {
+            if (isLimited == "true")
+            {
                 State.SubscribersLimited = subscriberResp.Model;
-            } else {
+            }
+            else
+            {
                 State.SubscribersActive = subscriberResp.Model;
             }
-            
+
         }
 
         public virtual async Task LoadRegistrationHosts(EnterpriseManagerClient entMgr, string entApiKey)
@@ -527,22 +530,33 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 ConfigureBootOptions();
         }
 
-        public virtual void SetOrganizationDetails(string name, string description, string lookup, bool accepted)
+        public virtual async Task SetOrganizationDetails(EnterpriseManagerClient entMgr, string name, string description, string lookup, bool accepted)
         {
-            if (!name.IsNullOrEmpty())
-                SetNapkinIDESetupStep(NapkinIDESetupStepTypes.AzureSetup);
+            var hostResp = await entMgr.ResolveHost(State.Host, false);
+
+            if (hostResp.Status == Status.NotLocated)
+            {
+                State.OrganizationName = name;
+
+                State.OrganizationDescription = description;
+
+                State.OrganizationLookup = lookup;
+
+                State.TermsAccepted = accepted;
+
+                SecureHost();
+
+                if (!name.IsNullOrEmpty())
+                    SetNapkinIDESetupStep(NapkinIDESetupStepTypes.AzureSetup);
+                else
+                    SetNapkinIDESetupStep(NapkinIDESetupStepTypes.OrgDetails);
+            }
             else
-                SetNapkinIDESetupStep(NapkinIDESetupStepTypes.OrgDetails);
-
-            State.OrganizationName = name;
-
-            State.OrganizationDescription = description;
-
-            State.OrganizationLookup = lookup;
-
-            State.TermsAccepted = accepted;
-
-            SecureHost();
+                State.Status = new Status()
+                {
+                    Code = 101,
+                    Message = "An enterprise with that lookup already exists."
+                };
         }
 
         public virtual void SetUserType(UserTypes userType)

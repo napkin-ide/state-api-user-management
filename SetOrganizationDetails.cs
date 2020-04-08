@@ -12,6 +12,7 @@ using LCU.State.API.NapkinIDE.UserManagement;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Fathym;
+using LCU.Personas.Client.Enterprises;
 
 namespace LCU.State.API.NapkinIDE.Setup
 {
@@ -29,10 +30,17 @@ namespace LCU.State.API.NapkinIDE.Setup
 		public virtual string Lookup { get; set; }
 	}
 
-    public static class SetOrganizationDetails
+    public class SetOrganizationDetails
     {
+        protected EnterpriseManagerClient entMgr;
+
+        public SetOrganizationDetails(EnterpriseManagerClient entMgr)
+        {
+            this.entMgr = entMgr;
+        }
+
         [FunctionName("SetOrganizationDetails")]
-        public static async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
+        public virtual async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
@@ -41,7 +49,7 @@ namespace LCU.State.API.NapkinIDE.Setup
             {
                 log.LogInformation($"Executing SetUserDetails Action.");
 
-                harness.SetOrganizationDetails(reqData.Name, reqData.Description, reqData.Lookup, true);
+                await harness.SetOrganizationDetails(entMgr, reqData.Name, reqData.Description, reqData.Lookup, true);
 
                 return Status.Success;
             });
