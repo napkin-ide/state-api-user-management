@@ -41,32 +41,36 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         #endregion
 
         #region API Methods
-        public virtual async Task LoadBillingPlans()
+        public virtual async Task LoadBillingPlans(EnterpriseManagerClient entMgr, string entApiKey)
         {
-            State.Plans = new List<BillingPlanOption>()
-            {
-                new BillingPlanOption() 
-                {
-                    Description = "Billing Plan 1 description",
-                    Lookup = "plan1",
-                    Name = "Billing Plan 1",
-                    Price = 20
-                },
-                new BillingPlanOption() 
-                {
-                    Description = "Billing Plan 2 description",
-                    Lookup = "plan1",
-                    Name = "Billing Plan 2",
-                    Price = 100
-                },
-                new BillingPlanOption() 
-                {
-                    Description = "Billing Plan 3 description",
-                    Lookup = "plan3",
-                    Name = "Billing Plan 3",
-                    Price = 200
-                }
-            };
+            var plansResp = await entMgr.ListBillingPlanOptions(entApiKey, "all");
+
+            State.Plans = plansResp.Model ?? new List<BillingPlanOption>();
+
+            // State.Plans = new List<BillingPlanOption>()
+            // {
+            //     new BillingPlanOption() 
+            //     {
+            //         Description = "Billing Plan 1 description",
+            //         Lookup = "plan1",
+            //         Name = "Billing Plan 1",
+            //         Price = 20
+            //     },
+            //     new BillingPlanOption() 
+            //     {
+            //         Description = "Billing Plan 2 description",
+            //         Lookup = "plan1",
+            //         Name = "Billing Plan 2",
+            //         Price = 100
+            //     },
+            //     new BillingPlanOption() 
+            //     {
+            //         Description = "Billing Plan 3 description",
+            //         Lookup = "plan3",
+            //         Name = "Billing Plan 3",
+            //         Price = 200
+            //     }
+            // };
         }
 
         public virtual void SetUsername(string username)
@@ -74,9 +78,21 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             State.Username = username;
         }
 
-        public virtual void SetPaymentMethod(string methodId)
+        public virtual async Task CompletePayment(EnterpriseManagerClient entMgr, string entApiKey, string username, string methodId, string customerName, string plan)
         {
+            State.CustomerName = customerName;
+
             State.PaymentMethodID = methodId;
+
+            var completeResp = await entMgr.CompleteStripeSubscription(entApiKey, new CompleteStripeSubscriptionRequest()
+            {
+                CustomerName = State.CustomerName,
+                PaymentMethodID = methodId,
+                Plan = plan,
+                Username = username
+            });
+
+            State.PaymentStatus = completeResp.Status;
         }
         #endregion
     }

@@ -30,22 +30,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement
     public class BootOrganization
     {
         #region Fields
-        protected DevOpsArchitectClient devOpsArch;
-
-        protected EnterpriseArchitectClient entArch;
-
-        protected EnterpriseManagerClient entMgr;
         #endregion
 
         #region Constructors
-        public BootOrganization(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr, DevOpsArchitectClient devOpsArch)
-        {
-            this.devOpsArch = devOpsArch;
-
-            this.entArch = entArch;
-
-            this.entMgr = entMgr;
-        }
+        public BootOrganization()
+        { }
         #endregion
 
         #region API Methods
