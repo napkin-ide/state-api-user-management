@@ -66,6 +66,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         protected virtual async Task<Status> refreshUserBilling(UserBillingStateHarness harness, ILogger log, StateDetails stateDetails)
         {
             await harness.LoadBillingPlans();
+
+            harness.SetUsername(stateDetails.Username);
             
             return Status.Success;
         }

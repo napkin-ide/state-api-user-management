@@ -34,6 +34,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
         [DataMember]
         public virtual Status Status { get; set; }
+
+        [DataMember]
+        public virtual string Username { get; set; }
     }
 
     [Serializable]

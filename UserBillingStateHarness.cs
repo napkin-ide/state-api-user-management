@@ -69,6 +69,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             };
         }
 
+        public virtual void SetUsername(string username)
+        {
+            State.Username = username;
+        }
+
         public virtual void SetPaymentMethod(string methodId)
         {
             State.PaymentMethodID = methodId;
