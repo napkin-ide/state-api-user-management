@@ -300,7 +300,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             {
                 Name = "Micro-Application Orchestration",
                 Lookup = "MicroApps",
-                Description = "Low Code Unit Runtime, Data Flow LCU, Data Applications LCU"
+                Description = "Low-Code Unit™ Runtime, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™"
             });
         }
 
@@ -308,9 +308,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         {
             State.InfrastructureOptions = new Dictionary<string, string>();
 
-            State.InfrastructureOptions["fathym\\daf-state-setup"] = "Low Code Unit™ Runtime";
+            State.InfrastructureOptions["fathym\\daf-state-setup"] = "Low-Code Unit™ Runtime";
 
-            State.InfrastructureOptions["fathym\\daf-iot-full-setup"] = "Low Code Unit™ Runtime w/ IoT";
+            State.InfrastructureOptions["fathym\\daf-iot-full-setup"] = "Low-Code Unit™ Runtime w/ IoT";
         }
 
         public virtual void ConfigurePersonas()
@@ -376,13 +376,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 {
                     Name = "SPAs with Angular",
                     Lookup = "AngularSPA",
-                    Description = "Create and host your next Angular application with Fathym's Low Code Unit."
+                    Description = "Create and host your next Angular application with Fathym's Low-Code Unit™."
                 },
                 new JourneyDetail()
                 {
-                    Name = "Low Code Unit Blade",
+                    Name = "Low-Code Unit™ Blade",
                     Lookup = "LCUBlade",
-                    Description = "Create a new Low Code Unit Blade for your Enterprise IDE."
+                    Description = "Create a new Low-Code Unit™ Blade for your Enterprise IDE."
                 },
                 new JourneyDetail()
                 {
