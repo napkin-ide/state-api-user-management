@@ -488,11 +488,25 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             }
         }
 
-        public virtual void SecureHost()
+        public virtual async Task<Status> SecureHost(EnterpriseManagerClient entMgr)
         {
             var root = State.HostOptions.FirstOrDefault();
 
-            State.Host = $"{State.OrganizationLookup}.{root}";
+            var host = $"{State.OrganizationLookup}.{root}";
+
+            try
+            {
+                var hostResp = await entMgr.ResolveHost(host, false);
+
+                if (hostResp.Status)
+                    State.Host = host;
+
+                return hostResp.Status;
+            }
+            catch (Exception ex)
+            {
+                return Status.NotLocated;
+            }
         }
 
         public virtual void SetBootOptionsLoading()
@@ -532,24 +546,24 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
         public virtual async Task SetOrganizationDetails(EnterpriseManagerClient entMgr, string name, string description, string lookup, bool accepted)
         {
-            var hostResp = await entMgr.ResolveHost(State.Host, false);
+            State.OrganizationName = name;
 
-            if (hostResp.Status == Status.NotLocated)
+            State.OrganizationDescription = description;
+
+            State.OrganizationLookup = lookup;
+
+            var secured = await SecureHost(entMgr);
+
+            if (secured == Status.NotLocated)
             {
-                State.OrganizationName = name;
-
-                State.OrganizationDescription = description;
-
-                State.OrganizationLookup = lookup;
-
                 State.TermsAccepted = accepted;
-
-                SecureHost();
 
                 if (!name.IsNullOrEmpty())
                     SetNapkinIDESetupStep(NapkinIDESetupStepTypes.AzureSetup);
                 else
                     SetNapkinIDESetupStep(NapkinIDESetupStepTypes.OrgDetails);
+
+                State.Status = null;
             }
             else
                 State.Status = new Status()
