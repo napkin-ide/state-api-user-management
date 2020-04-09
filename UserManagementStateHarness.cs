@@ -23,6 +23,7 @@ using LCU.Personas.Enterprises;
 using LCU.Personas.Client.Applications;
 using LCU.Personas.Client.Identity;
 using Fathym.API;
+using LCU.Personas.DevOps;
 
 namespace LCU.State.API.NapkinIDE.UserManagement
 {
@@ -41,6 +42,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         #endregion
 
         #region API Methods
+
+        public virtual async Task<Status> AreAzureEnvSettingsValid(EnterpriseManagerClient entMgr)
+        {
+            var valid = await entMgr.AreEnvironmentSettingsValid(State.EnvSettings.JSONConvert<AzureInfrastructureConfig>(), State.NewEnterpriseAPIKey);
+
+            return valid.Status;
+        }
+
         public virtual async Task<Status> BootOrganizationEnvironment(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr,
             DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
         {
@@ -249,7 +258,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         }
 
 
-        public virtual void ConfigureInfrastructure(string infraType, bool useDefaultSettings, MetadataModel settings, string template)
+        public virtual async Task ConfigureInfrastructure(EnterpriseManagerClient entMgr, string infraType, bool useDefaultSettings, MetadataModel settings, string template)
         {
             var envLookup = $"{State.OrganizationLookup}-prd";
 
@@ -259,7 +268,20 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             State.Template = template;
 
-            SetNapkinIDESetupStep(NapkinIDESetupStepTypes.Review);
+            var azureValid = await AreAzureEnvSettingsValid(entMgr);
+
+            if (azureValid)
+            {
+                SetNapkinIDESetupStep(NapkinIDESetupStepTypes.Review);
+
+                State.Status = null;
+            }
+            else
+                State.Status = new Status()
+                {
+                    Code = (int)UserManagementErrorCodes.AzureEnvSettingsInvalid,
+                    Message = "The Azure credentials provided are not valid."
+                };
         }
 
         public virtual void ConfigureBootOptions()
@@ -460,7 +482,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             State.HasDevOpsOAuth = hasDevOps.Status;
         }
 
-
         public virtual async Task ListSubscribers(IdentityManagerClient idMgr, string entApiKey, string isLimited)
         {
             // Get the list of subscribers based on subscriber status
@@ -568,7 +589,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             else
                 State.Status = new Status()
                 {
-                    Code = 101,
+                    Code = (int)UserManagementErrorCodes.HostAlreadyExists,
                     Message = "An enterprise with that lookup already exists."
                 };
         }

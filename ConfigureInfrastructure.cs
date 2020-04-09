@@ -12,6 +12,7 @@ using Fathym;
 using LCU.State.API.NapkinIDE.UserManagement;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.WindowsAzure.Storage.Blob;
+using LCU.Personas.Client.Enterprises;
 
 namespace LCU.State.API.NapkinIDE.Setup
 {
@@ -32,10 +33,17 @@ namespace LCU.State.API.NapkinIDE.Setup
         public virtual bool UseDefaultSettings { get; set; }
     }
 
-    public static class ConfigureInfrastructure
+    public class ConfigureInfrastructure
     {
+        protected EnterpriseManagerClient entMgr;
+
+        public ConfigureInfrastructure(EnterpriseManagerClient entMgr)
+        {
+            this.entMgr = entMgr;
+        }
+
         [FunctionName("ConfigureInfrastructure")]
-        public static async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
+        public async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
@@ -44,7 +52,7 @@ namespace LCU.State.API.NapkinIDE.Setup
             {
                 log.LogInformation($"Executing SetUserDetails Action.");
 
-                harness.ConfigureInfrastructure(reqData.InfrastructureType, reqData.UseDefaultSettings, reqData.Settings, reqData.Template);
+                await harness.ConfigureInfrastructure(entMgr, reqData.InfrastructureType, reqData.UseDefaultSettings, reqData.Settings, reqData.Template);
 
                 return Status.Success;
             });
