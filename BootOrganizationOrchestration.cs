@@ -55,7 +55,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             if (!context.IsReplaying)
                 log.LogInformation($"Booting organization environment for: {stateCtxt.ToJSON()}");
 
-            var genericRetryOptions = new RetryOptions(TimeSpan.FromSeconds(1), 10)
+            var genericRetryOptions = new RetryOptions(TimeSpan.FromSeconds(1), 3)
             {
                 BackoffCoefficient = 1.5,
                 Handle = handleRetryException

@@ -47,9 +47,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         {
             var config = State.EnvSettings.JSONConvert<AzureInfrastructureConfig>();
             
-            // var valid = await entMgr.AreEnvironmentSettingsValid(config, State.NewEnterpriseAPIKey);
+            var valid = await entMgr.AreEnvironmentSettingsValid(config, "check-app");
 
-			var valid = await entMgr.Post<AzureInfrastructureConfig, BaseResponse>($"environments/check-app/settings/valid", config);
+			// var valid = await entMgr.Post<AzureInfrastructureConfig, BaseResponse>($"environments/check-app/settings/valid", config);
 
             return valid.Status;
         }
@@ -284,7 +284,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 State.Status = new Status()
                 {
                     Code = (int)UserManagementErrorCodes.AzureEnvSettingsInvalid,
-                    Message = "The Azure credentials provided are not valid.",
+                    Message = azureValid.Message,
                     Metadata = azureValid.Metadata
                 };
         }
