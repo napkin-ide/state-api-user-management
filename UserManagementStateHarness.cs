@@ -524,7 +524,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             {
                 var hostResp = await entMgr.ResolveHost(host, false);
 
-                if (hostResp.Status)
+                if (!hostResp.Status)
                     State.Host = host;
 
                 return hostResp.Status;
