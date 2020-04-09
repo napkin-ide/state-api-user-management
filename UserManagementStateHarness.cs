@@ -45,7 +45,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
         public virtual async Task<Status> AreAzureEnvSettingsValid(EnterpriseManagerClient entMgr)
         {
-            var valid = await entMgr.AreEnvironmentSettingsValid(State.EnvSettings.JSONConvert<AzureInfrastructureConfig>(), State.NewEnterpriseAPIKey);
+            var config = State.EnvSettings.JSONConvert<AzureInfrastructureConfig>();
+            
+            // var valid = await entMgr.AreEnvironmentSettingsValid(config, State.NewEnterpriseAPIKey);
+
+			var valid = await entMgr.Post<AzureInfrastructureConfig, BaseResponse>($"environments/check-app/settings/valid", config);
 
             return valid.Status;
         }
@@ -280,7 +284,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 State.Status = new Status()
                 {
                     Code = (int)UserManagementErrorCodes.AzureEnvSettingsInvalid,
-                    Message = "The Azure credentials provided are not valid."
+                    Message = "The Azure credentials provided are not valid.",
+                    Metadata = azureValid.Metadata
                 };
         }
 
