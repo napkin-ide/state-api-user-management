@@ -504,6 +504,16 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
         }
 
+        public virtual async Task LoadInfrastructure(EnterpriseManagerClient entMgr, string entApiKey, string envLookup, string type)
+        {
+            if (State.HostOptions.IsNullOrEmpty())
+            {
+                var regHosts = await entMgr.LoadInfrastructureDetails(entApiKey, envLookup, type);
+
+                State.InfrastructureDetails = regHosts.Model;
+            }
+        }
+
         public virtual async Task LoadRegistrationHosts(EnterpriseManagerClient entMgr, string entApiKey)
         {
             if (State.HostOptions.IsNullOrEmpty())
