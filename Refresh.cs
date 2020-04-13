@@ -71,6 +71,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             harness.SetUsername(stateDetails.Username);
             
+            harness.State.RequiredOptIns = new List<string>()
+            {
+                "ToS",
+                "EA"
+            };
+
             return Status.Success;
         }
 
