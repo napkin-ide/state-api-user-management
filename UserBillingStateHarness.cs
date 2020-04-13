@@ -47,7 +47,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             State.Plans = plansResp.Model ?? new List<BillingPlanOption>();
 
-            State.FeaturedPlanGroup = State.Plans.LastOrDefault()?.PlanGroup;
+            State.FeaturedPlanGroup = "Professional";//State.Plans.LastOrDefault()?.PlanGroup;
         }
 
         public virtual void SetUsername(string username)
