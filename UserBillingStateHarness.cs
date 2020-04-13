@@ -47,30 +47,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             State.Plans = plansResp.Model ?? new List<BillingPlanOption>();
 
-            // State.Plans = new List<BillingPlanOption>()
-            // {
-            //     new BillingPlanOption() 
-            //     {
-            //         Description = "Billing Plan 1 description",
-            //         Lookup = "plan1",
-            //         Name = "Billing Plan 1",
-            //         Price = 20
-            //     },
-            //     new BillingPlanOption() 
-            //     {
-            //         Description = "Billing Plan 2 description",
-            //         Lookup = "plan1",
-            //         Name = "Billing Plan 2",
-            //         Price = 100
-            //     },
-            //     new BillingPlanOption() 
-            //     {
-            //         Description = "Billing Plan 3 description",
-            //         Lookup = "plan3",
-            //         Name = "Billing Plan 3",
-            //         Price = 200
-            //     }
-            // };
+            State.FeaturedPlanGroup = State.Plans.LastOrDefault()?.PlanGroup;
         }
 
         public virtual void SetUsername(string username)
@@ -95,6 +72,21 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                     });
 
             State.PaymentStatus = completeResp.Status;
+        }
+
+        public virtual async Task Refresh(EnterpriseManagerClient entMgr, string entApiKey, string username)
+        {
+            ResetStateCheck();
+
+            await LoadBillingPlans(entMgr, entApiKey);
+
+            SetUsername(username);
+
+            State.RequiredOptIns = new List<string>()
+            {
+                "ToS",
+                "EA"
+            };
         }
 
         public virtual void ResetStateCheck(bool force = false)

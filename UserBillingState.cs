@@ -17,6 +17,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         public virtual bool Loading { get; set; }
 
         [DataMember]
+        public virtual string FeaturedPlanGroup { get; set; }
+
+        [DataMember]
         public virtual string PaymentMethodID { get; set; }
 
         [DataMember]

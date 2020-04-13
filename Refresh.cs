@@ -65,25 +65,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         #region Helpers
         protected virtual async Task<Status> refreshUserBilling(UserBillingStateHarness harness, ILogger log, StateDetails stateDetails)
         {
-            harness.ResetStateCheck();
-            
-            await harness.LoadBillingPlans(entMgr, stateDetails.EnterpriseAPIKey);
-
-            harness.SetUsername(stateDetails.Username);
-            
-            harness.State.RequiredOptIns = new List<string>()
-            {
-                "ToS",
-                "EA"
-            };
+            await harness.Refresh(entMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username);
 
             return Status.Success;
         }
 
         protected virtual async Task<Status> refreshUserManagement(UserManagementStateHarness harness, ILogger log, StateDetails stateDetails)
         {
-            var groupName = StateUtils.BuildGroupName(stateDetails);
-
             harness.ConfigureInfrastructureOptions();
 
             harness.ConfigureJourneys();
