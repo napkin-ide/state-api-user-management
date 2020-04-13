@@ -62,9 +62,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         public virtual List<string> HostOptions { get; set; }
 
         [DataMember]
-        public virtual List<InfrastructureDetails> InfrastructureDetails { get; set; }
-
-        [DataMember]
         public virtual Dictionary<string, string> InfrastructureOptions { get; set; }
 
         [DataMember]
