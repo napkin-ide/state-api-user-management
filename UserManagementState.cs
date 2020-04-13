@@ -12,6 +12,7 @@ using Fathym;
 using LCU.Presentation.State.ReqRes;
 using LCU.StateAPI.Utilities;
 using LCU.StateAPI;
+using LCU.Personas.Enterprises; 
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Newtonsoft.Json.Converters;
 using System.Runtime.Serialization;
@@ -59,6 +60,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
         [DataMember]
         public virtual List<string> HostOptions { get; set; }
+
+        [DataMember]
+        public virtual List<InfrastructureDetails> InfrastructureDetails { get; set; }
 
         [DataMember]
         public virtual Dictionary<string, string> InfrastructureOptions { get; set; }
