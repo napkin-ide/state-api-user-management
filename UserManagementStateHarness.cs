@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using LCU.Personas.Client.Enterprises;
 using LCU.Personas.Client.DevOps;
 using LCU.Personas.Enterprises;
+using LCU.Personas.Identity;
 using LCU.Personas.Client.Applications;
 using LCU.Personas.Client.Identity;
 using Fathym.API;
@@ -46,10 +47,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         public virtual async Task<Status> AreAzureEnvSettingsValid(EnterpriseManagerClient entMgr)
         {
             var config = State.EnvSettings.JSONConvert<AzureInfrastructureConfig>();
-            
+
             var valid = await entMgr.AreEnvironmentSettingsValid(config, "check-app");
 
-			// var valid = await entMgr.Post<AzureInfrastructureConfig, BaseResponse>($"environments/check-app/settings/valid", config);
+            // var valid = await entMgr.Post<AzureInfrastructureConfig, BaseResponse>($"environments/check-app/settings/valid", config);
 
             return valid.Status;
         }
@@ -504,6 +505,16 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
         }
 
+        public virtual async Task LoadLimitedAccessUser(IdentityManagerClient idMgr, string entApiKey, string username)
+        {
+            var limitedAccess = await idMgr.HasLimitedAccess(entApiKey, username);
+
+            if (limitedAccess != null)
+            {
+                State.FreeTrialToken = limitedAccess.Model;
+            }
+        }
+
         public virtual async Task LoadRegistrationHosts(EnterpriseManagerClient entMgr, string entApiKey)
         {
             if (State.HostOptions.IsNullOrEmpty())
@@ -568,6 +579,20 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             if (State.SetupStep == NapkinIDESetupStepTypes.Review)
                 ConfigureBootOptions();
+        }
+
+        public virtual async Task<Status> SetLimitedAccessToken(IdentityManagerClient idMgr, string entApiKey, string username, int trialLength)
+        {
+            var response = await idMgr.IssueLimitedAccess(new IssueLimitedAccessRequest() { IsLocked = false, TrialLength = trialLength, Username = username }, entApiKey);
+
+            return response.Status;
+        }
+
+        public virtual async Task<Status> UpdateLimitedAccessToken(IdentityManagerClient idMgr, string entApiKey, string username, int trialLength, bool isLocked, bool isReset)
+        {
+            var response = await idMgr.ChangeLimitedAccess(new ChangeLimitedAccessRequest() { IsLocked = isLocked, IsReset = isReset, TrialLength = trialLength, Username = username }, entApiKey);
+
+            return response.Status;
         }
 
         public virtual async Task SetOrganizationDetails(EnterpriseManagerClient entMgr, string name, string description, string lookup, bool accepted)

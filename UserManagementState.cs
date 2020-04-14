@@ -13,6 +13,7 @@ using LCU.Presentation.State.ReqRes;
 using LCU.StateAPI.Utilities;
 using LCU.StateAPI;
 using LCU.Personas.Enterprises; 
+using LCU.Graphs.Registry.Enterprises.Identity;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Newtonsoft.Json.Converters;
 using System.Runtime.Serialization;
@@ -63,6 +64,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
         [DataMember]
         public virtual Dictionary<string, string> InfrastructureOptions { get; set; }
+
+        [DataMember]
+        public virtual LimitedAccessToken FreeTrialToken  { get; set;}
 
         [DataMember]
         public virtual bool Loading { get; set; }
