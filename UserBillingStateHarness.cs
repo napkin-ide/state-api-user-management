@@ -23,6 +23,7 @@ using LCU.Personas.Enterprises;
 using LCU.Personas.Client.Applications;
 using LCU.Personas.Client.Identity;
 using Fathym.API;
+using LCU.Personas.Client.Security;
 
 namespace LCU.State.API.NapkinIDE.UserManagement
 {
@@ -41,6 +42,19 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         #endregion
 
         #region API Methods
+        public virtual async Task DetermineRequiredOptIns(SecurityManagerClient secMgr, string entApiKey, string username)
+        {
+            var thirdPartyData = await secMgr.RetrieveIdentityThirdPartyData(entApiKey, username);
+
+            State.RequiredOptIns = new List<string>();
+
+            if (!thirdPartyData.Status || !thirdPartyData.Model.ContainsKey("LCU-USER-BILLING.TermsOfService"))
+                State.RequiredOptIns.Add("ToS");
+
+            if (!thirdPartyData.Status || !thirdPartyData.Model.ContainsKey("LCU-USER-BILLING.EnterpriseAgreement"))
+                State.RequiredOptIns.Add("EA");
+        }
+
         public virtual async Task LoadBillingPlans(EnterpriseManagerClient entMgr, string entApiKey)
         {
             var plansResp = await entMgr.ListBillingPlanOptions(entApiKey, "all");
@@ -55,7 +69,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             State.Username = username;
         }
 
-        public virtual async Task CompletePayment(EnterpriseManagerClient entMgr, string entApiKey, string username, string methodId, string customerName, string plan)
+        public virtual async Task CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entApiKey, string username, string methodId, string customerName, 
+            string plan)
         {
             State.CustomerName = customerName;
 
@@ -72,9 +87,18 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                     });
 
             State.PaymentStatus = completeResp.Status;
+
+            if (State.PaymentStatus)
+            {
+                var resp = await secMgr.SetIdentityThirdPartyData(entApiKey, username, new Dictionary<string, string>()
+                {
+                    { "LCU-USER-BILLING.TermsOfService", DateTimeOffset.UtcNow.ToString() },
+                    { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() }
+                });
+            }
         }
 
-        public virtual async Task Refresh(EnterpriseManagerClient entMgr, string entApiKey, string username)
+        public virtual async Task Refresh(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entApiKey, string username)
         {
             ResetStateCheck();
 
@@ -82,11 +106,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             SetUsername(username);
 
-            State.RequiredOptIns = new List<string>()
-            {
-                "ToS",
-                "EA"
-            };
+            await DetermineRequiredOptIns(secMgr, entApiKey, username);
         }
 
         public virtual void ResetStateCheck(bool force = false)

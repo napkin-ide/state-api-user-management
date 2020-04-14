@@ -15,6 +15,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using LCU.Personas.Client.Enterprises;
 using LCU.StateAPI.Utilities;
+using LCU.Personas.Client.Security;
 
 namespace LCU.State.API.NapkinIDE.UserManagement
 {
@@ -25,11 +26,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
     public class ResetStateCheck
     {
-        protected EnterpriseManagerClient entMgr;
+        protected readonly EnterpriseManagerClient entMgr;
 
-        public ResetStateCheck(EnterpriseManagerClient entMgr)
+        protected readonly SecurityManagerClient secMgr;
+
+        public ResetStateCheck(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
         {
             this.entMgr = entMgr;
+            
+            this.secMgr = secMgr;
         }
 
         [FunctionName("ResetStateCheck")]
@@ -46,7 +51,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
                 harness.ResetStateCheck(force: true);
 
-                await harness.Refresh(entMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username);
+                await harness.Refresh(entMgr, secMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username);
 
                 return Status.Success;
             });

@@ -18,6 +18,8 @@ using LCU.Personas.Client.Applications;
 using LCU.StateAPI.Utilities;
 using System.Security.Claims;
 using LCU.Personas.Client.Enterprises;
+using LCU.Personas.Client.Security;
+using Castle.Core.Configuration;
 
 namespace LCU.State.API.NapkinIDE.UserManagement
 {
@@ -28,11 +30,19 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
     public class Refresh
     {
-        protected EnterpriseManagerClient entMgr;
+        protected readonly string billingEntApiKey;
 
-        public Refresh(EnterpriseManagerClient entMgr)
+        protected readonly EnterpriseManagerClient entMgr;
+
+        protected readonly SecurityManagerClient secMgr;
+
+        public Refresh(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
         {
+            billingEntApiKey = Environment.GetEnvironmentVariable("LCU-BILLING-ENTERPRISE-API-KEY");
+
             this.entMgr = entMgr;
+            
+            this.secMgr = secMgr;
         }
 
         #region API Methods
@@ -65,7 +75,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         #region Helpers
         protected virtual async Task<Status> refreshUserBilling(UserBillingStateHarness harness, ILogger log, StateDetails stateDetails)
         {
-            await harness.Refresh(entMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username);
+            await harness.Refresh(entMgr, secMgr, billingEntApiKey, stateDetails.Username);
 
             return Status.Success;
         }

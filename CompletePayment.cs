@@ -15,6 +15,8 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using LCU.Personas.Client.Enterprises;
 using LCU.StateAPI.Utilities;
+using LCU.Personas.Client.Security;
+using Microsoft.Extensions.Configuration;
 
 namespace LCU.State.API.NapkinIDE.UserManagement
 {
@@ -34,11 +36,19 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
     public class CompletePayment
     {
-        protected EnterpriseManagerClient entMgr;
+        protected readonly string billingEntApiKey;
 
-        public CompletePayment(EnterpriseManagerClient entMgr)
+        protected readonly EnterpriseManagerClient entMgr;
+
+        protected readonly SecurityManagerClient secMgr;
+
+        public CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
         {
+            billingEntApiKey = Environment.GetEnvironmentVariable("LCU-BILLING-ENTERPRISE-API-KEY");
+
             this.entMgr = entMgr;
+
+            this.secMgr = secMgr;
         }
 
         [FunctionName("CompletePayment")]
@@ -53,7 +63,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             {
                 log.LogInformation($"Executing CompletePayment Action.");
 
-                await harness.CompletePayment(entMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan);
+                await harness.CompletePayment(entMgr, secMgr, billingEntApiKey, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan);
 
                 //  TODO:  Set State Status and Loading
 
