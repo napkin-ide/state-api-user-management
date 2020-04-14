@@ -25,6 +25,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
     public class ResetStateCheck
     {
+        protected EnterpriseManagerClient entMgr;
+
+        public ResetStateCheck(EnterpriseManagerClient entMgr)
+        {
+            this.entMgr = entMgr;
+        }
+
         [FunctionName("ResetStateCheck")]
         public virtual async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
@@ -39,7 +46,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
                 harness.ResetStateCheck(force: true);
 
-                
+                await harness.Refresh(entMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username);
 
                 return Status.Success;
             });
