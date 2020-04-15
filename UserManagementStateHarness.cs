@@ -102,7 +102,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 return resp.Status;
             }
             else
-                return Status.Success;
+                return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
         public virtual async Task<Status> BootIaCBuildsAndReleases(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
@@ -114,7 +114,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 return resp.Status;
             }
             else
-                return Status.Success;
+                return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
         public virtual async Task<Status> BootDAFInfrastructure(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
@@ -129,7 +129,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 return resp.Status;
             }
             else
-                return Status.Success;
+                return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
         public virtual async Task<Status> BootHost(EnterpriseArchitectClient entArch, string parentEntApiKey)
@@ -149,7 +149,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 return response.Status;
             }
             else
-                return Status.Success;
+                return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
         public virtual async Task<Status> BootHostAuthApp(EnterpriseArchitectClient entArch)
@@ -161,7 +161,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 return resp.Status;
             }
             else
-                return Status.Success;
+                return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
         public virtual async Task<Status> BootHostSSL(EnterpriseArchitectClient entArch, string parentEntApiKey)
@@ -176,7 +176,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 return resp.Status;
             }
             else
-                return Status.Success;
+                return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
         public virtual async Task<Status> BootMicroAppsRuntime(EnterpriseArchitectClient entArch)
@@ -188,7 +188,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 return resp.Status;
             }
             else
-                return Status.Success;
+                return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
         public virtual async Task<Status> BootDataApps(ApplicationDeveloperClient appDev)
@@ -200,7 +200,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 return resp.Status;
             }
             else
-                return Status.Success;
+                return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
         public virtual async Task<Status> BootDataFlow(ApplicationDeveloperClient appDev)
@@ -212,7 +212,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 return resp.Status;
             }
             else
-                return Status.Success;
+                return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
         public virtual async Task<Status> BootLCUFeeds(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
@@ -227,7 +227,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 return resp.Status;
             }
             else
-                return Status.Success;
+                return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
         public virtual async Task<Status> BootTaskLibrary(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
@@ -239,7 +239,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 return resp.Status;
             }
             else
-                return Status.Success;
+                return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
         public virtual async Task<Status> CanFinalize(EnterpriseManagerClient entMgr, string parentEntApiKey, string username)
@@ -394,7 +394,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 }
             };
         }
-
+       
         public virtual void ConfigureJourneys()
         {
             State.Details = new List<JourneyDetail>()
