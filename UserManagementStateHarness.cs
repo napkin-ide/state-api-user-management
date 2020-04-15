@@ -262,7 +262,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             State.Booted = true;
         }
 
-
         public virtual async Task ConfigureInfrastructure(EnterpriseManagerClient entMgr, string infraType, bool useDefaultSettings, MetadataModel settings, string template)
         {
             var envLookup = $"{State.OrganizationLookup}-prd";
@@ -511,7 +510,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             if (limitedAccess != null)
             {
-                State.FreeTrialToken = limitedAccess.Model;
+                // State.FreeTrialToken = limitedAccess.Model;
             }
         }
 
