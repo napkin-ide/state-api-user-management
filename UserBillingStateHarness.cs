@@ -44,7 +44,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         #region API Methods
         public virtual async Task DetermineRequiredOptIns(SecurityManagerClient secMgr, string entApiKey, string username)
         {
-            var thirdPartyData = await secMgr.RetrieveIdentityThirdPartyData(entApiKey, username);
+            var thirdPartyData = await secMgr.RetrieveIdentityThirdPartyData(entApiKey, username, "LCU-USER-BILLING.TermsOfService", "LCU-USER-BILLING.EnterpriseAgreement");
 
             State.RequiredOptIns = new List<string>();
 
