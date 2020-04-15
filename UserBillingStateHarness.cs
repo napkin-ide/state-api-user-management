@@ -61,6 +61,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             State.Plans = plansResp.Model ?? new List<BillingPlanOption>();
 
+            State.Plans = State.Plans.OrderBy(p => p.Interval).ToList();
+
             State.FeaturedPlanGroup = "Professional";//State.Plans.LastOrDefault()?.PlanGroup;
         }
 
