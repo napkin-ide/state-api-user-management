@@ -17,6 +17,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         public virtual bool Loading { get; set; }
 
         [DataMember]
+        public virtual string FeaturedPlanGroup { get; set; }
+
+        [DataMember]
         public virtual string PaymentMethodID { get; set; }
 
         [DataMember]
@@ -24,6 +27,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
         [DataMember]
         public virtual List<BillingPlanOption> Plans { get; set; }
+
+        [DataMember]
+        public virtual List<string> RequiredOptIns { get; set; }
 
         [DataMember]
         public virtual Status Status { get; set; }

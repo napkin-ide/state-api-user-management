@@ -153,10 +153,16 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                     var canFinalize = await harness.CanFinalize(entMgr, stateCtxt.StateDetails.EnterpriseAPIKey, stateCtxt.StateDetails.Username);
 
                     if (!canFinalize)
-                        harness.UpdateBootOption("Infrastructure", status: Status.Initialized.Clone("Waiting for infrastructure deployment to finish..."));
+                    {
+                        var infraStatus = canFinalize;//.Clone("Waiting for infrastructure deployment to finish...");
+
+                        infraStatus.Code = Status.Initialized.Code;
+
+                        harness.UpdateBootOption("Infrastructure", status: infraStatus);
+                    }
                     else
                     {
-                        harness.UpdateBootOption("Infrastructure", status: Status.Success.Clone("Infrastructure Configured and Deployed"), loading: false);
+                        harness.UpdateBootOption("Infrastructure", status: canFinalize.Clone("Infrastructure Configured and Deployed"), loading: false);
 
                         harness.UpdateBootOption("Domain", status: Status.Initialized.Clone("Configuring Domain Security..."));
                     }
