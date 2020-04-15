@@ -14,10 +14,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         public virtual string CustomerName { get; set; }
 
         [DataMember]
-        public virtual bool Loading { get; set; }
+        public virtual string FeaturedPlanGroup { get; set; }
 
         [DataMember]
-        public virtual string FeaturedPlanGroup { get; set; }
+        public virtual bool Loading { get; set; }
 
         [DataMember]
         public virtual string PaymentMethodID { get; set; }
