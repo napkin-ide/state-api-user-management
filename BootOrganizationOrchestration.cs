@@ -308,7 +308,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                         {
                             harness.UpdateBootOption("Domain", status: Status.Success.Clone("Host Configured"), loading: false);
 
-                            harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Configuring micro-applications orechestration runtime..."));
+                            harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Downloading and installing Low-Code Unit™ micro-applications runtime..."));
                         }
                         else
                             harness.UpdateBootOption("Domain", status: Status.GeneralError.Clone("Error Configuring Host SSL with Let's Encrypt"));
