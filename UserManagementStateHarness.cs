@@ -295,9 +295,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             State.BootOptions.Add(new BootOption()
             {
-                Name = "Project Details Configured",
+                Name = "Workspace Details Configured",
                 Lookup = "Project",
-                Description = "Used for data configuration, project setup, and default secure-hosting",
+                Description = "Data Configuration, Workspace Set Up, Default secure-hosting",
                 SetupStep = NapkinIDESetupStepTypes.OrgDetails
             });
 
@@ -312,7 +312,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             {
                 Name = "Infrastructure Connected",
                 Lookup = "Infrastructure",
-                Description = "A scalable, cost effective infrastructure configuration",
+                Description = "Scalable, Cost Effective Infrastructure Configuration",
                 SetupStep = NapkinIDESetupStepTypes.AzureSetup
             });
 
@@ -327,7 +327,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             {
                 Name = "Micro-Application Orchestration",
                 Lookup = "MicroApps",
-                Description = "Low-Code Unit™ Runtime, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™"
+                Description = "Low-Code Unit™ Runtime - IOT, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™"
             });
         }
 
