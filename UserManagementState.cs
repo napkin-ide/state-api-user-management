@@ -66,7 +66,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         public virtual Dictionary<string, string> InfrastructureOptions { get; set; }
 
         [DataMember]
-        public virtual LimitedAccessToken FreeTrialToken  { get; set;}
+        public virtual LicenseAccessToken FreeTrialToken  { get; set;}
 
         [DataMember]
         public virtual bool Loading { get; set; }
