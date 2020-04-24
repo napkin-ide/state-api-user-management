@@ -25,6 +25,7 @@ using LCU.Personas.Client.Applications;
 using LCU.Personas.Client.Identity;
 using Fathym.API;
 using LCU.Personas.DevOps;
+using LCU.Graphs.Registry.Enterprises.Identity;
 
 namespace LCU.State.API.NapkinIDE.UserManagement
 {
@@ -290,9 +291,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             State.BootOptions.Add(new BootOption()
             {
-                Name = "Workspace Details Configured",
+                Name = "Project Details Configured",
                 Lookup = "Project",
-                Description = "Data Configuration, Workspace Set Up, Default secure-hosting",
+                Description = "Used for data configuration, project setup, and default secure-hosting",
                 SetupStep = NapkinIDESetupStepTypes.OrgDetails
             });
 
@@ -307,7 +308,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             {
                 Name = "Infrastructure Connected",
                 Lookup = "Infrastructure",
-                Description = "Scalable, Cost Effective Infrastructure Configuration",
+                Description = "A scalable, cost effective infrastructure configuration",
                 SetupStep = NapkinIDESetupStepTypes.AzureSetup
             });
 
@@ -322,7 +323,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             {
                 Name = "Micro-Application Orchestration",
                 Lookup = "MicroApps",
-                Description = "Low-Code Unit™ Runtime - IOT, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™"
+                Description = "Low-Code Unit™ Runtime, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™"
             });
         }
 
@@ -389,7 +390,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 }
             };
         }
-       
+
         public virtual void ConfigureJourneys()
         {
             State.Details = new List<JourneyDetail>()
@@ -482,21 +483,19 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             State.HasDevOpsOAuth = hasDevOps.Status;
         }
 
-        public virtual async Task ListSubscribers(IdentityManagerClient idMgr, string entApiKey, string isLimited)
+        public virtual async Task ListSubscribers(IdentityManagerClient idMgr, string entApiKey)
         {
             // Get the list of subscribers based on subscriber status
-            var subscriberResp = await idMgr.ListSubscribers(entApiKey, isLimited);
+            var subscriberResp = await idMgr.ListLicensedSubscribers(entApiKey);
 
-            // Update subscriber state
-            if (isLimited == "true")
-            {
-                State.SubscribersLimited = subscriberResp.Model;
-            }
-            else
-            {
-                State.SubscribersActive = subscriberResp.Model;
-            }
+            State.Subscribers = subscriberResp.Model;
+        }
 
+        public virtual async Task<Status> HasLicenseAccess(IdentityManagerClient idMgr, string entApiKey, string username)
+        {
+            var licenseAccess = await idMgr.HasLicenseAccess(entApiKey, username);
+
+            return (licenseAccess != null) ? Status.Success : Status.Unauthorized.Clone($"No license found for user {username}");
         }
 
         public virtual async Task LoadRegistrationHosts(EnterpriseManagerClient entMgr, string entApiKey)
@@ -563,6 +562,19 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             if (State.SetupStep == NapkinIDESetupStepTypes.Review)
                 ConfigureBootOptions();
+        }
+
+        public virtual async Task<Status> SetLicenseAccess(IdentityManagerClient idMgr, string entApiKey, string username, int trialLength, bool isLocked, bool isReset)
+        {
+            var response = await idMgr.SetLicenseAccess(new LicenseAccessToken()
+            {
+                IsLocked = isLocked,
+                IsReset = isReset, 
+                TrialPeriodDays = trialLength,
+                UserName = username
+            }, entApiKey);
+
+            return response.Status;
         }
 
         public virtual async Task SetOrganizationDetails(EnterpriseManagerClient entMgr, string name, string description, string lookup, bool accepted)
