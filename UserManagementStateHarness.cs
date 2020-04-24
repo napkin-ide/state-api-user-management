@@ -137,15 +137,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         {
             if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
-                // var response = await entArch.EnsureHost(new EnsureHostRequest()
-                // {
-                //     EnviromentLookup = State.EnvironmentLookup
-                // }, State.NewEnterpriseAPIKey, State.Host, State.EnvironmentLookup, parentEntApiKey);
-                var response = await entArch.Post<EnsureHostRequest, BaseResponse>($"hosting/{State.NewEnterpriseAPIKey}/hosts/{State.Host}/ensure?envLookup={State.EnvironmentLookup}&parentEntApiKey={parentEntApiKey}",
-                    new EnsureHostRequest()
-                    {
-                        EnviromentLookup = State.EnvironmentLookup
-                    });
+                var response = await entArch.EnsureHost(new EnsureHostRequest()
+                {
+                    EnviromentLookup = State.EnvironmentLookup
+                }, State.NewEnterpriseAPIKey, State.Host, State.EnvironmentLookup, parentEntApiKey);
 
                 return response.Status;
             }
