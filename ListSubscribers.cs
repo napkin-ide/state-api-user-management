@@ -17,8 +17,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 	[DataContract]
 	public class ListSubcribersRequest
 	{
-		[DataMember]
-		public virtual string IsLimited { get; set; }
+		
 
     }
 
@@ -44,7 +43,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-				await harness.ListSubscribers(idMgr, stateDetails.EnterpriseAPIKey, reqData.IsLimited);
+				await harness.ListSubscribers(idMgr, stateDetails.EnterpriseAPIKey);
 
                 return Status.Success;
             });
