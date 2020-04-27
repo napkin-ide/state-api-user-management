@@ -63,7 +63,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             State.Plans = State.Plans.OrderBy(p => p.Interval).ToList();
 
-            State.FeaturedPlanGroup = "Professional";//State.Plans.LastOrDefault()?.PlanGroup;
+            State.FeaturedPlanGroup = "pro";//State.Plans.LastOrDefault()?.PlanGroup;
         }
 
         public virtual void SetUsername(string username)
