@@ -12,7 +12,7 @@ using Fathym;
 using LCU.Presentation.State.ReqRes;
 using LCU.StateAPI.Utilities;
 using LCU.StateAPI;
-using LCU.Personas.Enterprises; 
+using LCU.Personas.Enterprises;
 using LCU.Graphs.Registry.Enterprises.Identity;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Newtonsoft.Json.Converters;
@@ -28,7 +28,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         #region Constants
         public const string HUB_NAME = "usermanagement";
         #endregion
-        
+
         [DataMember]
         public virtual bool Booted { get; set; }
 
@@ -66,7 +66,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         public virtual Dictionary<string, string> InfrastructureOptions { get; set; }
 
         [DataMember]
-        public virtual LicenseAccessToken FreeTrialToken  { get; set;}
+        public virtual LicenseAccessToken FreeTrialToken { get; set; }
 
         [DataMember]
         public virtual bool Loading { get; set; }
@@ -92,12 +92,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         [DataMember]
         [JsonConverter(typeof(StringEnumConverter))]
         public virtual NapkinIDESetupStepTypes SetupStep { get; set; }
-   
+
         [DataMember]
         public virtual Status Status { get; set; }
 
-		[DataMember]
-		public virtual List<LicenseAccessToken> Subscribers { get; set;}
+        [DataMember]
+        public virtual List<LicenseAccessToken> Subscribers { get; set; }
 
         [DataMember]
         public virtual string Template { get; set; }
@@ -112,7 +112,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         [JsonConverter(typeof(StringEnumConverter))]
         public virtual UserTypes UserType { get; set; }
 
-        public virtual string Username { get;set; } 
+        public virtual string Username { get; set; }
+
+        public List<LicenseAccessToken> UserLicenses { get; set; }
     }
 
     [DataContract]
@@ -165,7 +167,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
         [DataMember]
         public virtual Status Status { get; set; }
- }
+    }
 
     [DataContract]
     public enum NapkinIDESetupStepTypes

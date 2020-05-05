@@ -12,6 +12,7 @@ using LCU.Personas.Client.Security;
 using System.Linq;
 using System;
 using LCU.StateAPI;
+using LCU.StateAPI.Hosting;
 
 [assembly: FunctionsStartup(typeof(LCU.State.API.NapkinIDE.UserManagement.Startup))]
 
@@ -23,7 +24,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         #endregion
 
         #region Constructors
-        public Startup()
+        public Startup() : base()
         { }
         #endregion
 
