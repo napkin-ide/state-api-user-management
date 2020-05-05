@@ -24,7 +24,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         #endregion
 
         #region Constructors
-        public Startup()
+        public Startup() : base()
         { }
         #endregion
 
