@@ -19,10 +19,11 @@ using Fathym.API;
 namespace LCU.State.API.NapkinIDE.Setup
 {
     [Serializable]
-	[DataContract]
-	public class HasLicenseRequest : BaseRequest
-	{
-
+    [DataContract]
+    public class HasLicenseRequest : BaseRequest
+    {
+        [DataMember]
+        public string Lookup { get; set; }
 
     }
 
@@ -47,7 +48,7 @@ namespace LCU.State.API.NapkinIDE.Setup
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                var status =  await harness.HasLicenseAccess(idMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username);
+                var status = await harness.HasLicenseAccess(idMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username);
 
                 return status;
             });

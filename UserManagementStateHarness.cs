@@ -498,6 +498,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             return (licenseAccess != null) ? Status.Success : Status.Unauthorized.Clone($"No license found for user {username}");
         }
 
+        public virtual async Task<Status> HasLicenseAccessWithLookup(IdentityManagerClient idMgr, string entApiKey, string username, string lookup)
+        {
+            var licenseAccess = await idMgr.HasLicenseAccess(entApiKey, username);
+
+            var license = licenseAccess.Model.Where(l => l.Lookup == lookup).FirstOrDefault();
+
+            return (license != null) ? Status.Success : Status.Unauthorized.Clone($"No license found for user {username}");
+        }
+
         public virtual async Task LoadRegistrationHosts(EnterpriseManagerClient entMgr, string entApiKey)
         {
             if (State.HostOptions.IsNullOrEmpty())
@@ -569,7 +578,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             var response = await idMgr.SetLicenseAccess(new LicenseAccessToken()
             {
                 IsLocked = isLocked,
-                IsReset = isReset, 
+                IsReset = isReset,
                 TrialPeriodDays = trialLength,
                 UserName = username
             }, entApiKey);
