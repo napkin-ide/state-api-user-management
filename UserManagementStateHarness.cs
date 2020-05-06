@@ -291,9 +291,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement
 
             State.BootOptions.Add(new BootOption()
             {
-                Name = "Project Details Configured",
+                Name = "Workspace Details Configured",
                 Lookup = "Project",
-                Description = "Used for data configuration, project setup, and default secure-hosting",
+                Description = "Data Configuration, Workspace Set Up, Default secure-hosting",
                 SetupStep = NapkinIDESetupStepTypes.OrgDetails
             });
 
@@ -308,7 +308,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             {
                 Name = "Infrastructure Connected",
                 Lookup = "Infrastructure",
-                Description = "A scalable, cost effective infrastructure configuration",
+                Description = "Scalable, Cost Effective Infrastructure Configuration",
                 SetupStep = NapkinIDESetupStepTypes.AzureSetup
             });
 
@@ -323,7 +323,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             {
                 Name = "Micro-Application Orchestration",
                 Lookup = "MicroApps",
-                Description = "Low-Code Unit™ Runtime, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™"
+                Description = "Low-Code Unit™ Runtime - IOT, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™"
             });
         }
 
@@ -491,11 +491,22 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             State.Subscribers = subscriberResp.Model;
         }
 
-        public virtual async Task<Status> HasLicenseAccess(IdentityManagerClient idMgr, string entApiKey, string username)
+        public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entApiKey, string username)
+        {
+            var licenseAccess = await idMgr.HasLicenseAccess(entApiKey, username);
+ 
+            State.UserLicenses = licenseAccess.Model;
+
+            return (licenseAccess != null) ? Status.Success : Status.Unauthorized.Clone($"No licenses found for user {username}");
+        }
+
+        public virtual async Task<Status> HasLicenseAccessWithLookup(IdentityManagerClient idMgr, string entApiKey, string username, string lookup)
         {
             var licenseAccess = await idMgr.HasLicenseAccess(entApiKey, username);
 
-            return (licenseAccess != null) ? Status.Success : Status.Unauthorized.Clone($"No license found for user {username}");
+            var license = licenseAccess.Model.Where(l => l.Lookup == lookup).FirstOrDefault();
+
+            return (license != null) ? Status.Success : Status.Unauthorized.Clone($"No license found for user {username}");
         }
 
         public virtual async Task LoadRegistrationHosts(EnterpriseManagerClient entMgr, string entApiKey)
@@ -569,7 +580,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             var response = await idMgr.SetLicenseAccess(new LicenseAccessToken()
             {
                 IsLocked = isLocked,
-                IsReset = isReset, 
+                IsReset = isReset,
                 TrialPeriodDays = trialLength,
                 UserName = username
             }, entApiKey);
