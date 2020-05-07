@@ -26,6 +26,9 @@ using LCU.Personas.Client.Identity;
 using Fathym.API;
 using LCU.Personas.DevOps;
 using LCU.Graphs.Registry.Enterprises.Identity;
+using Newtonsoft.Json.Linq;
+using LCU.Personas.Client.Security;
+using LCU.Personas.Security;
 
 namespace LCU.State.API.NapkinIDE.UserManagement
 {
@@ -494,7 +497,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement
         public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entApiKey, string username)
         {
             var licenseAccess = await idMgr.HasLicenseAccess(entApiKey, username);
- 
+
             State.UserLicenses = licenseAccess.Model;
 
             return (licenseAccess != null) ? Status.Success : Status.Unauthorized.Clone($"No licenses found for user {username}");
@@ -518,6 +521,66 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 State.HostOptions = regHosts.Model;
             }
         }
+
+        public virtual async Task<Status> RequestAuthorization(SecurityManagerClient secMgr, ApplicationManagerClient appMgr, IdentityManagerClient idMgr, string userID, string enterpriseID, string hostName)
+        {
+            // Create an access request
+            var accessRequest = new AccessRequest()
+            {
+                User = userID,
+                EnterpriseID = enterpriseID
+            };
+
+            // Create JToken to attached to metadata model
+            var model = new MetadataModel();
+            model.Metadata.Add(new KeyValuePair<string, JToken>("AccessRequest", JToken.Parse(Newtonsoft.Json.JsonConvert.SerializeObject(accessRequest))));
+
+            // Create token model - is including the access request payload redundant?? 
+            var tokenModel = new CreateTokenModel()
+            {
+                Payload = model,
+                UserEmail = userID,
+                OrganizationID = enterpriseID,
+                Encrypt = true
+            };
+
+            // Encrypt user email and enterpries ID, generate token
+            var response = await secMgr.CreateToken("RequestAccessToken", tokenModel);
+
+            // Query graph for admins of enterprise ID
+            var admins = idMgr.ListAdmins(enterpriseID);
+
+            // Build grant/deny links and text body
+            if (response != null)
+            {
+                string grantLink = $"<a href=\"{hostName}/grant/token?={response.Model}\">Grant Access</a>";
+                string denyLink = $"<a href=\"{hostName}/deny/token?={response.Model}\">Deny Access</a>";
+                string emailHtml = $"A user has requested access to this Organization : {grantLink} {denyLink}";
+
+                // Send email from app manager client 
+                foreach (string admin in admins.Result.Model)
+                {
+                    var email = new AccessRequestEmail()
+                    {
+                        Content = emailHtml,
+                        EmailFrom = "admin@fathym.com",
+                        EmailTo = admin,
+                        User = userID,
+                        Subject = "Access authorization requested",
+                        EnterpriseID = enterpriseID
+                    };
+
+                    var emailModel = new MetadataModel();
+                    model.Metadata.Add(new KeyValuePair<string, JToken>("AccessRequestEmail", JToken.Parse(JsonConvert.SerializeObject(email))));
+
+                    appMgr.SendAccessRequestEmail(model, enterpriseID);
+                }
+            }
+
+            // If successful, adjust state to reflect that a request was sent for this enterprise by this user
+            return Status.Success;
+        }
+
 
         public virtual async Task<Status> SecureHost(EnterpriseManagerClient entMgr)
         {
