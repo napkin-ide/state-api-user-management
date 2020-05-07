@@ -202,6 +202,45 @@ namespace LCU.State.API.NapkinIDE.UserManagement
     }
 
     [DataContract]
+    public class AccessRequest
+    {
+
+        [DataMember]
+        public virtual string User { get; set; }
+
+
+        [DataMember]
+        public virtual string EnterpriseID { get; set; }
+
+
+    }
+
+    [DataContract]
+    public class AccessRequestEmail
+    {
+
+        [DataMember]
+        public virtual string User { get; set; }
+
+        [DataMember]
+        public virtual string EnterpriseID { get; set; }
+
+        [DataMember]
+        public virtual string Subject { get; set; }
+
+        [DataMember]
+        public virtual string Content { get; set; }
+
+        [DataMember]
+        public virtual string EmailTo { get; set; }
+
+        [DataMember]
+        public virtual string EmailFrom { get; set; }
+
+
+    }
+
+    [DataContract]
     public enum UserTypes
     {
         [EnumMember]
