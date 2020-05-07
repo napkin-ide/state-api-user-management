@@ -15,40 +15,33 @@ using Fathym;
 using LCU.Personas.Client.Identity;
 using LCU.StateAPI.Utilities;
 using Fathym.API;
+using LCU.Personas.Client.Applications;
 
 namespace LCU.State.API.NapkinIDE.UserManagement
 {
-    [Serializable]
-    [DataContract]
-    public class HasLicenseRequest : BaseRequest
+    
+    public class DenyAccess
     {
-        [DataMember]
-        public string Lookup { get; set; }
+        protected ApplicationManagerClient appMgr;
 
-    }
-
-    public class HasLicense
-    {
-        protected IdentityManagerClient idMgr;
-
-        public HasLicense(IdentityManagerClient idMgr)
+        public DenyAccess(ApplicationManagerClient appMgr)
         {
-            this.idMgr = idMgr;
+            this.appMgr = appMgr;
         }
 
-        [FunctionName("HasLicense")]
+        [FunctionName("DenyAccess")]
         public virtual async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
-            return await stateBlob.WithStateHarness<UserManagementState, HasLicenseRequest, UserManagementStateHarness>(req, signalRMessages, log,
+            return await stateBlob.WithStateHarness<UserManagementState, dynamic, UserManagementStateHarness>(req, signalRMessages, log,
                 async (harness, reqData) =>
             {
-                log.LogInformation($"Executing HasLicense Action.");
+                log.LogInformation($"Executing DenyAccess Action.");
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                var status = await harness.HasLicenseAccessWithLookup(idMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username, reqData.Lookup);
+                var status = await harness.DenyAccess(appMgr, stateDetails.EnterpriseAPIKey, req.Query["Token"]);
 
                 return status;
             });

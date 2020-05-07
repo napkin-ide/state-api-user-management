@@ -18,7 +18,7 @@ using Fathym.API;
 using LCU.Personas.Client.Applications;
 using LCU.Personas.Client.Security;
 
-namespace LCU.State.API.NapkinIDE.Setup
+namespace LCU.State.API.NapkinIDE.UserManagement
 {
    
     public class RequestUserAccess

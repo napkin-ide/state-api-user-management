@@ -16,7 +16,7 @@ using LCU.Personas.Client.Identity;
 using LCU.StateAPI.Utilities;
 using Fathym.API;
 
-namespace LCU.State.API.NapkinIDE.Setup
+namespace LCU.State.API.NapkinIDE.UserManagement
 {
     [Serializable]
     [DataContract]

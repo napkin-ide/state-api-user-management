@@ -473,12 +473,27 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             };
         }
 
+
+        public virtual async Task<Status> DenyAccess(ApplicationManagerClient appMgr, string entApiKey, string token)
+        {
+            var response = await appMgr.DenyAccess(token, entApiKey);
+
+            return Status.Success;
+        }
+
         public virtual void DetermineSetupStep()
         {
             if (State.OrganizationName.IsNullOrEmpty())
                 State.SetupStep = NapkinIDESetupStepTypes.OrgDetails;
         }
 
+        public virtual async Task<Status> GrantAccess(ApplicationManagerClient appMgr, string entApiKey, string token)
+        {
+            var response = await appMgr.GrantAccess(token, entApiKey);
+
+            return Status.Success;
+        }
+        
         public virtual async Task HasDevOpsOAuth(EnterpriseManagerClient entMgr, string entApiKey, string username)
         {
             var hasDevOps = await entMgr.HasDevOpsOAuth(entApiKey, username);
