@@ -547,9 +547,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             // Encrypt user email and enterpries ID, generate token
             var response = await secMgr.CreateToken("RequestAccessToken", tokenModel);
 
-            // Query graph for admins of enterprise ID
-            var admins = idMgr.ListAdmins(enterpriseID);
-
             // Build grant/deny links and text body
             if (response != null)
             {
@@ -558,23 +555,21 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 string emailHtml = $"A user has requested access to this Organization : {grantLink} {denyLink}";
 
                 // Send email from app manager client 
-                foreach (string admin in admins.Result.Model)
+
+                var email = new AccessRequestEmail()
                 {
-                    var email = new AccessRequestEmail()
-                    {
-                        Content = emailHtml,
-                        EmailFrom = "admin@fathym.com",
-                        EmailTo = admin,
-                        User = userID,
-                        Subject = "Access authorization requested",
-                        EnterpriseID = enterpriseID
-                    };
+                    Content = emailHtml,
+                    EmailFrom = "registration@fathym.com",
+                    EmailTo = "registration@fathym.com",
+                    User = userID,
+                    Subject = "Access authorization requested",
+                    EnterpriseID = enterpriseID
+                };
 
-                    var emailModel = new MetadataModel();
-                    model.Metadata.Add(new KeyValuePair<string, JToken>("AccessRequestEmail", JToken.Parse(JsonConvert.SerializeObject(email))));
+                var emailModel = new MetadataModel();
+                model.Metadata.Add(new KeyValuePair<string, JToken>("AccessRequestEmail", JToken.Parse(JsonConvert.SerializeObject(email))));
 
-                    appMgr.SendAccessRequestEmail(model, enterpriseID);
-                }
+                appMgr.SendAccessRequestEmail(model, enterpriseID);
             }
 
             // If successful, adjust state to reflect that a request was sent for this enterprise by this user
