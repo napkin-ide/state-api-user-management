@@ -55,15 +55,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement
                 State.RequiredOptIns.Add("EA");
         }
 
-        public virtual async Task LoadBillingPlans(EnterpriseManagerClient entMgr, string entApiKey)
+        public virtual async Task LoadBillingPlans(EnterpriseManagerClient entMgr, string entApiKey, string licenseType = "LCU")
         {
-            var plansResp = await entMgr.ListBillingPlanOptions(entApiKey, "all");
+            var plansResp = await entMgr.ListBillingPlanOptions(entApiKey, licenseType);
 
             State.Plans = plansResp.Model ?? new List<BillingPlanOption>();
 
-            State.Plans = State.Plans.OrderBy(p => p.Interval).ToList();
-
-            State.FeaturedPlanGroup = "pro";//State.Plans.LastOrDefault()?.PlanGroup;
+            State.FeaturedPlanGroup = State.Plans.FirstOrDefault(plan => {
+                return plan.Metadata.ContainsKey("Featured") && plan.Metadata["Featured"].ToObject<bool>();
+            })?.PlanGroup;
         }
 
         public virtual void SetUsername(string username)
