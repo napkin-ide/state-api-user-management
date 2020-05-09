@@ -16,28 +16,43 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using LCU.Personas.Client.Enterprises;
 using LCU.StateAPI.Utilities;
 using LCU.Personas.Client.Security;
+using Microsoft.Extensions.Configuration;
+using LCU.State.API.NapkinIDE.UserManagement.State;
 
-namespace LCU.State.API.NapkinIDE.UserManagement
+namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 {
     [Serializable]
     [DataContract]
-    public class ResetStateCheckRequest : BaseRequest
-    { }
-
-    public class ResetStateCheck
+    public class CompletePaymentRequest : BaseRequest
     {
+        [DataMember]
+        public virtual string CustomerName { get; set; }
+
+        [DataMember]
+        public virtual string MethodID { get; set; }
+
+        [DataMember]
+        public virtual string Plan { get; set; }
+    }
+
+    public class CompletePayment
+    {
+        protected readonly string billingEntApiKey;
+
         protected readonly EnterpriseManagerClient entMgr;
 
         protected readonly SecurityManagerClient secMgr;
 
-        public ResetStateCheck(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
+        public CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
         {
+            billingEntApiKey = Environment.GetEnvironmentVariable("LCU-BILLING-ENTERPRISE-API-KEY");
+
             this.entMgr = entMgr;
-            
+
             this.secMgr = secMgr;
         }
 
-        [FunctionName("ResetStateCheck")]
+        [FunctionName("CompletePayment")]
         public virtual async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
@@ -49,9 +64,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement
             {
                 log.LogInformation($"Executing CompletePayment Action.");
 
-                harness.ResetStateCheck(force: true);
+                await harness.CompletePayment(entMgr, secMgr, billingEntApiKey, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan);
 
-                await harness.Refresh(entMgr, secMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username);
+                //  TODO:  Set State Status and Loading
 
                 return Status.Success;
             });

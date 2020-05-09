@@ -13,8 +13,9 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Fathym;
 using LCU.Personas.Client.Enterprises;
+using LCU.State.API.NapkinIDE.UserManagement.State;
 
-namespace LCU.State.API.NapkinIDE.Setup
+namespace LCU.State.API.NapkinIDE.Setup.Management
 {
 	[Serializable]
 	[DataContract]

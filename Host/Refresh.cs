@@ -20,8 +20,9 @@ using System.Security.Claims;
 using LCU.Personas.Client.Enterprises;
 using LCU.Personas.Client.Security;
 using Castle.Core.Configuration;
+using LCU.State.API.NapkinIDE.UserManagement.State;
 
-namespace LCU.State.API.NapkinIDE.UserManagement
+namespace LCU.State.API.NapkinIDE.UserManagement.Host
 {
     [Serializable]
     [DataContract]

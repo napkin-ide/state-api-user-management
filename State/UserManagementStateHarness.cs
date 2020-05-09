@@ -30,7 +30,7 @@ using Newtonsoft.Json.Linq;
 using LCU.Personas.Client.Security;
 using LCU.Personas.Security;
 
-namespace LCU.State.API.NapkinIDE.UserManagement
+namespace LCU.State.API.NapkinIDE.UserManagement.State
 {
     public class UserManagementStateHarness : LCUStateHarness<UserManagementState>
     {

@@ -13,8 +13,9 @@ using LCU.State.API.NapkinIDE.UserManagement;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.WindowsAzure.Storage.Blob;
 using LCU.Personas.Client.Enterprises;
+using LCU.State.API.NapkinIDE.UserManagement.State;
 
-namespace LCU.State.API.NapkinIDE.Setup
+namespace LCU.State.API.NapkinIDE.Setup.Management
 {
     [Serializable]
     [DataContract]

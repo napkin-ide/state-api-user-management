@@ -14,9 +14,9 @@ using System;
 using LCU.StateAPI;
 using LCU.StateAPI.Hosting;
 
-[assembly: FunctionsStartup(typeof(LCU.State.API.NapkinIDE.UserManagement.Startup))]
+[assembly: FunctionsStartup(typeof(LCU.State.API.NapkinIDE.UserManagement.Host.Startup))]
 
-namespace LCU.State.API.NapkinIDE.UserManagement
+namespace LCU.State.API.NapkinIDE.UserManagement.Host
 {
     public class Startup : StateAPIStartup
     {

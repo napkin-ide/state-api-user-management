@@ -10,8 +10,9 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using System.IO;
 using LCU.StateAPI.Utilities;
 using LCU.Personas.Client.Identity;
+using LCU.State.API.NapkinIDE.UserManagement.State;
 
-namespace LCU.State.API.NapkinIDE.UserManagement
+namespace LCU.State.API.NapkinIDE.UserManagement.Management
 {
     [Serializable]
 	[DataContract]

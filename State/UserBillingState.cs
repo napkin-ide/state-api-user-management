@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 using System.Collections.Generic;
 using LCU.Personas.Enterprises;
 
-namespace LCU.State.API.NapkinIDE.UserManagement
+namespace LCU.State.API.NapkinIDE.UserManagement.State
 {
     [Serializable]
     [DataContract]

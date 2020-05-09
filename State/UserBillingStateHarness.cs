@@ -25,7 +25,7 @@ using LCU.Personas.Client.Identity;
 using Fathym.API;
 using LCU.Personas.Client.Security;
 
-namespace LCU.State.API.NapkinIDE.UserManagement
+namespace LCU.State.API.NapkinIDE.UserManagement.State
 {
     public class UserBillingStateHarness : LCUStateHarness<UserBillingState>
     {
