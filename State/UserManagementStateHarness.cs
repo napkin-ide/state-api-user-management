@@ -261,7 +261,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.Booted = true;
         }
 
-        public virtual async Task ConfigureInfrastructure(EnterpriseManagerClient entMgr, string infraType, bool useDefaultSettings, MetadataModel settings, string template)
+        public virtual async Task ConfigureInfrastructure(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr, string infraType, bool useDefaultSettings, MetadataModel settings, string template)
         {
             var envLookup = $"{State.OrganizationLookup}-prd";
 
@@ -275,6 +275,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             if (azureValid)
             {
+                await ConfigureAzureLocationOptions(entArch);
+                
                 SetNapkinIDESetupStep(NapkinIDESetupStepTypes.Review);
 
                 State.Status = null;
@@ -337,6 +339,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.InfrastructureOptions["fathym\\daf-state-setup"] = "Low-Code Unit™ Runtime";
 
             State.InfrastructureOptions["fathym\\daf-iot-full-setup"] = "Low-Code Unit™ Runtime w/ IoT";
+        }
+
+        public virtual async Task ConfigureAzureLocationOptions(EnterpriseArchitectClient entArch)
+        {
+                var azureRegions = await entArch.ListAzureRegions(State.NewEnterpriseAPIKey, State.EnvironmentLookup);
+
+                State.AzureLocationOptions = azureRegions.Model;
         }
 
         public virtual void ConfigurePersonas()
@@ -493,7 +502,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             return Status.Success;
         }
-        
+
         public virtual async Task HasDevOpsOAuth(EnterpriseManagerClient entMgr, string entApiKey, string username)
         {
             var hasDevOps = await entMgr.HasDevOpsOAuth(entApiKey, username);
@@ -590,7 +599,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             // If successful, adjust state to reflect that a request was sent for this enterprise by this user
             return Status.Success;
         }
-
 
         public virtual async Task<Status> SecureHost(EnterpriseManagerClient entMgr)
         {

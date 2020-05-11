@@ -33,23 +33,27 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
     {
         protected readonly string billingEntApiKey;
 
+        protected readonly EnterpriseArchitectClient entArch;
+
         protected readonly EnterpriseManagerClient entMgr;
 
         protected readonly SecurityManagerClient secMgr;
 
-        public Refresh(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
+        public Refresh(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
         {
             billingEntApiKey = Environment.GetEnvironmentVariable("LCU-BILLING-ENTERPRISE-API-KEY");
 
+            this.entArch = entArch;
+
             this.entMgr = entMgr;
-            
+
             this.secMgr = secMgr;
         }
 
         #region API Methods
         [FunctionName("Refresh")]
         public virtual async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
-            [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
+            [SignalR(HubName = UserManagementState.HUB_NAME)] IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             var stateDetails = StateUtils.LoadStateDetails(req);

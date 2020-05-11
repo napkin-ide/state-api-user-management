@@ -36,10 +36,14 @@ namespace LCU.State.API.NapkinIDE.Setup.Management
 
     public class ConfigureInfrastructure
     {
+        protected EnterpriseArchitectClient entArch;
+
         protected EnterpriseManagerClient entMgr;
 
-        public ConfigureInfrastructure(EnterpriseManagerClient entMgr)
+        public ConfigureInfrastructure(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr)
         {
+            this.entArch = entArch;
+
             this.entMgr = entMgr;
         }
 
@@ -53,7 +57,7 @@ namespace LCU.State.API.NapkinIDE.Setup.Management
             {
                 log.LogInformation($"Executing SetUserDetails Action.");
 
-                await harness.ConfigureInfrastructure(entMgr, reqData.InfrastructureType, reqData.UseDefaultSettings, reqData.Settings, reqData.Template);
+                await harness.ConfigureInfrastructure(entArch, entMgr, reqData.InfrastructureType, reqData.UseDefaultSettings, reqData.Settings, reqData.Template);
 
                 return Status.Success;
             });

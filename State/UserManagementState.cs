@@ -30,6 +30,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         #endregion
 
         [DataMember]
+        public virtual Dictionary<string, string> AzureLocationOptions { get; set; }
+
+        [DataMember]
         public virtual bool Booted { get; set; }
 
         [DataMember]
