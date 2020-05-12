@@ -30,6 +30,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         #endregion
 
         [DataMember]
+        public virtual Status AzureInfrastructureValid { get; set; }
+
+        [DataMember]
         public virtual Dictionary<string, string> AzureLocationOptions { get; set; }
 
         [DataMember]
@@ -186,22 +189,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         [EnumMember]
         Complete
-    }
-
-    [DataContract]
-    public class AzureInfaSettings
-    {
-        [DataMember]
-        public virtual string AzureTenantID { get; set; }
-
-        [DataMember]
-        public virtual string AzureSubID { get; set; }
-
-        [DataMember]
-        public virtual string AzureAppID { get; set; }
-
-        [DataMember]
-        public virtual string AzureAppAuthKey { get; set; }
     }
 
     [DataContract]

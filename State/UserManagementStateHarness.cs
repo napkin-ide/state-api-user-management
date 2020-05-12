@@ -48,15 +48,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         #region API Methods
 
-        public virtual async Task<Status> AreAzureEnvSettingsValid(EnterpriseManagerClient entMgr)
+        public virtual async Task AreAzureEnvSettingsValid(EnterpriseManagerClient entMgr)
         {
             var config = State.EnvSettings.JSONConvert<AzureInfrastructureConfig>();
 
             var valid = await entMgr.AreEnvironmentSettingsValid(config, "check-app");
 
-            // var valid = await entMgr.Post<AzureInfrastructureConfig, BaseResponse>($"environments/check-app/settings/valid", config);
-
-            return valid.Status;
+            State.AzureInfrastructureValid = valid.Status;
         }
 
         public virtual async Task<Status> BootOrganizationEnvironment(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr,
@@ -261,7 +259,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.Booted = true;
         }
 
-        public virtual async Task ConfigureInfrastructure(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr, string infraType, bool useDefaultSettings, MetadataModel settings, string template)
+        public virtual async Task ConfigureInfrastructure(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr, string infraType, bool useDefaultSettings,
+            MetadataModel settings, string template, bool shouldStep)
         {
             var envLookup = $"{State.OrganizationLookup}-prd";
 
@@ -271,13 +270,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             State.Template = template;
 
-            var azureValid = await AreAzureEnvSettingsValid(entMgr);
+            await AreAzureEnvSettingsValid(entMgr);
 
-            if (azureValid)
+            if (State.AzureInfrastructureValid)
             {
-                await ConfigureAzureLocationOptions(entArch);
-                
-                SetNapkinIDESetupStep(NapkinIDESetupStepTypes.Review);
+                if (shouldStep)
+                    SetNapkinIDESetupStep(NapkinIDESetupStepTypes.Review);
+                else
+                    await ConfigureAzureLocationOptions(entArch);
 
                 State.Status = null;
             }
@@ -285,8 +285,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 State.Status = new Status()
                 {
                     Code = (int)UserManagementErrorCodes.AzureEnvSettingsInvalid,
-                    Message = azureValid.Message,
-                    Metadata = azureValid.Metadata
+                    Message = State.AzureInfrastructureValid.Message,
+                    Metadata = State.AzureInfrastructureValid.Metadata
                 };
         }
 
@@ -343,9 +343,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task ConfigureAzureLocationOptions(EnterpriseArchitectClient entArch)
         {
-                var azureRegions = await entArch.ListAzureRegions(State.NewEnterpriseAPIKey, State.EnvironmentLookup);
+            var azureRegions = await entArch.ListAzureRegions(State.EnvSettings.JSONConvert<AzureInfrastructureConfig>());
 
-                State.AzureLocationOptions = azureRegions.Model;
+            State.AzureLocationOptions = azureRegions.Model;
         }
 
         public virtual void ConfigurePersonas()
@@ -676,6 +676,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.OrganizationDescription = description;
 
             State.OrganizationLookup = lookup;
+
+            State.AzureLocationOptions = null;
+
+            State.AzureInfrastructureValid = null;
 
             var secured = await SecureHost(entMgr);
 

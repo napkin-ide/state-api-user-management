@@ -28,6 +28,9 @@ namespace LCU.State.API.NapkinIDE.Setup.Management
         public virtual MetadataModel Settings { get; set; }
 
         [DataMember]
+        public virtual bool ShouldStep { get; set; }
+
+        [DataMember]
         public virtual string Template { get; set; }
 
         [DataMember]
@@ -57,7 +60,7 @@ namespace LCU.State.API.NapkinIDE.Setup.Management
             {
                 log.LogInformation($"Executing SetUserDetails Action.");
 
-                await harness.ConfigureInfrastructure(entArch, entMgr, reqData.InfrastructureType, reqData.UseDefaultSettings, reqData.Settings, reqData.Template);
+                await harness.ConfigureInfrastructure(entArch, entMgr, reqData.InfrastructureType, reqData.UseDefaultSettings, reqData.Settings, reqData.Template, reqData.ShouldStep);
 
                 return Status.Success;
             });
