@@ -386,7 +386,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     var status = await harness.BootMicroAppsRuntime(entArch);
 
                     if (status)
-                        harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Configuring Data Apps Low-Code Unit™..."));
+                        harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Configuring Data Aplicationps Low-Code Unit™..."));
                     else
                         harness.UpdateBootOption("MicroApps", status: Status.GeneralError.Clone("Error Configuring Micro-Applications Runtime, retrying."));
 
@@ -404,7 +404,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         var status = await harness.BootDataApps(appDev);
 
                         if (status)
-                            harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Configuring Data Applications Low-Code Unit™..."));
+                            harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Configuring Data Flow Low-Code Unit™...."));
                         else
                             harness.UpdateBootOption("MicroApps", status: Status.GeneralError.Clone("Error Configuring Data Applications Low-Code Unit™, retrying."));
 
