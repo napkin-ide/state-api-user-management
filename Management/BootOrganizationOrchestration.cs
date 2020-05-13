@@ -124,7 +124,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
             {
                 if (fex.InnerException is StatusException sex)
                 {
-                    status = Status.GeneralError.Clone("Unable to finish booting organization, please contact support.", new { Exception = fex.InnerException.ToString() });
+                    status = Status.GeneralError.Clone(sex.Message, new { Exception = fex.InnerException.ToString() });
+                    // status = Status.GeneralError.Clone("Unable to finish booting organization, please contact support.", new { Exception = fex.InnerException.ToString() });
 
                     if (!context.IsReplaying)
                         log.LogInformation($"Booting organization failed: {fex.ToString()}");
