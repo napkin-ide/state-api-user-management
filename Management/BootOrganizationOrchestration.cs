@@ -124,7 +124,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
             {
                 if (fex.InnerException is StatusException sex)
                 {
-                    status = Status.GeneralError.Clone(sex.Message, new { Exception = fex.InnerException.ToString() });
+                    status = Status.GeneralError.Clone("Unable to finish booting organization, please contact support.", new { Exception = fex.InnerException.ToString() });
 
                     if (!context.IsReplaying)
                         log.LogInformation($"Booting organization failed: {fex.ToString()}");
@@ -187,7 +187,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     if (status)
                         harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Configuring DevOps Environment Package Feeds..."));
                     else
-                        harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Environment"));
+                        harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Environment, retrying."));
 
                     harness.UpdateStatus(status);
 
@@ -205,7 +205,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         if (status)
                             harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Configuring DevOps Environment Task Library..."));
                         else
-                            harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Environment Package Feed"));
+                            harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Environment Package Feed, retrying."));
 
                         harness.UpdateStatus(status);
 
@@ -223,7 +223,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         if (status)
                             harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Configuring DevOps Environment with Infrastructure as Code builds and releases..."));
                         else
-                            harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Environment Task Library"));
+                            harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Environment Task Library, retrying."));
 
                         harness.UpdateStatus(status);
 
@@ -247,7 +247,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                             harness.UpdateBootOption("Infrastructure", status: Status.Initialized.Clone("Deploying Environment Infrastructure..."));
                         }
                         else
-                            harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Environment with Infrastructure as Code builds and releases"));
+                            harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Environment with Infrastructure as Code builds and releases, retrying."));
 
                         harness.UpdateStatus(status);
 
@@ -272,7 +272,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     if (status)
                         harness.UpdateBootOption("Domain", status: Status.Initialized.Clone("Configuring Host..."));
                     else
-                        harness.UpdateBootOption("Domain", status: Status.GeneralError.Clone("Error Configuring Domain Security"));
+                        harness.UpdateBootOption("Domain", status: Status.GeneralError.Clone("Error Configuring Domain Security, retrying."));
 
                     harness.UpdateStatus(status);
 
@@ -290,7 +290,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         if (status)
                             harness.UpdateBootOption("Domain", status: Status.Initialized.Clone("Configuring Host SSL with Let's Encrypt..."));
                         else
-                            harness.UpdateBootOption("Domain", status: Status.GeneralError.Clone("Error Configuring Host"));
+                            harness.UpdateBootOption("Domain", status: Status.GeneralError.Clone("Error Configuring Host, retrying."));
 
                         harness.UpdateStatus(status);
 
@@ -312,7 +312,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                             harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Downloading and installing Low-Code Unit™ micro-applications runtime..."));
                         }
                         else
-                            harness.UpdateBootOption("Domain", status: Status.GeneralError.Clone("Error Configuring Host SSL with Let's Encrypt"));
+                            harness.UpdateBootOption("Domain", status: Status.GeneralError.Clone("Error Configuring Host SSL with Let's Encrypt, retrying."));
 
                         harness.UpdateStatus(status);
 
@@ -341,7 +341,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Configuring DevOps Environment..."));
                     }
                     else
-                        harness.UpdateBootOption("Project", status: Status.GeneralError.Clone("Error Configuring Project Environment"));
+                        harness.UpdateBootOption("Project", status: Status.GeneralError.Clone("Error Configuring Project Environment, retrying."));
 
                     harness.UpdateStatus(status);
 
@@ -364,7 +364,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     if (status)
                         harness.UpdateBootOption("Infrastructure", status: Status.Initialized.Clone("Committing Environment Infrastructure as Code..."));
                     else
-                        harness.UpdateBootOption("Infrastructure", status: Status.GeneralError.Clone("Error Configuring Project Infrastructure"));
+                        harness.UpdateBootOption("Infrastructure", status: Status.GeneralError.Clone("Error Configuring Project Infrastructure, retrying."));
 
                     harness.UpdateStatus(status);
 
@@ -387,7 +387,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     if (status)
                         harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Configuring Data Apps Low-Code Unit™..."));
                     else
-                        harness.UpdateBootOption("MicroApps", status: Status.GeneralError.Clone("Error Configuring Micro-Applicatinos Runtime"));
+                        harness.UpdateBootOption("MicroApps", status: Status.GeneralError.Clone("Error Configuring Micro-Applications Runtime, retrying."));
 
                     harness.UpdateStatus(status);
 
@@ -405,7 +405,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         if (status)
                             harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Configuring Data Applications Low-Code Unit™..."));
                         else
-                            harness.UpdateBootOption("MicroApps", status: Status.GeneralError.Clone("Error Configuring Data Applications Low-Code Unit™"));
+                            harness.UpdateBootOption("MicroApps", status: Status.GeneralError.Clone("Error Configuring Data Applications Low-Code Unit™, retrying."));
 
                         harness.UpdateStatus(status);
 
@@ -427,7 +427,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                             harness.CompleteBoot();
                         }
                         else
-                            harness.UpdateBootOption("MicroApps", status: Status.GeneralError.Clone("Error Configuring Data Flow Low-Code Unit™"));
+                            harness.UpdateBootOption("MicroApps", status: Status.GeneralError.Clone("Error Configuring Data Flow Low-Code Unit™, retrying."));
 
                         harness.UpdateStatus(status);
 
