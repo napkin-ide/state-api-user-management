@@ -324,11 +324,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 Description = "User Security, Host Setup, Free Open Source SSL"
             });
 
+            var currentInfraOpt = State.InfrastructureOptions[State.Template];
+
             State.BootOptions.Add(new BootOption()
             {
                 Name = "Micro-Application Orchestration",
                 Lookup = "MicroApps",
-                Description = "Low-Code Unit™ Runtime - IOT, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™"
+                Description = $"{currentInfraOpt}, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™"
             });
         }
 
@@ -343,7 +345,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task ConfigureAzureLocationOptions(EnterpriseArchitectClient entArch)
         {
-            var azureRegions = await entArch.ListAzureRegions(State.EnvSettings.JSONConvert<AzureInfrastructureConfig>());
+            var azureRegions = await entArch.ListAzureRegions(State.EnvSettings.JSONConvert<AzureInfrastructureConfig>(), new List<string>() { "Microsoft.SignalRService/SignalR" });
 
             State.AzureLocationOptions = azureRegions.Model;
         }
