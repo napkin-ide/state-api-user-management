@@ -33,6 +33,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
         [DataMember]
         public virtual string Plan { get; set; }
+
+        [DataMember]
+        public virtual int TrialPeriodDays { get; set; }
     }
 
     public class CompletePayment
@@ -64,7 +67,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
             {
                 log.LogInformation($"Executing CompletePayment Action.");
 
-                await harness.CompletePayment(entMgr, secMgr, billingEntApiKey, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan);
+                await harness.CompletePayment(entMgr, secMgr, billingEntApiKey, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan, payReq.TrialPeriodDays);
 
                 //  TODO:  Set State Status and Loading
 

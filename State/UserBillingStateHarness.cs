@@ -72,7 +72,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         }
 
         public virtual async Task CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entApiKey, string username, string methodId, string customerName, 
-            string plan)
+            string plan, int trialPeriodDays)
         {
             State.CustomerName = customerName;
 
@@ -85,6 +85,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                         CustomerName = State.CustomerName,
                         PaymentMethodID = methodId,
                         Plan = plan,
+                        TrialPeriodDays = trialPeriodDays,
                         Username = username
                     });
 

@@ -29,6 +29,7 @@ using LCU.Graphs.Registry.Enterprises.Identity;
 using Newtonsoft.Json.Linq;
 using LCU.Personas.Client.Security;
 using LCU.Personas.Security;
+using LCU.Personas;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.State
 {
@@ -522,7 +523,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entApiKey, string username)
         {
-            var licenseAccess = await idMgr.HasLicenseAccess(entApiKey, username);
+            var licenseAccess = await idMgr.HasLicenseAccess(entApiKey, username, AllAnyTypes.All, new List<string>() { "LCU" });
 
             State.UserLicenses = licenseAccess.Model;
 
@@ -531,7 +532,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> HasLicenseAccessWithLookup(IdentityManagerClient idMgr, string entApiKey, string username, string lookup)
         {
-            var licenseAccess = await idMgr.HasLicenseAccess(entApiKey, username);
+            var licenseAccess = await idMgr.HasLicenseAccess(entApiKey, username, AllAnyTypes.All, new List<string>() { "LCU" });
 
             var license = licenseAccess.Model.Where(l => l.Lookup == lookup).FirstOrDefault();
 
