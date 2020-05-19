@@ -78,8 +78,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             State.PaymentMethodID = methodId;
 
-            // var completeResp = await entMgr.CompleteStripeSubscription(entApiKey, 
-            var completeResp = await entMgr.Post<CompleteStripeSubscriptionRequest, CompleteStripeSubscriptionResponse>($"billing/{entApiKey}/stripe/subscription",
+            // var completeResp = await entMgr.Post<CompleteStripeSubscriptionRequest, CompleteStripeSubscriptionResponse>($"billing/{entApiKey}/stripe/subscription",
+            var completeResp = await entMgr.CompleteStripeSubscription(entApiKey, 
                     new CompleteStripeSubscriptionRequest()
                     {
                         CustomerName = State.CustomerName,
