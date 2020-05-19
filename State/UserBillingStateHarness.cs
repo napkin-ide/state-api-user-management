@@ -61,7 +61,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             State.Plans = plansResp.Model ?? new List<BillingPlanOption>();
 
-            State.FeaturedPlanGroup = State.Plans.FirstOrDefault(plan => {
+            State.FeaturedPlanGroup = State.Plans.FirstOrDefault(plan =>
+            {
                 return plan.Metadata.ContainsKey("Featured") && plan.Metadata["Featured"].ToObject<bool>();
             })?.PlanGroup;
         }
@@ -71,15 +72,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.Username = username;
         }
 
-        public virtual async Task CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entApiKey, string username, string methodId, string customerName, 
-            string plan, int trialPeriodDays)
+        public virtual async Task CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr, string entApiKey,
+            string username, string methodId, string customerName, string plan, int trialPeriodDays)
         {
             State.CustomerName = customerName;
 
             State.PaymentMethodID = methodId;
 
             // var completeResp = await entMgr.Post<CompleteStripeSubscriptionRequest, CompleteStripeSubscriptionResponse>($"billing/{entApiKey}/stripe/subscription",
-            var completeResp = await entMgr.CompleteStripeSubscription(entApiKey, 
+            var completeResp = await entMgr.CompleteStripeSubscription(entApiKey,
                     new CompleteStripeSubscriptionRequest()
                     {
                         CustomerName = State.CustomerName,
@@ -98,6 +99,20 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     { "LCU-USER-BILLING.TermsOfService", DateTimeOffset.UtcNow.ToString() },
                     { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() }
                 });
+
+                var planOption = this.State.Plans.First(p => p.Lookup == plan);
+
+                var setLicenseAccessResp = await idMgr.SetLicenseAccess(new Graphs.Registry.Enterprises.Identity.LicenseAccessToken()
+                {
+                    EnterpriseAPIKey = entApiKey,
+                    Lookup = planOption.Metadata["LicenseType"].ToString(),
+                    AccessStartDate = DateTime.Now,
+                    TrialPeriodDays = trialPeriodDays,
+                    UserName = username,
+                    Metadata = planOption.Metadata
+                }, entApiKey);
+
+                State.PaymentStatus = setLicenseAccessResp.Status;
             }
         }
 
