@@ -18,6 +18,7 @@ using LCU.StateAPI.Utilities;
 using LCU.Personas.Client.Security;
 using Microsoft.Extensions.Configuration;
 using LCU.State.API.NapkinIDE.UserManagement.State;
+using LCU.Personas.Client.Identity;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 {
@@ -44,13 +45,17 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
         protected readonly EnterpriseManagerClient entMgr;
 
+        protected readonly IdentityManagerClient idMgr;
+
         protected readonly SecurityManagerClient secMgr;
 
-        public CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
+        public CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr)
         {
             billingEntApiKey = Environment.GetEnvironmentVariable("LCU-BILLING-ENTERPRISE-API-KEY");
 
             this.entMgr = entMgr;
+
+            this.idMgr = idMgr;
 
             this.secMgr = secMgr;
         }
@@ -67,7 +72,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
             {
                 log.LogInformation($"Executing CompletePayment Action.");
 
-                await harness.CompletePayment(entMgr, secMgr, billingEntApiKey, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan, payReq.TrialPeriodDays);
+                await harness.CompletePayment(entMgr, secMgr, idMgr, billingEntApiKey, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan, payReq.TrialPeriodDays);
 
                 //  TODO:  Set State Status and Loading
 
