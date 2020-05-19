@@ -523,7 +523,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entApiKey, string username)
         {
-            var licenseAccess = await idMgr.HasLicenseAccess(entApiKey, username, AllAnyTypes.All, new List<string>() { "LCU" });
+            var licenseAccess = await idMgr.ListLicenseAccessTokens(entApiKey, username, new List<string>() { "LCU" });
 
             State.UserLicenses = licenseAccess.Model;
 
@@ -534,9 +534,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             var licenseAccess = await idMgr.HasLicenseAccess(entApiKey, username, AllAnyTypes.All, new List<string>() { "LCU" });
 
-            var license = licenseAccess.Model.Where(l => l.Lookup == lookup).FirstOrDefault();
-
-            return (license != null) ? Status.Success : Status.Unauthorized.Clone($"No license found for user {username}");
+            return licenseAccess.Status ? Status.Success : Status.Unauthorized.Clone($"No license found for user {username}");
         }
 
         public virtual async Task LoadRegistrationHosts(EnterpriseManagerClient entMgr, string entApiKey)
@@ -661,12 +659,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> SetLicenseAccess(IdentityManagerClient idMgr, string entApiKey, string username, int trialLength, bool isLocked, bool isReset)
         {
-            var response = await idMgr.SetLicenseAccess(new LicenseAccessToken()
+            var response = await idMgr.IssueLicenseAccess(new LicenseAccessToken()
             {
                 IsLocked = isLocked,
                 IsReset = isReset,
                 TrialPeriodDays = trialLength,
-                UserName = username
+                Username = username
             }, entApiKey);
 
             return response.Status;

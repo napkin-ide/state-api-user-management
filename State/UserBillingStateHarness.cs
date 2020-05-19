@@ -102,13 +102,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 var planOption = this.State.Plans.First(p => p.Lookup == plan);
 
-                var setLicenseAccessResp = await idMgr.SetLicenseAccess(new Graphs.Registry.Enterprises.Identity.LicenseAccessToken()
+                var setLicenseAccessResp = await idMgr.IssueLicenseAccess(new Graphs.Registry.Enterprises.Identity.LicenseAccessToken()
                 {
                     EnterpriseAPIKey = entApiKey,
                     Lookup = planOption.Metadata["LicenseType"].ToString(),
                     AccessStartDate = DateTime.Now,
                     TrialPeriodDays = trialPeriodDays,
-                    UserName = username,
+                    Username = username,
                     Metadata = planOption.Metadata
                 }, entApiKey);
 
