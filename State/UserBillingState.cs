@@ -29,6 +29,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual List<BillingPlanOption> Plans { get; set; }
 
         [DataMember]
+        public virtual string PurchasedPlanLookup { get; set; }
+
+        [DataMember]
         public virtual List<string> RequiredOptIns { get; set; }
 
         [DataMember]

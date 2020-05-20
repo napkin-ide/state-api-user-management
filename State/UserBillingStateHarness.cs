@@ -94,6 +94,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             if (State.PaymentStatus)
             {
+                State.PurchasedPlanLookup = plan;
+                
                 var resp = await secMgr.SetIdentityThirdPartyData(entApiKey, username, new Dictionary<string, string>()
                 {
                     { "LCU-USER-BILLING.TermsOfService", DateTimeOffset.UtcNow.ToString() },
