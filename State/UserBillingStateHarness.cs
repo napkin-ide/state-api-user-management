@@ -66,7 +66,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return plan.Metadata.ContainsKey("Featured") && plan.Metadata["Featured"].ToObject<bool>();
             })?.PlanGroup;
 
-            State.FeaturedPlanGroup = State.Plans.FirstOrDefault(plan =>
+            State.PopularPlanGroup = State.Plans.FirstOrDefault(plan =>
             {
                 return plan.Metadata.ContainsKey("Popular") && plan.Metadata["Popular"].ToObject<bool>();
             })?.PlanGroup;
