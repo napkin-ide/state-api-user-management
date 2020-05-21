@@ -55,7 +55,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 State.RequiredOptIns.Add("EA");
         }
 
-        public virtual async Task LoadBillingPlans(EnterpriseManagerClient entMgr, string entApiKey, string licenseType = "LCU")
+        public virtual async Task LoadBillingPlans(EnterpriseManagerClient entMgr, string entApiKey, string licenseType)
         {
             var plansResp = await entMgr.ListBillingPlanOptions(entApiKey, licenseType);
 
@@ -95,7 +95,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             if (State.PaymentStatus)
             {
                 State.PurchasedPlanLookup = plan;
-                
+
                 var resp = await secMgr.SetIdentityThirdPartyData(entApiKey, username, new Dictionary<string, string>()
                 {
                     { "LCU-USER-BILLING.TermsOfService", DateTimeOffset.UtcNow.ToString() },
@@ -104,10 +104,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 var planOption = this.State.Plans.First(p => p.Lookup == plan);
 
+                var licenseType = planOption.Metadata["LicenseType"].ToString();
+
                 var setLicenseAccessResp = await idMgr.IssueLicenseAccess(new Graphs.Registry.Enterprises.Identity.LicenseAccessToken()
                 {
                     EnterpriseAPIKey = entApiKey,
-                    Lookup = planOption.Metadata["LicenseType"].ToString(),
+                    Lookup = licenseType,
                     AccessStartDate = DateTime.Now,
                     TrialPeriodDays = trialPeriodDays,
                     Username = username,
@@ -115,14 +117,24 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 }, entApiKey);
 
                 State.PaymentStatus = setLicenseAccessResp.Status;
+
+                State.SuccessRedirect = licenseType == "lcu" ? "/workspace/new" : "https://forecast.fathym-it.com/";
             }
         }
 
-        public virtual async Task Refresh(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entApiKey, string username)
+        public virtual async Task Refresh(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entApiKey, string username, string licenseType)
         {
             ResetStateCheck();
 
-            await LoadBillingPlans(entMgr, entApiKey);
+            await LoadBillingPlans(entMgr, entApiKey, licenseType);
+
+            var ltName = licenseType == "lcu" ? "Fathym Framework" : licenseType == "forecast" ? "Fathym Forecast" : "";
+
+            State.LicenseType = new LicenseTypeDetails()
+            {
+                Lookup = licenseType,
+                Name = ltName
+            };
 
             SetUsername(username);
 

@@ -23,7 +23,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
     [Serializable]
     [DataContract]
     public class ResetStateCheckRequest : BaseRequest
-    { }
+    {
+        [DataMember]
+        public virtual string LicenseType { get; set; }
+    }
 
     public class ResetStateCheck
     {
@@ -34,25 +37,25 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
         public ResetStateCheck(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
         {
             this.entMgr = entMgr;
-            
+
             this.secMgr = secMgr;
         }
 
         [FunctionName("ResetStateCheck")]
         public virtual async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
-            [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
+            [SignalR(HubName = UserManagementState.HUB_NAME)] IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             var stateDetails = StateUtils.LoadStateDetails(req);
 
-            return await stateBlob.WithStateHarness<UserBillingState, CompletePaymentRequest, UserBillingStateHarness>(req, signalRMessages, log,
-                async (harness, payReq) =>
+            return await stateBlob.WithStateHarness<UserBillingState, ResetStateCheckRequest, UserBillingStateHarness>(req, signalRMessages, log,
+                async (harness, dataReq) =>
             {
                 log.LogInformation($"Executing CompletePayment Action.");
 
                 harness.ResetStateCheck(force: true);
 
-                await harness.Refresh(entMgr, secMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username);
+                await harness.Refresh(entMgr, secMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username, dataReq.LicenseType);
 
                 return Status.Success;
             });

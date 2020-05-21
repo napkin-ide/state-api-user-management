@@ -26,8 +26,21 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
 {
     [Serializable]
     [DataContract]
-    public class RefreshRequest : BaseRequest
-    { }
+    public class RefreshBillingRequest : BaseRequest
+    {
+        [DataMember(Name = "id")]
+        public virtual string ID { get; set; }
+        
+        [DataMember(Name = "licenseType")]
+        public virtual string LicenseType { get; set; }
+    }
+
+    [Serializable]
+    [DataContract]
+    public class RefreshUserRequest : BaseRequest
+    {
+
+    }
 
     public class Refresh
     {
@@ -59,33 +72,33 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
             var stateDetails = StateUtils.LoadStateDetails(req);
 
             if (stateDetails.StateKey == "billing")
-                return await stateBlob.WithStateHarness<UserBillingState, RefreshRequest, UserBillingStateHarness>(req, signalRMessages, log,
+                return await stateBlob.WithStateHarness<UserBillingState, RefreshBillingRequest, UserBillingStateHarness>(req, signalRMessages, log,
                     async (harness, refreshReq, actReq) =>
                 {
                     log.LogInformation($"Refreshing user billing state");
 
-                    return await refreshUserBilling(harness, log, stateDetails);
+                    return await refreshUserBilling(harness, log, stateDetails, refreshReq);
                 });
             else
-                return await stateBlob.WithStateHarness<UserManagementState, RefreshRequest, UserManagementStateHarness>(req, signalRMessages, log,
+                return await stateBlob.WithStateHarness<UserManagementState, RefreshUserRequest, UserManagementStateHarness>(req, signalRMessages, log,
                     async (harness, refreshReq, actReq) =>
                 {
                     log.LogInformation($"Refreshing user management state");
 
-                    return await refreshUserManagement(harness, log, stateDetails);
+                    return await refreshUserManagement(harness, log, stateDetails, refreshReq);
                 });
         }
         #endregion
 
         #region Helpers
-        protected virtual async Task<Status> refreshUserBilling(UserBillingStateHarness harness, ILogger log, StateDetails stateDetails)
+        protected virtual async Task<Status> refreshUserBilling(UserBillingStateHarness harness, ILogger log, StateDetails stateDetails, RefreshBillingRequest request)
         {
-            await harness.Refresh(entMgr, secMgr, billingEntApiKey, stateDetails.Username);
+            await harness.Refresh(entMgr, secMgr, billingEntApiKey, stateDetails.Username, request.LicenseType);
 
             return Status.Success;
         }
 
-        protected virtual async Task<Status> refreshUserManagement(UserManagementStateHarness harness, ILogger log, StateDetails stateDetails)
+        protected virtual async Task<Status> refreshUserManagement(UserManagementStateHarness harness, ILogger log, StateDetails stateDetails, RefreshUserRequest request)
         {
             harness.ConfigureInfrastructureOptions();
 

@@ -17,6 +17,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual string FeaturedPlanGroup { get; set; }
 
         [DataMember]
+        public virtual LicenseTypeDetails LicenseType { get; set; }
+
+        [DataMember]
         public virtual bool Loading { get; set; }
 
         [DataMember]
@@ -38,6 +41,19 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual Status Status { get; set; }
 
         [DataMember]
+        public virtual string SuccessRedirect { get; set; }
+
+        [DataMember]
         public virtual string Username { get; set; }
+    }
+
+    [DataContract]
+    public class LicenseTypeDetails
+    {
+        [DataMember]
+        public virtual string Lookup { get; set; }
+
+        [DataMember]
+        public virtual string Name { get; set; }
     }
 }
