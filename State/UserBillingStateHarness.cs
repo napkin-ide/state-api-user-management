@@ -118,7 +118,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     AccessStartDate = DateTime.Now,
                     TrialPeriodDays = trialPeriodDays,
                     Username = username,
-                    Metadata = planOption.Metadata
+                    Metadata = planOption.JSONConvert<MetadataModel>().Metadata
                 }, entApiKey);
 
                 State.PaymentStatus = setLicenseAccessResp.Status;
