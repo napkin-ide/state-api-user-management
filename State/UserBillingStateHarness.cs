@@ -24,6 +24,7 @@ using LCU.Personas.Client.Applications;
 using LCU.Personas.Client.Identity;
 using Fathym.API;
 using LCU.Personas.Client.Security;
+using LCU.Graphs.Registry.Enterprises.Identity;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.State
 {
@@ -111,15 +112,19 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 var licenseType = planOption.Metadata["LicenseType"].ToString();
 
-                var setLicenseAccessResp = await idMgr.IssueLicenseAccess(new Graphs.Registry.Enterprises.Identity.LicenseAccessToken()
-                {
-                    EnterpriseAPIKey = entApiKey,
-                    Lookup = licenseType,
-                    AccessStartDate = DateTime.Now,
-                    TrialPeriodDays = trialPeriodDays,
-                    Username = username,
-                    Metadata = planOption.JSONConvert<MetadataModel>().Metadata
-                }, entApiKey);
+                var token = planOption.JSONConvert<LicenseAccessToken>();
+
+                token.EnterpriseAPIKey = entApiKey;
+
+                token.Lookup = licenseType;
+
+                token.AccessStartDate = DateTime.Now;
+
+                token.TrialPeriodDays = trialPeriodDays;
+
+                token.Username = username;
+
+                var setLicenseAccessResp = await idMgr.IssueLicenseAccess(token, entApiKey);
 
                 State.PaymentStatus = setLicenseAccessResp.Status;
 
