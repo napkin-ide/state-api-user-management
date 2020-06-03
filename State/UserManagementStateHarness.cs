@@ -58,8 +58,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.AzureInfrastructureValid = valid.Status;
         }
 
-        public virtual async Task<Status> BootOrganizationEnvironment(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr,
-            DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
+        public virtual async Task<Status> BootOrganizationEnterprise(EnterpriseArchitectClient entArch, string parentEntApiKey, string username)
         {
             var status = Status.Success;
 
@@ -77,7 +76,16 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 status = entRes.Status;
             }
 
-            if (status && !State.NewEnterpriseAPIKey.IsNullOrEmpty() && State.EnvironmentLookup.IsNullOrEmpty())
+            UpdateStatus(status);
+
+            return status;
+        }
+
+        public virtual async Task<Status> BootOrganizationEnvironment(EnterpriseManagerClient entMgr, DevOpsArchitectClient devOpsArch)
+        {
+            var status = Status.Success;
+
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && State.EnvironmentLookup.IsNullOrEmpty())
             {
                 var envResp = await devOpsArch.EnsureEnvironment(new Personas.DevOps.EnsureEnvironmentRequest()
                 {

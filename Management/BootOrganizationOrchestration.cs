@@ -144,7 +144,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
         [FunctionName("BootOrganizationOrchestration_CanFinalize")]
         public virtual async Task<Status> CanFinalize([ActivityTrigger] StateActionContext stateCtxt, ILogger log,
-            [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
+            [SignalR(HubName = UserManagementState.HUB_NAME)] IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{stateCtxt.StateDetails.EnterpriseAPIKey}/{stateCtxt.StateDetails.HubName}/{stateCtxt.StateDetails.Username}/{stateCtxt.StateDetails.StateKey}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             return await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
@@ -175,7 +175,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
         [FunctionName("BootOrganizationOrchestration_DevOps")]
         public virtual async Task<Status> BootDevOps([ActivityTrigger] StateActionContext stateCtxt, ILogger log,
-            [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
+            [SignalR(HubName = UserManagementState.HUB_NAME)] IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{stateCtxt.StateDetails.EnterpriseAPIKey}/{stateCtxt.StateDetails.HubName}/{stateCtxt.StateDetails.Username}/{stateCtxt.StateDetails.StateKey}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             var status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
@@ -260,7 +260,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
         [FunctionName("BootOrganizationOrchestration_Domain")]
         public virtual async Task<Status> BootDomain([ActivityTrigger] StateActionContext stateCtxt, ILogger log,
-            [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
+            [SignalR(HubName = UserManagementState.HUB_NAME)] IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{stateCtxt.StateDetails.EnterpriseAPIKey}/{stateCtxt.StateDetails.HubName}/{stateCtxt.StateDetails.Username}/{stateCtxt.StateDetails.StateKey}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             var status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
@@ -325,34 +325,54 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
         [FunctionName("BootOrganizationOrchestration_Environment")]
         public virtual async Task<Status> BootEnvironment([ActivityTrigger] StateActionContext stateCtxt, ILogger log,
-            [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
+            [SignalR(HubName = UserManagementState.HUB_NAME)] IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{stateCtxt.StateDetails.EnterpriseAPIKey}/{stateCtxt.StateDetails.HubName}/{stateCtxt.StateDetails.Username}/{stateCtxt.StateDetails.StateKey}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
-            return await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
+            var status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                 stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
                 {
-                    log.LogInformation($"Configuring Project Environment...");
+                    log.LogInformation($"Configuring Workspace Enterprise...");
 
-                    var status = await harness.BootOrganizationEnvironment(entArch, entMgr, devOpsArch, stateCtxt.StateDetails.EnterpriseAPIKey, stateCtxt.StateDetails.Username);
+                    var status = await harness.BootOrganizationEnterprise(entArch, stateCtxt.StateDetails.EnterpriseAPIKey, stateCtxt.StateDetails.Username);
 
                     if (status)
-                    {
-                        harness.UpdateBootOption("Project", status: Status.Success.Clone("Project Environment Configured"), loading: false);
-
-                        harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Configuring DevOps Environment..."));
-                    }
+                        harness.UpdateBootOption("Project", status: Status.Initialized.Clone("Workspace Enterprise Configured, setting up environment"), loading: false);
                     else
-                        harness.UpdateBootOption("Project", status: Status.GeneralError.Clone("Error Configuring Project Environment, retrying."));
+                        harness.UpdateBootOption("Project", status: Status.GeneralError.Clone("Error Configuring Workspace Enterprise, retrying."));
 
                     harness.UpdateStatus(status);
 
                     return status;
                 });
+
+            if (status)
+                status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
+                    stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
+                    {
+                        log.LogInformation($"Configuring Workspace Environment...");
+
+                        var status = await harness.BootOrganizationEnvironment(entMgr, devOpsArch);
+
+                        if (status)
+                        {
+                            harness.UpdateBootOption("Project", status: Status.Success.Clone("Workspace Environment Configured"), loading: false);
+
+                            harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Configuring DevOps Environment..."));
+                        }
+                        else
+                            harness.UpdateBootOption("Project", status: Status.GeneralError.Clone("Error Configuring Workspace Environment, retrying."));
+
+                        harness.UpdateStatus(status);
+
+                        return status;
+                    });
+
+            return status;
         }
 
         [FunctionName("BootOrganizationOrchestration_Infrastructure")]
         public virtual async Task<Status> BootInfrastructure([ActivityTrigger] StateActionContext stateCtxt, ILogger log,
-            [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
+            [SignalR(HubName = UserManagementState.HUB_NAME)] IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{stateCtxt.StateDetails.EnterpriseAPIKey}/{stateCtxt.StateDetails.HubName}/{stateCtxt.StateDetails.Username}/{stateCtxt.StateDetails.StateKey}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             return await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
@@ -375,7 +395,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
         [FunctionName("BootOrganizationOrchestration_MicroApps")]
         public virtual async Task<Status> BootMicroApps([ActivityTrigger] StateActionContext stateCtxt, ILogger log,
-            [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
+            [SignalR(HubName = UserManagementState.HUB_NAME)] IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{stateCtxt.StateDetails.EnterpriseAPIKey}/{stateCtxt.StateDetails.HubName}/{stateCtxt.StateDetails.Username}/{stateCtxt.StateDetails.StateKey}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             var status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
@@ -440,7 +460,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
         [FunctionName("BootOrganizationOrchestration_UpdateStatus")]
         public virtual async Task<Status> UpdateStatus([ActivityTrigger] StateActionContext stateCtxt, ILogger log,
-            [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
+            [SignalR(HubName = UserManagementState.HUB_NAME)] IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{stateCtxt.StateDetails.EnterpriseAPIKey}/{stateCtxt.StateDetails.HubName}/{stateCtxt.StateDetails.Username}/{stateCtxt.StateDetails.StateKey}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             return await stateBlob.WithStateHarness<UserManagementState, Status, UserManagementStateHarness>(stateCtxt.StateDetails,
