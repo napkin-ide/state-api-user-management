@@ -305,7 +305,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             State.BootOptions.Add(new BootOption()
             {
-                Name = "Workspace Details Configured",
+                Name = "Configure Workspace Details",
                 Lookup = "Project",
                 Description = "Data Configuration, Workspace Set Up, Default secure-hosting",
                 SetupStep = NapkinIDESetupStepTypes.OrgDetails
@@ -313,14 +313,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             State.BootOptions.Add(new BootOption()
             {
-                Name = "Connected with DevOps",
+                Name = "Connect to DevOps",
                 Lookup = "DevOps",
                 Description = "Source Control, Builds, Deployment"
             });
 
             State.BootOptions.Add(new BootOption()
             {
-                Name = "Infrastructure Connected",
+                Name = "Connect Infrastructure",
                 Lookup = "Infrastructure",
                 Description = "Scalable, Cost Effective Infrastructure Configuration",
                 SetupStep = NapkinIDESetupStepTypes.AzureSetup
@@ -328,7 +328,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             State.BootOptions.Add(new BootOption()
             {
-                Name = "Domain Configuration",
+                Name = "Configure Domain",
                 Lookup = "Domain",
                 Description = "User Security, Host Setup, Free Open Source SSL"
             });
@@ -337,7 +337,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             State.BootOptions.Add(new BootOption()
             {
-                Name = "Micro-Application Orchestration",
+                Name = "Orchestrate Micro-Application",
                 Lookup = "MicroApps",
                 Description = $"{currentInfraOpt}, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™"
             });
@@ -649,12 +649,41 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             if (bootOption != null)
             {
-                if (status != null)
+                if (status != null){
                     bootOption.Status = status;
 
+                    if(status.Code == 0){
+                        UpdateBootOptionText(bootOptionLookup);             
+                    }
+                }   
                 if (loading.HasValue)
                     bootOption.Loading = loading.Value;
             }
+        }
+
+        public virtual void UpdateBootOptionText(string bootOptionLookup)
+        {
+            var bootOption = State.BootOptions.FirstOrDefault(bo => bo.Lookup == bootOptionLookup);
+
+            switch(bootOption.Lookup){
+                case "Project":
+                    bootOption.Name = "Workspace Details Configured";
+                    break;
+                case "DevOps":
+                    bootOption.Name = "DevOps Connected";
+                    break;
+                case "Infrastructure":
+                    bootOption.Name = "Infrastructure Connected";
+                    break;
+                case "Domain":
+                    bootOption.Name = "Domain Configured";
+                    break;
+                case "MicroApps":
+                    bootOption.Name = "Micro-Application Orchestrated";
+                    break;
+            }
+
+            State.BootOptions.FirstOrDefault(bo => bo.Lookup == bootOptionLookup).Name = bootOption.Name;
         }
 
         public virtual void SetNapkinIDESetupStep(NapkinIDESetupStepTypes step)
