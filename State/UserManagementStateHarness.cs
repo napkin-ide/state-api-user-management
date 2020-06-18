@@ -51,11 +51,19 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task AreAzureEnvSettingsValid(EnterpriseManagerClient entMgr)
         {
+            State.AzureInfrastructureInvalidComponent = String.Empty;
+            State.AzureInfrastructureInvalidComponentError = String.Empty;
+
             var config = State.EnvSettings.JSONConvert<AzureInfrastructureConfig>();
 
             var valid = await entMgr.AreEnvironmentSettingsValid(config, "check-app");
 
             State.AzureInfrastructureValid = valid.Status;
+
+            if (!State.AzureInfrastructureValid) {
+                State.AzureInfrastructureInvalidComponent = valid.Status.Metadata["ErrorFrom"].ToString();
+                State.AzureInfrastructureInvalidComponentError = valid.Status.Message;
+            }
         }
 
         public virtual async Task<Status> BootOrganizationEnterprise(EnterpriseArchitectClient entArch, string parentEntApiKey, string username)
