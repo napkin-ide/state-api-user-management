@@ -33,6 +33,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual Status AzureInfrastructureValid { get; set; }
 
         [DataMember]
+        public virtual string AzureInfrastructureInvalidComponent { get; set; }
+
+        [DataMember]
+        public virtual string AzureInfrastructureInvalidComponentError { get; set; }
+
+        [DataMember]
         public virtual Dictionary<string, string> AzureLocationOptions { get; set; }
 
         [DataMember]
