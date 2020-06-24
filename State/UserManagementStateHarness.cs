@@ -105,38 +105,17 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return status;
         }
 
-        public virtual async Task<Status> BootIaC(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
-        {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
-            {
-                var resp = await devOpsArch.EnsureInfrastructureRepo(State.NewEnterpriseAPIKey, username, State.EnvironmentLookup, devOpsEntApiKey: parentEntApiKey);
-
-                return resp.Status;
-            }
-            else
-                return Status.GeneralError.Clone("Boot not properly configured.");
-        }
-
-        public virtual async Task<Status> BootIaCBuildsAndReleases(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
-        {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
-            {
-                var resp = await devOpsArch.EnsureInfrastructureBuildAndRelease(State.NewEnterpriseAPIKey, username, State.EnvironmentLookup, devOpsEntApiKey: parentEntApiKey);
-
-                return resp.Status;
-            }
-            else
-                return Status.GeneralError.Clone("Boot not properly configured.");
-        }
-
-        public virtual async Task<Status> BootDAFInfrastructure(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
+        public virtual async Task<Status> SetEnvironmentInfrastructure(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
         {
             if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
                 var resp = await devOpsArch.SetEnvironmentInfrastructure(new Personas.DevOps.SetEnvironmentInfrastructureRequest()
                 {
-                    Template = State.Template
-                }, State.NewEnterpriseAPIKey, State.EnvironmentLookup, username, devOpsEntApiKey: parentEntApiKey);
+                    EnvironmentLookup = State.EnvironmentLookup,
+                    ProjectID = State.AzureDevOpsProjectID,
+                    Template = State.Template,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
 
                 return resp.Status;
             }
@@ -215,33 +194,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
                 var resp = await appDev.ConfigureNapkinIDEForDataFlows(State.NewEnterpriseAPIKey, State.Host);
-
-                return resp.Status;
-            }
-            else
-                return Status.GeneralError.Clone("Boot not properly configured.");
-        }
-
-        public virtual async Task<Status> BootLCUFeeds(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
-        {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
-            {
-                var resp = await devOpsArch.EnsureLCUFeed(new Personas.DevOps.EnsureLCUFeedRequest()
-                {
-                    EnvironmentLookup = State.EnvironmentLookup
-                }, State.NewEnterpriseAPIKey, username, devOpsEntApiKey: parentEntApiKey);
-
-                return resp.Status;
-            }
-            else
-                return Status.GeneralError.Clone("Boot not properly configured.");
-        }
-
-        public virtual async Task<Status> BootTaskLibrary(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
-        {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
-            {
-                var resp = await devOpsArch.EnsureTaskTlibrary(State.NewEnterpriseAPIKey, username, State.EnvironmentLookup, devOpsEntApiKey: parentEntApiKey);
 
                 return resp.Status;
             }
@@ -493,7 +445,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             };
         }
 
-
         public virtual async Task<Status> DenyAccess(ApplicationManagerClient appMgr, string entApiKey, string token)
         {
             var response = await appMgr.DenyAccess(token, entApiKey);
@@ -505,6 +456,124 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             if (State.OrganizationName.IsNullOrEmpty())
                 State.SetupStep = NapkinIDESetupStepTypes.OrgDetails;
+        }
+
+        public virtual async Task<Status> EnsureBuilds(DevOpsArchitectClient devOpsArch, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureBuilds(new EnsureBuildsRequest()
+                {
+                    ProjectID = State.AzureDevOpsProjectID,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
+
+        public virtual async Task<Status> EnsureDevOpsProject(DevOpsArchitectClient devOpsArch, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureDevOpsProject(new EnsureDevOpsProjectRequest()
+                {
+                    EnvironmentLookup = State.EnvironmentLookup,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
+
+                if (resp.Status)
+                    State.AzureDevOpsProjectID = resp.Model.ToString();
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
+
+        public virtual async Task<Status> EnsureFeed(DevOpsArchitectClient devOpsArch, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureFeed(new EnsureFeedRequest()
+                {
+                    EnvironmentLookup = State.EnvironmentLookup,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
+
+        public virtual async Task<Status> EnsureReleases(DevOpsArchitectClient devOpsArch, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureReleases(new EnsureReleasesRequest()
+                {
+                    EnvironmentLookup = State.EnvironmentLookup,
+                    ProjectID = State.AzureDevOpsProjectID,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
+
+        public virtual async Task<Status> EnsureRepositories(DevOpsArchitectClient devOpsArch, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureRepositories(new EnsureRepositoriesRequest()
+                {
+                    EnvironmentLookup = State.EnvironmentLookup,
+                    ProjectID = State.AzureDevOpsProjectID,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
+
+        public virtual async Task<Status> EnsureServiceEndpoints(DevOpsArchitectClient devOpsArch, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureServiceEndpoints(new EnsureServiceEndpointsRequest()
+                {
+                    EnvironmentLookup = State.EnvironmentLookup,
+                    ProjectID = State.AzureDevOpsProjectID,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
+
+        public virtual async Task<Status> EnsureTaskLibrary(DevOpsArchitectClient devOpsArch, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureTaskLibrary(new EnsureTaskLibraryRequest()
+                {
+                    ProjectID = State.AzureDevOpsProjectID,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
         public virtual async Task<Status> GrantAccess(ApplicationManagerClient appMgr, string entApiKey, string token)
@@ -636,6 +705,23 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             {
                 bo.Loading = true;
             });
+        }
+
+        public virtual async Task<Status> SetupRepositories(DevOpsArchitectClient devOpsArch, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.SetupRepositories(new SetupRepositoriesRequest()
+                {
+                    EnvironmentLookup = State.EnvironmentLookup,
+                    ProjectID = State.AzureDevOpsProjectID,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
         public virtual void UpdateStatus(Status status)

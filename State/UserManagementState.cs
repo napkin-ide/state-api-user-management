@@ -30,6 +30,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         #endregion
 
         [DataMember]
+        public virtual string AzureDevOpsProjectID { get; internal set; }
+
+        [DataMember]
         public virtual Status AzureInfrastructureValid { get; set; }
 
         [DataMember]
@@ -118,8 +121,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         [JsonConverter(typeof(StringEnumConverter))]
         public virtual UserTypes UserType { get; set; }
 
+        [DataMember]
         public virtual string Username { get; set; }
 
+        [DataMember]
         public List<LicenseAccessToken> UserLicenses { get; set; }
     }
 
