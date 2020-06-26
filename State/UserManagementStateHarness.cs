@@ -752,6 +752,33 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             State.UserType = userType;
         }
+
+        public virtual async Task<Status> ValidateSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, string entApiKey, string username, string subscriberId)
+        {
+            // Get subscription status from Stripe for a user
+            var response = await entMgr.ValidateSubscription(subscriberId, entApiKey);
+
+            // If subscription status is inactive
+            if (!response.Status) {
+
+                // Get the user's LATs from the graph db
+                var licenseAccess = await idMgr.ListLicenseAccessTokens(entApiKey, username, new List<string>() { "LCU" });
+
+                // If user has a LAT that is not limited trial, expire the LAT
+                foreach(LicenseAccessToken token in licenseAccess.Model) {
+
+                    token.IsLocked = true;
+
+                    if (token.Lookup != "LCU.NapkinIDE.LimitedTrial") {
+                        await idMgr.IssueLicenseAccess(token, entApiKey);
+                    }
+                }
+
+                return Status.Success;   
+            }
+
+            return response.Status;
+        }
         #endregion
     }
 }
