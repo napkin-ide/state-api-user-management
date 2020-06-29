@@ -124,8 +124,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         [JsonConverter(typeof(StringEnumConverter))]
         public virtual UserTypes UserType { get; set; }
 
+        [DataMember]
         public virtual string Username { get; set; }
 
+        [DataMember]
         public List<LicenseAccessToken> UserLicenses { get; set; }
     }
 
