@@ -539,7 +539,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entApiKey, string username)
         {
-            var licenseAccess = await idMgr.ListLicenseAccessTokens(entApiKey, username, new List<string>() { "LCU" });
+            var licenseAccess = await idMgr.ListLicenseAccessTokens(entApiKey, username, new List<string>() { "lcu" });
 
             State.UserLicenses = licenseAccess.Model;
 
@@ -548,7 +548,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> HasLicenseAccessWithLookup(IdentityManagerClient idMgr, string entApiKey, string username, string lookup)
         {
-            var licenseAccess = await idMgr.HasLicenseAccess(entApiKey, username, AllAnyTypes.All, new List<string>() { "LCU" });
+            var licenseAccess = await idMgr.HasLicenseAccess(entApiKey, username, AllAnyTypes.All, new List<string>() { "lcu" });
 
             return licenseAccess.Status ? Status.Success : Status.Unauthorized.Clone($"No license found for user {username}");
         }
