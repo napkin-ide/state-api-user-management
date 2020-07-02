@@ -21,7 +21,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 {
     [Serializable]
     [DataContract]
-    public class ValidateSubscriptionRequest
+    public class CancelSubscriptionRequest
     {
 
         [DataMember]
@@ -29,32 +29,32 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
     }
 
-    public class ValidateSubscription
+    public class CancelSubscription
     {
         protected EnterpriseManagerClient engMgr;
 
         protected IdentityManagerClient idMgr;
 
-        public ValidateSubscription(EnterpriseManagerClient engMgr, IdentityManagerClient idMgr)
+        public CancelSubscription(EnterpriseManagerClient engMgr, IdentityManagerClient idMgr)
         {
             this.engMgr = engMgr;
 
             this.idMgr = idMgr;
         }
 
-        [FunctionName("ValidateSubscription")]
+        [FunctionName("CancelSubscription")]
         public virtual async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
-            return await stateBlob.WithStateHarness<UserManagementState, ValidateSubscriptionRequest, UserManagementStateHarness>(req, signalRMessages, log,
+            return await stateBlob.WithStateHarness<UserManagementState, CancelSubscriptionRequest, UserManagementStateHarness>(req, signalRMessages, log,
                 async (harness, reqData) =>
             {
-                log.LogInformation($"Executing ValidateSubscription Action.");
+                log.LogInformation($"Executing CancelSubscription Action.");
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                var status =  await harness.ValidateSubscription(engMgr, idMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username, reqData.SubscriptionID);
+                var status =  await harness.CancelSubscription(engMgr, idMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username, reqData.SubscriptionID);
 
                 return status;
             });

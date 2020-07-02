@@ -209,6 +209,60 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
+<<<<<<< HEAD
+=======
+        public virtual async Task<Status> BootLCUFeeds(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureLCUFeed(new Personas.DevOps.EnsureLCUFeedRequest()
+                {
+                    EnvironmentLookup = State.EnvironmentLookup
+                }, State.NewEnterpriseAPIKey, username, devOpsEntApiKey: parentEntApiKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
+
+        public virtual async Task<Status> BootTaskLibrary(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureTaskTlibrary(State.NewEnterpriseAPIKey, username, State.EnvironmentLookup, devOpsEntApiKey: parentEntApiKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
+
+        public virtual async Task<Status> CancelSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, string entApiKey, string username, string subscriberId)
+        {
+            // Issue cancellation
+            var response = await entMgr.CancelSubscription(subscriberId, entApiKey);
+
+            // If subscription is successfully cancelled
+            if (response.Status) {
+
+                // Get the user's LATs from the graph db
+                var licenseAccess = await idMgr.ListLicenseAccessTokens(entApiKey, username, new List<string>() { "LCU" });
+
+                // Expire the LAT
+                foreach(LicenseAccessToken token in licenseAccess.Model) {
+                    token.IsLocked = true;
+                    token.ExpirationDate = System.DateTime.Now;
+                    await idMgr.IssueLicenseAccess(token, entApiKey);
+                }
+
+                return Status.Success;   
+            }
+
+            return response.Status;
+        }
+
+>>>>>>> integration
         public virtual async Task<Status> CanFinalize(EnterpriseManagerClient entMgr, string parentEntApiKey, string username)
         {
             var status = Status.GeneralError;
