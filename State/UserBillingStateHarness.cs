@@ -105,7 +105,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 var resp = await secMgr.SetIdentityThirdPartyData(entApiKey, username, new Dictionary<string, string>()
                 {
                     { "LCU-USER-BILLING.TermsOfService", DateTimeOffset.UtcNow.ToString() },
-                    { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() }
+                    { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() },
+                    { "LCU-STRIPE-SUBSCRIPTION-ID", completeResp.SubscriptionID}
                 });
 
                 var planOption = this.State.Plans.First(p => p.Lookup == plan);
@@ -128,6 +129,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 State.PaymentStatus = setLicenseAccessResp.Status;
 
+                State.SubscriptionID = completeResp.SubscriptionID;
+
                 State.SuccessRedirect = licenseType == "lcu" ? "/workspace/new" : "https://forecast.fathym-it.com/";
             }
         }
@@ -149,12 +152,31 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             SetUsername(username);
 
             await DetermineRequiredOptIns(secMgr, entApiKey, username);
+
+            await LoadSubscriptionDetails(entMgr, secMgr, entApiKey, username);
         }
 
         public virtual void ResetStateCheck(bool force = false)
         {
             if (force || State.PaymentStatus)
                 State = new UserBillingState();
+        }
+        
+        public virtual async Task LoadSubscriptionDetails(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entApiKey, string username) 
+        {
+            // get subscription token by user name
+            var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entApiKey, username, "LCU-STRIPE-SUBSCRIPTION-ID");
+
+            string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"].ToString();
+
+            if (!String.IsNullOrEmpty(subId)) {
+                
+                // get subscription details 
+                var subDetails = await entMgr.GetStripeSubscriptionDetails(subId, entApiKey);   
+
+                State.SubscriptionDetails = subDetails.Model;
+            } 
+            
         }
         #endregion
     }
