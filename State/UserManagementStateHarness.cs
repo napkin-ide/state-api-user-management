@@ -257,10 +257,17 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> CancelSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, string entApiKey, string username, string subscriberId)
+        public virtual async Task<Status> CancelSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entApiKey, string username)
         {
+            // get subscription token by user name
+            var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entApiKey, username, "LCU-STRIPE-SUBSCRIPTION-ID");
+
+            string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"].ToString();
+
+            if (String.IsNullOrEmpty(subId)) return Status.GeneralError.Clone($"No subscripton ID was found for user {username}");
+
             // Issue cancellation
-            var response = await entMgr.CancelSubscription(subscriberId, entApiKey);
+            var response = await entMgr.CancelSubscription(subId, entApiKey);
 
             // If subscription is successfully cancelled
             if (response.Status) {
