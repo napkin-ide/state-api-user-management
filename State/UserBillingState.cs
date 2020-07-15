@@ -48,9 +48,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         [DataMember]
         public virtual string SubscriptionID { get; set; }
-
-        [DataMember]
-        public virtual StripeSubscriptionDetails SubscriptionDetails { get; set; }        
+  
 
         [DataMember]
         public virtual string SuccessRedirect { get; set; }
