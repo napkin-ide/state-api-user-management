@@ -257,10 +257,17 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> CancelSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, string entApiKey, string username, string subscriberId)
+        public virtual async Task<Status> CancelSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entApiKey, string username)
         {
+            // get subscription token by user name
+            var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entApiKey, username, "LCU-STRIPE-SUBSCRIPTION-ID");
+
+            string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"].ToString();
+
+            if (String.IsNullOrEmpty(subId)) return Status.GeneralError.Clone($"No subscripton ID was found for user {username}");
+
             // Issue cancellation
-            var response = await entMgr.CancelSubscription(subscriberId, entApiKey);
+            var response = await entMgr.CancelSubscription(subId, entApiKey);
 
             // If subscription is successfully cancelled
             if (response.Status) {
@@ -274,6 +281,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     token.ExpirationDate = System.DateTime.Now;
                     await idMgr.IssueLicenseAccess(token, entApiKey);
                 }
+
+                // Send email to let user know the cancellation took place 
 
                 return Status.Success;   
             }
@@ -585,6 +594,23 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 State.HostOptions = regHosts.Model;
             }
+        }
+
+        public virtual async Task LoadSubscriptionDetails(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entApiKey, string username) 
+        {
+            // get subscription token by user name
+            var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entApiKey, username, "LCU-STRIPE-SUBSCRIPTION-ID");
+
+            string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"].ToString();
+
+            if (!String.IsNullOrEmpty(subId)) {
+                
+                // get subscription details 
+                var subDetails = await entMgr.GetStripeSubscriptionDetails(subId, entApiKey);   
+
+                State.SubscriptionDetails = subDetails.Model;
+            } 
+            
         }
 
         public virtual async Task<Status> RequestAuthorization(SecurityManagerClient secMgr, ApplicationManagerClient appMgr, IdentityManagerClient idMgr, string userID, string enterpriseID, string hostName)
