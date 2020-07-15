@@ -14,6 +14,7 @@ using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Fathym;
 using LCU.Personas.Client.Enterprises;
 using LCU.Personas.Client.Identity;
+using LCU.Personas.Client.Security;
 using LCU.StateAPI.Utilities;
 using LCU.State.API.NapkinIDE.UserManagement.State;
 
@@ -35,11 +36,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
         protected IdentityManagerClient idMgr;
 
-        public CancelSubscription(EnterpriseManagerClient engMgr, IdentityManagerClient idMgr)
+        protected SecurityManagerClient secMgr;
+
+        public CancelSubscription(EnterpriseManagerClient engMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr)
         {
             this.engMgr = engMgr;
 
             this.idMgr = idMgr;
+
+            this.secMgr = secMgr;
         }
 
         [FunctionName("CancelSubscription")]
@@ -54,7 +59,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                var status =  await harness.CancelSubscription(engMgr, idMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username, reqData.SubscriptionID);
+                var status =  await harness.CancelSubscription(engMgr, idMgr, secMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username);
 
                 return status;
             });

@@ -112,6 +112,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual List<LicenseAccessToken> Subscribers { get; set; }
 
         [DataMember]
+        public virtual StripeSubscriptionDetails SubscriptionDetails { get; set; }      
+
+        [DataMember]
         public virtual string Template { get; set; }
 
         [DataMember]
