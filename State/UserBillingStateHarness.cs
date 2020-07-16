@@ -105,7 +105,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 var resp = await secMgr.SetIdentityThirdPartyData(entApiKey, username, new Dictionary<string, string>()
                 {
                     { "LCU-USER-BILLING.TermsOfService", DateTimeOffset.UtcNow.ToString() },
-                    { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() }
+                    { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() },
+                    { "LCU-STRIPE-SUBSCRIPTION-ID", completeResp.SubscriptionID}
                 });
 
                 var planOption = this.State.Plans.First(p => p.Lookup == plan);
@@ -127,6 +128,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 var setLicenseAccessResp = await idMgr.IssueLicenseAccess(token, entApiKey);
 
                 State.PaymentStatus = setLicenseAccessResp.Status;
+
+                State.SubscriptionID = completeResp.SubscriptionID;
 
                 State.SuccessRedirect = licenseType == "lcu" ? "/workspace/new" : "https://forecast.fathym-it.com/";
             }
@@ -155,7 +158,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             if (force || State.PaymentStatus)
                 State = new UserBillingState();
-        }
+        }  
         #endregion
     }
 }

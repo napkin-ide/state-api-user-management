@@ -23,6 +23,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual bool Loading { get; set; }
 
         [DataMember]
+        public virtual DateTime NextBillingDate { get; set; }
+
+        [DataMember]
         public virtual string PaymentMethodID { get; set; }
 
         [DataMember]
@@ -44,10 +47,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual Status Status { get; set; }
 
         [DataMember]
+        public virtual string SubscriptionID { get; set; }
+  
+
+        [DataMember]
         public virtual string SuccessRedirect { get; set; }
 
         [DataMember]
         public virtual string Username { get; set; }
+        
     }
 
     [DataContract]

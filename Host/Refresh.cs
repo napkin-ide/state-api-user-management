@@ -110,6 +110,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
 
             harness.DetermineSetupStep();
 
+            //await harness.LoadSubscriptionDetails(entMgr, secMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username);
+
             await Task.WhenAll(new[]{
                 harness.LoadRegistrationHosts(entMgr, stateDetails.EnterpriseAPIKey),
                 harness.HasDevOpsOAuth(entMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username)
