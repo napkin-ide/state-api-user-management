@@ -209,8 +209,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-<<<<<<< HEAD
-=======
         public virtual async Task<Status> BootLCUFeeds(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
         {
             if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
@@ -262,7 +260,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return response.Status;
         }
 
->>>>>>> integration
         public virtual async Task<Status> CanFinalize(EnterpriseManagerClient entMgr, string parentEntApiKey, string username)
         {
             var status = Status.GeneralError;
