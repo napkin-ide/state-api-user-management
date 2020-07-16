@@ -209,32 +209,32 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> BootLCUFeeds(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
-        {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
-            {
-                var resp = await devOpsArch.EnsureLCUFeed(new Personas.DevOps.EnsureLCUFeedRequest()
-                {
-                    EnvironmentLookup = State.EnvironmentLookup
-                }, State.NewEnterpriseAPIKey, username, devOpsEntApiKey: parentEntApiKey);
+        // public virtual async Task<Status> BootLCUFeeds(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
+        // {
+        //     if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+        //     {
+        //         var resp = await devOpsArch.EnsureLCUFeed(new Personas.DevOps.EnsureLCUFeedRequest()
+        //         {
+        //             EnvironmentLookup = State.EnvironmentLookup
+        //         }, State.NewEnterpriseAPIKey, username, devOpsEntApiKey: parentEntApiKey);
 
-                return resp.Status;
-            }
-            else
-                return Status.GeneralError.Clone("Boot not properly configured.");
-        }
+        //         return resp.Status;
+        //     }
+        //     else
+        //         return Status.GeneralError.Clone("Boot not properly configured.");
+        // }
 
-        public virtual async Task<Status> BootTaskLibrary(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
-        {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
-            {
-                var resp = await devOpsArch.EnsureTaskTlibrary(State.NewEnterpriseAPIKey, username, State.EnvironmentLookup, devOpsEntApiKey: parentEntApiKey);
+        // public virtual async Task<Status> BootTaskLibrary(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
+        // {
+        //     if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+        //     {
+        //         var resp = await devOpsArch.EnsureTaskTlibrary(State.NewEnterpriseAPIKey, username, State.EnvironmentLookup, devOpsEntApiKey: parentEntApiKey);
 
-                return resp.Status;
-            }
-            else
-                return Status.GeneralError.Clone("Boot not properly configured.");
-        }
+        //         return resp.Status;
+        //     }
+        //     else
+        //         return Status.GeneralError.Clone("Boot not properly configured.");
+        // }
 
         public virtual async Task<Status> CancelSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entApiKey, string username)
         {
@@ -275,9 +275,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
-                var canFinalize = await entMgr.EnsureInfraBuiltAndReleased(State.NewEnterpriseAPIKey, username, State.EnvironmentLookup, parentEntApiKey);
+                // var canFinalize = await entMgr.EnsureInfraBuiltAndReleased(State.NewEnterpriseAPIKey, username, State.EnvironmentLookup, parentEntApiKey);
 
-                status = canFinalize.Status;
+                // status = canFinalize.Status;
             }
 
             return status;
@@ -651,12 +651,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return Status.Success;
         }
 
-        public virtual async Task HasDevOpsOAuth(EnterpriseManagerClient entMgr, string entApiKey, string username)
-        {
-            var hasDevOps = await entMgr.HasDevOpsOAuth(entApiKey, username);
+        // public virtual async Task HasDevOpsOAuth(EnterpriseManagerClient entMgr, string entApiKey, string username)
+        // {
+        //     var hasDevOps = await entMgr.HasDevOpsOAuth(entApiKey, username);
 
-            State.HasDevOpsOAuth = hasDevOps.Status;
-        }
+        //     State.HasDevOpsOAuth = hasDevOps.Status;
+        // }
 
         public virtual async Task ListSubscribers(IdentityManagerClient idMgr, string entApiKey)
         {
@@ -756,7 +756,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 var emailModel = new MetadataModel();
                 model.Metadata.Add(new KeyValuePair<string, JToken>("AccessRequestEmail", JToken.Parse(JsonConvert.SerializeObject(email))));
 
-                appMgr.SendAccessRequestEmail(model, enterpriseID);
+                await appMgr.SendAccessRequestEmail(model, enterpriseID);
             }
 
             // If successful, adjust state to reflect that a request was sent for this enterprise by this user

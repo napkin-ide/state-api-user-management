@@ -114,7 +114,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
 
             await Task.WhenAll(new[]{
                 harness.LoadRegistrationHosts(entMgr, stateDetails.EnterpriseAPIKey),
-                harness.HasDevOpsOAuth(entMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username)
+                // harness.HasDevOpsOAuth(entMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username)
             });
 
             return Status.Success;
