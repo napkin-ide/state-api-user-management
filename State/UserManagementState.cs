@@ -242,6 +242,31 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
     }
 
     [DataContract]
+    public class FeedbackEmail
+    {
+
+        [DataMember]
+        public virtual string User { get; set; }
+
+        [DataMember]
+        public virtual string EnterpriseID { get; set; }
+
+        [DataMember]
+        public virtual string Subject { get; set; }
+
+        [DataMember]
+        public virtual string FeedbackReason { get; set; }
+
+        [DataMember]
+        public virtual string EmailTo { get; set; }
+
+        [DataMember]
+        public virtual string EmailFrom { get; set; }
+
+
+    }
+
+    [DataContract]
     public enum UserTypes
     {
         [EnumMember]
