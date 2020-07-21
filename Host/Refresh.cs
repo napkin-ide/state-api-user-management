@@ -117,6 +117,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
                 harness.HasDevOpsOAuth(entMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username)
             });
 
+            // TODO: may need to track auth requests in the future
+            harness.State.RequestAuthorizationSent = String.Empty;
+            
             return Status.Success;
         }
         #endregion
