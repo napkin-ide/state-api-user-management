@@ -602,7 +602,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             // get subscription token by user name
             var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entApiKey, username, "LCU-STRIPE-SUBSCRIPTION-ID");
 
-            string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"].ToString();
+            string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"]?.ToString();
 
             if (!String.IsNullOrEmpty(subId)) {
                 
@@ -661,7 +661,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 var emailModel = new MetadataModel();
                 model.Metadata.Add(new KeyValuePair<string, JToken>("AccessRequestEmail", JToken.Parse(JsonConvert.SerializeObject(email))));
 
-                appMgr.SendAccessRequestEmail(model, enterpriseID);
+                await appMgr.SendAccessRequestEmail(model, enterpriseID);
             }
 
             // If successful, adjust state to reflect that a request was sent for this enterprise by this user
