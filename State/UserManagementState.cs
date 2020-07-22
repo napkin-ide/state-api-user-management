@@ -102,6 +102,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual List<JourneyPersona> Personas { get; set; }
 
         [DataMember]
+        public virtual string ProjectID { get; set; }
+
+        [DataMember]
         [JsonConverter(typeof(StringEnumConverter))]
         public virtual NapkinIDESetupStepTypes SetupStep { get; set; }
 

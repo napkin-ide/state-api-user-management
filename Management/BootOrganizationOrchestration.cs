@@ -9,6 +9,7 @@ using Fathym;
 using LCU.Personas.Client.Applications;
 using LCU.Personas.Client.DevOps;
 using LCU.Personas.Client.Enterprises;
+using LCU.Personas.DevOps;
 using LCU.State.API.NapkinIDE.UserManagement.State;
 using LCU.StateAPI;
 using Microsoft.Azure.WebJobs;
@@ -152,7 +153,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                 {
                     log.LogInformation($"Checking if build and release are complete...");
 
-                    var canFinalize = await harness.CanFinalize(entMgr, stateCtxt.StateDetails.EnterpriseAPIKey, stateCtxt.StateDetails.Username);
+                    var canFinalize = await harness.CanFinalize(devOpsArch, stateCtxt.StateDetails.Username);
 
                     if (!canFinalize)
                     {
@@ -178,17 +179,18 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
             [SignalR(HubName = UserManagementState.HUB_NAME)] IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{stateCtxt.StateDetails.EnterpriseAPIKey}/{stateCtxt.StateDetails.HubName}/{stateCtxt.StateDetails.Username}/{stateCtxt.StateDetails.StateKey}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
+            //  Ensure DevOps Project
             var status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                 stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
                 {
-                    log.LogInformation($"Configuring Project DevOps...");
+                    log.LogInformation($"Configuring DevOps Project...");
 
-                    var status = await harness.BootIaC(devOpsArch, stateCtxt.StateDetails.EnterpriseAPIKey, stateCtxt.StateDetails.Username);
+                    var status = await harness.EnsureDevOpsProject(devOpsArch, stateCtxt.StateDetails.Username);
 
                     if (status)
-                        harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Configuring DevOps Environment Package Feeds..."));
+                        harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Configuring DevOps Repositories..."));
                     else
-                        harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Environment, retrying."));
+                        harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Project, retrying."));
 
                     harness.UpdateStatus(status);
 
@@ -196,48 +198,127 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                 });
 
             if (status)
+                //  Ensure Repositories
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
                     {
-                        log.LogInformation($"Configuring Project DevOps...");
+                        log.LogInformation($"Configuring DevOps Repositories...");
 
-                        var status = await harness.BootLCUFeeds(devOpsArch, stateCtxt.StateDetails.EnterpriseAPIKey, stateCtxt.StateDetails.Username);
+                        var status = await harness.BootRepositories(devOpsArch, stateCtxt.StateDetails.Username);
 
                         if (status)
-                            harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Configuring DevOps Environment Task Library..."));
+                            harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Configuring DevOps Feed..."));
                         else
-                            harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Environment Package Feed, retrying."));
+                            harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Repositories, retrying."));
 
                         harness.UpdateStatus(status);
 
                         return status;
                     });
 
+            //  Ensure Feed
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
                     {
-                        log.LogInformation($"Configuring Project DevOps...");
+                        log.LogInformation($"Configuring DevOps Feeds...");
 
-                        var status = await harness.BootTaskLibrary(devOpsArch, stateCtxt.StateDetails.EnterpriseAPIKey, stateCtxt.StateDetails.Username);
+                        var status = await harness.BootFeeds(devOpsArch, stateCtxt.StateDetails.Username);
 
                         if (status)
-                            harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Configuring DevOps Environment with Infrastructure as Code builds and releases..."));
+                            harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Configuring DevOps Service Endpoints..."));
                         else
-                            harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Environment Task Library, retrying."));
+                            harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Feeds, retrying."));
 
                         harness.UpdateStatus(status);
 
                         return status;
                     });
 
+            //  Ensure Service Endpoints
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
                     {
-                        log.LogInformation($"Configuring Project DevOps...");
+                        log.LogInformation($"Configuring DevOps Service Endpoints...");
 
-                        var status = await harness.BootIaCBuildsAndReleases(devOpsArch, stateCtxt.StateDetails.EnterpriseAPIKey, stateCtxt.StateDetails.Username);
+                        var status = await harness.BootServiceEndpoints(devOpsArch, stateCtxt.StateDetails.Username);
+
+                        if (status)
+                            harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Configuring DevOps Task Library..."));
+                        else
+                            harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Service Endpoints, retrying."));
+
+                        harness.UpdateStatus(status);
+
+                        return status;
+                    });
+
+            //  Ensure Task Library
+            if (status)
+                status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
+                    stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
+                    {
+                        log.LogInformation($"Configuring DevOps Task Library...");
+
+                        var status = await harness.BootTaskLibrary(devOpsArch, stateCtxt.StateDetails.Username);
+
+                        if (status)
+                            harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Configuring DevOps Build Definitions..."));
+                        else
+                            harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Task Library, retrying."));
+
+                        harness.UpdateStatus(status);
+
+                        return status;
+                    });
+
+            //  Ensure Build Definitions
+            if (status)
+                status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
+                    stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
+                    {
+                        log.LogInformation($"Configuring DevOps Build Definitions...");
+
+                        var status = await harness.BootBuildDefinitions(devOpsArch, stateCtxt.StateDetails.Username);
+
+                        if (status)
+                            harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Configuring DevOps Release Definitions..."));
+                        else
+                            harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Build Definitions, retrying."));
+
+                        harness.UpdateStatus(status);
+
+                        return status;
+                    });
+
+            //  Ensure Release Definitions
+            if (status)
+                status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
+                    stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
+                    {
+                        log.LogInformation($"Configuring DevOps Release Definitions...");
+
+                        var status = await harness.BootReleaseDefinitions(devOpsArch, stateCtxt.StateDetails.Username);
+
+                        if (status)
+                            harness.UpdateBootOption("DevOps", status: Status.Initialized.Clone("Setting Up DevOps Repositories..."));
+                        else
+                            harness.UpdateBootOption("DevOps", status: Status.GeneralError.Clone("Error Configuring DevOps Release Definitions, retrying."));
+
+                        harness.UpdateStatus(status);
+
+                        return status;
+                    });
+
+            //  Setup Repositories
+            if (status)
+                status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
+                    stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
+                    {
+                        log.LogInformation($"Setting Up DevOps Repositories...");
+
+                        var status = await harness.SetupRepositories(devOpsArch, stateCtxt.StateDetails.Username);
 
                         if (status)
                         {
@@ -380,7 +461,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                 {
                     log.LogInformation($"Configuring Project Infrastructure...");
 
-                    var status = await harness.BootDAFInfrastructure(devOpsArch, stateCtxt.StateDetails.EnterpriseAPIKey, stateCtxt.StateDetails.Username);
+                    var status = await harness.BootDAFInfrastructure(devOpsArch, stateCtxt.StateDetails.Username);
 
                     if (status)
                         harness.UpdateBootOption("Infrastructure", status: Status.Initialized.Clone("Committing Environment Infrastructure as Code..."));
@@ -406,11 +487,35 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     var status = await harness.BootMicroAppsRuntime(entArch);
 
                     if (status)
-                        harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Configuring Data Aplicationps Low-Code Unit™..."));
+                        if (harness.State.Template == "fathym\\daf-iot-starter")
+                            harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Configuring IoT Low-Code Unit™s..."));
+                        else
+                            harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Configuring Data Aplicationps Low-Code Unit™..."));
                     else
                         harness.UpdateBootOption("MicroApps", status: Status.GeneralError.Clone("Error Configuring Micro-Applications Runtime, retrying."));
 
                     harness.UpdateStatus(status);
+
+                    return status;
+                });
+
+            status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
+                stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
+                {
+
+                    if (harness.State.Template == "fathym\\daf-iot-starter")
+                    {
+                        log.LogInformation($"Booting IoT Getting Started Blades...");
+
+                        var status = await harness.BootIoTWelcome(appDev);
+
+                        if (status)
+                            harness.UpdateBootOption("MicroApps", status: Status.Initialized.Clone("Configuring Data Aplicationps Low-Code Unit™..."));
+                        else
+                            harness.UpdateBootOption("MicroApps", status: Status.GeneralError.Clone("Error Configuring Micro-Applications Runtime, retrying."));
+
+                        harness.UpdateStatus(status);
+                    }
 
                     return status;
                 });
@@ -524,10 +629,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
             //     await context.CreateTimer(deadline, 0, timeoutCts.Token);
             // }
 
-            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(10), 360)
+            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(10), 500)
             {
                 Handle = handleRetryException,
-                RetryTimeout = TimeSpan.FromMinutes(30)
+                RetryTimeout = TimeSpan.FromMinutes(60)
             };
 
             canFinalize = await context.CallActivityWithRetryAsync<Status>("BootOrganizationOrchestration_CanFinalize", retryOptions, stateCtxt);

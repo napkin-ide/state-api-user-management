@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Net.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
@@ -60,7 +61,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             State.AzureInfrastructureValid = valid.Status;
 
-            if (!State.AzureInfrastructureValid) {
+            if (!State.AzureInfrastructureValid)
+            {
                 State.AzureInfrastructureInvalidComponent = valid.Status.Metadata["ErrorFrom"].ToString();
                 State.AzureInfrastructureInvalidComponentError = valid.Status.Message;
             }
@@ -101,6 +103,19 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     OrganizationLookup = State.OrganizationLookup,
                 }, State.NewEnterpriseAPIKey);
 
+                // var envResp = await devOpsArch.With(async client => {
+                //     var res = await client.PostAsJsonAsync($"infrastructure/{State.NewEnterpriseAPIKey}/ensure/env", new Personas.DevOps.EnsureEnvironmentRequest()
+                //     {
+                //         EnvSettings = State.EnvSettings,
+                //         OrganizationLookup = State.OrganizationLookup,
+                //     });
+
+                //     return res;
+                // });
+
+
+                // var resp = await envResp.Content.ReadAsStringAsync();
+
                 State.EnvironmentLookup = envResp.Model?.Lookup;
 
                 status = envResp.Status;
@@ -113,38 +128,17 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return status;
         }
 
-        public virtual async Task<Status> BootIaC(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
+        public virtual async Task<Status> BootDAFInfrastructure(DevOpsArchitectClient devOpsArch, string username)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
-            {
-                var resp = await devOpsArch.EnsureInfrastructureRepo(State.NewEnterpriseAPIKey, username, State.EnvironmentLookup, devOpsEntApiKey: parentEntApiKey);
-
-                return resp.Status;
-            }
-            else
-                return Status.GeneralError.Clone("Boot not properly configured.");
-        }
-
-        public virtual async Task<Status> BootIaCBuildsAndReleases(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
-        {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
-            {
-                var resp = await devOpsArch.EnsureInfrastructureBuildAndRelease(State.NewEnterpriseAPIKey, username, State.EnvironmentLookup, devOpsEntApiKey: parentEntApiKey);
-
-                return resp.Status;
-            }
-            else
-                return Status.GeneralError.Clone("Boot not properly configured.");
-        }
-
-        public virtual async Task<Status> BootDAFInfrastructure(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
-        {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
             {
                 var resp = await devOpsArch.SetEnvironmentInfrastructure(new Personas.DevOps.SetEnvironmentInfrastructureRequest()
                 {
-                    Template = State.Template
-                }, State.NewEnterpriseAPIKey, State.EnvironmentLookup, username, devOpsEntApiKey: parentEntApiKey);
+                    EnvironmentLookup = State.EnvironmentLookup,
+                    ProjectID = State.ProjectID,
+                    Template = State.Template,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
 
                 return resp.Status;
             }
@@ -206,11 +200,27 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
+        public virtual async Task<Status> BootBuildDefinitions(DevOpsArchitectClient devOpsArch, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureBuilds(new Personas.DevOps.EnsureBuildsRequest()
+                {
+                    ProjectID = State.ProjectID,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
+
         public virtual async Task<Status> BootDataApps(ApplicationDeveloperClient appDev)
         {
             if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
-                var resp = await appDev.ConfigureNapkinIDEForDataApps(State.NewEnterpriseAPIKey, State.Host);
+                var resp = await appDev.ConfigureNapkinIDEForDataApps(State.NewEnterpriseAPIKey);
 
                 return resp.Status;
             }
@@ -222,7 +232,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
-                var resp = await appDev.ConfigureNapkinIDEForDataFlows(State.NewEnterpriseAPIKey, State.Host);
+                var resp = await appDev.ConfigureNapkinIDEForDataFlows(State.NewEnterpriseAPIKey);
 
                 return resp.Status;
             }
@@ -230,14 +240,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> BootLCUFeeds(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
+        public virtual async Task<Status> BootFeeds(DevOpsArchitectClient devOpsArch, string username)
         {
             if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
-                var resp = await devOpsArch.EnsureLCUFeed(new Personas.DevOps.EnsureLCUFeedRequest()
+                var resp = await devOpsArch.EnsureFeed(new Personas.DevOps.EnsureFeedRequest()
                 {
-                    EnvironmentLookup = State.EnvironmentLookup
-                }, State.NewEnterpriseAPIKey, username, devOpsEntApiKey: parentEntApiKey);
+                    EnvironmentLookup = State.EnvironmentLookup,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
 
                 return resp.Status;
             }
@@ -245,11 +256,202 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> BootTaskLibrary(DevOpsArchitectClient devOpsArch, string parentEntApiKey, string username)
+        public virtual async Task<Status> BootIoTWelcome(ApplicationDeveloperClient appDev)
         {
             if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
-                var resp = await devOpsArch.EnsureTaskTlibrary(State.NewEnterpriseAPIKey, username, State.EnvironmentLookup, devOpsEntApiKey: parentEntApiKey);
+                var resp = await appDev.ConfigureNapkinIDEForIoTWelcome(State.NewEnterpriseAPIKey, State.EnvironmentLookup, State.Host);
+
+                var status = resp.Status;
+
+                if (status)
+                {
+                    var dfResp = await appDev.DeployDataFlow(new Personas.Applications.DeployDataFlowRequest()
+                    {
+                        DataFlowLookup = "iot"  //  Will need to be handled differently if default ever changes in ConfigureNapkinIDEForIoTWelcome
+                    }, State.NewEnterpriseAPIKey, State.EnvironmentLookup);
+
+                    status = dfResp.Status;
+                }
+                else
+                    status = Status.GeneralError.Clone("Unable to save the data flow");
+
+                if (status)
+                {
+                    var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                    {
+                        Application = new Graphs.Registry.Enterprises.Apps.Application()
+                        {
+                            Name = "Freeboard",
+                            Description = "Freeboard is an open source tool for visualizing data.",
+                            PathRegex = "/observations/freeboard*"
+                        },
+                        DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
+                        {
+                            new Graphs.Registry.Enterprises.Apps.DAFViewConfiguration()
+                            {
+                                BaseHref = "/observations/freeboard/",
+                                NPMPackage = "@semanticjs/freeboard",
+                                PackageVersion = "latest",
+                                Priority = 500,
+                                StateConfig = new
+                                {
+                                    ActionRoot = "/api/state",
+                                    Root = "/api/state"
+                                }.JSONConvert<MetadataModel>()
+                            }
+                        }
+                    }, State.NewEnterpriseAPIKey, State.Host);
+
+                    status = saveResp.Status;
+
+                    if (status)
+                    {
+                        saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                        {
+                            Application = new Graphs.Registry.Enterprises.Apps.Application()
+                            {
+                                Name = "LCU Observational Charts",
+                                Description = "LCU Charts is an application based on Fathym's open source charting library that provides a great starting point for creating customized visualizations.",
+                                PathRegex = "/observations/lcu-charts*"
+                            },
+                            DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
+                            {
+                                new Graphs.Registry.Enterprises.Apps.DAFViewConfiguration()
+                                {
+                                    BaseHref = "/observations/lcu-charts/",
+                                    NPMPackage = "@lowcodeunit/lcu-charts",
+                                    PackageVersion = "latest",
+                                    Priority = 500,
+                                    StateConfig = new
+                                    {
+                                        ActionRoot = "/api/state",
+                                        Root = "/api/state"
+                                    }.JSONConvert<MetadataModel>()
+                                }
+                            }
+                        }, State.NewEnterpriseAPIKey, State.Host);
+
+                        status = saveResp.Status;
+                    }
+
+                    if (status)
+                    {
+                        saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                        {
+                            Application = new Graphs.Registry.Enterprises.Apps.Application()
+                            {
+                                Name = $"Warm Query APIs - iot",
+                                Description = "These API proxies make it easy to connect and work with your observational data.",
+                                PathRegex = "/api/data-flow/iot/query*"
+                            },
+                            DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
+                            {
+                                new Graphs.Registry.Enterprises.Apps.DAFAPIConfiguration()
+                                {
+                                    APIRoot = "https://www.google.com",
+                                    InboundPath = "data-flow/iot/query",
+                                    Priority = 500,
+                                    Security = "x-functions-key~___"
+                                }
+                            }
+                        }, State.NewEnterpriseAPIKey, State.Host);
+
+                        status = saveResp.Status;
+                    }
+
+                    if (status)
+                    {
+                        saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                        {
+                            Application = new Graphs.Registry.Enterprises.Apps.Application()
+                            {
+                                Name = $"Ingest APIs - iot",
+                                Description = "These API proxies make it easy to connect and send your own observational data.",
+                                PathRegex = "/api/data-flow/iot/ingest*"
+                            },
+                            DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
+                            {
+                                new Graphs.Registry.Enterprises.Apps.DAFAPIConfiguration()
+                                {
+                                    APIRoot = "https://www.google.com",
+                                    InboundPath = "data-flow/iot/ingest",
+                                    Priority = 500,
+                                    Security = "x-event-hub-key~___"
+                                }
+                            }
+                        }, State.NewEnterpriseAPIKey, State.Host);
+
+                        status = saveResp.Status;
+                    }
+                }
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
+
+        public virtual async Task<Status> BootReleaseDefinitions(DevOpsArchitectClient devOpsArch, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureReleases(new Personas.DevOps.EnsureReleasesRequest()
+                {
+                    EnvironmentLookup = State.EnvironmentLookup,
+                    ProjectID = State.ProjectID,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
+
+        public virtual async Task<Status> BootRepositories(DevOpsArchitectClient devOpsArch, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureRepositories(new Personas.DevOps.EnsureRepositoriesRequest()
+                {
+                    EnvironmentLookup = State.EnvironmentLookup,
+                    ProjectID = State.ProjectID,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
+
+        public virtual async Task<Status> BootServiceEndpoints(DevOpsArchitectClient devOpsArch, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureServiceEndpoints(new Personas.DevOps.EnsureServiceEndpointsRequest()
+                {
+                    EnvironmentLookup = State.EnvironmentLookup,
+                    ProjectID = State.ProjectID,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
+
+        public virtual async Task<Status> BootTaskLibrary(DevOpsArchitectClient devOpsArch, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureTaskLibrary(new EnsureTaskLibraryRequest()
+                {
+                    ProjectID = State.ProjectID,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
 
                 return resp.Status;
             }
@@ -270,13 +472,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             var response = await entMgr.CancelSubscription(subId, entApiKey);
 
             // If subscription is successfully cancelled
-            if (response.Status) {
+            if (response.Status)
+            {
 
                 // Get the user's LATs from the graph db
                 var licenseAccess = await idMgr.ListLicenseAccessTokens(entApiKey, username, new List<string>() { "LCU" });
 
                 // Expire the LAT
-                foreach(LicenseAccessToken token in licenseAccess.Model) {
+                foreach (LicenseAccessToken token in licenseAccess.Model)
+                {
                     token.IsLocked = true;
                     token.ExpirationDate = System.DateTime.Now;
                     await idMgr.IssueLicenseAccess(token, entApiKey);
@@ -284,21 +488,32 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 // Send email to let user know the cancellation took place 
 
-                return Status.Success;   
+                return Status.Success;
             }
 
             return response.Status;
         }
 
-        public virtual async Task<Status> CanFinalize(EnterpriseManagerClient entMgr, string parentEntApiKey, string username)
+        public virtual async Task<Status> CanFinalize(DevOpsArchitectClient devOpsArch, string username)
         {
             var status = Status.GeneralError;
 
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
             {
-                var canFinalize = await entMgr.EnsureInfraBuiltAndReleased(State.NewEnterpriseAPIKey, username, State.EnvironmentLookup, parentEntApiKey);
+                var bldsResp = await devOpsArch.AreBuildsComplete(new AreBuildsCompleteRequest()
+                {
+                    ProjectID = State.ProjectID,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
 
-                status = canFinalize.Status;
+                var rlsResp = await devOpsArch.AreReleaseDeploysComplete(new AreReleaseDeploysCompleteRequest()
+                {
+                    EnvironmentLookup = State.EnvironmentLookup,
+                    ProjectID = State.ProjectID,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
+
+                status = bldsResp.Status && rlsResp.Status;
             }
 
             return status;
@@ -390,7 +605,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             State.InfrastructureOptions["fathym\\daf-state-setup"] = "Low-Code Unit™ Runtime";
 
-            State.InfrastructureOptions["fathym\\daf-iot-full-setup"] = "Low-Code Unit™ Runtime w/ IoT";
+            State.InfrastructureOptions["fathym\\daf-iot-starter"] = "Low-Code Unit™ Runtime w/ IoT";
         }
 
         public virtual async Task ConfigureAzureLocationOptions(EnterpriseArchitectClient entArch)
@@ -534,7 +749,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             };
         }
 
-
         public virtual async Task<Status> DenyAccess(ApplicationManagerClient appMgr, string entApiKey, string token)
         {
             var response = await appMgr.DenyAccess(token, entApiKey);
@@ -548,6 +762,24 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 State.SetupStep = NapkinIDESetupStepTypes.OrgDetails;
         }
 
+        public virtual async Task<Status> EnsureDevOpsProject(DevOpsArchitectClient devOpsArch, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.EnsureDevOpsProject(new EnsureDevOpsProjectRequest()
+                {
+                    EnvironmentLookup = State.EnvironmentLookup,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
+
+                State.ProjectID = resp.Model.HasValue ? resp.Model.Value.ToString() : null;
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
+
         public virtual async Task<Status> GrantAccess(ApplicationManagerClient appMgr, string entApiKey, string token)
         {
             var response = await appMgr.GrantAccess(token, entApiKey);
@@ -555,12 +787,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return Status.Success;
         }
 
-        public virtual async Task HasDevOpsOAuth(EnterpriseManagerClient entMgr, string entApiKey, string username)
-        {
-            var hasDevOps = await entMgr.HasDevOpsOAuth(entApiKey, username);
+        // public virtual async Task HasDevOpsOAuth(EnterpriseManagerClient entMgr, string entApiKey, string username)
+        // {
+        //     var hasDevOps = await entMgr.HasDevOpsOAuth(entApiKey, username);
 
-            State.HasDevOpsOAuth = hasDevOps.Status;
-        }
+        //     State.HasDevOpsOAuth = hasDevOps.Status;
+        // }
 
         public virtual async Task ListSubscribers(IdentityManagerClient idMgr, string entApiKey)
         {
@@ -579,13 +811,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return (licenseAccess != null) ? Status.Success : Status.Unauthorized.Clone($"No licenses found for user {username}");
         }
 
-        public virtual async Task<Status> HasLicenseAccessWithLookup(IdentityManagerClient idMgr, string entApiKey, string username, string lookup)
-        {
-            var licenseAccess = await idMgr.HasLicenseAccess(entApiKey, username, AllAnyTypes.All, new List<string>() { "lcu" });
-
-            return licenseAccess.Status ? Status.Success : Status.Unauthorized.Clone($"No license found for user {username}");
-        }
-
         public virtual async Task LoadRegistrationHosts(EnterpriseManagerClient entMgr, string entApiKey)
         {
             if (State.HostOptions.IsNullOrEmpty())
@@ -596,21 +821,29 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             }
         }
 
-        public virtual async Task LoadSubscriptionDetails(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entApiKey, string username) 
+        public virtual async Task LoadSubscriptionDetails(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entApiKey, string username)
         {
             // get subscription token by user name
             var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entApiKey, username, "LCU-STRIPE-SUBSCRIPTION-ID");
 
             string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"].ToString();
 
-            if (!String.IsNullOrEmpty(subId)) {
-                
+            if (!String.IsNullOrEmpty(subId))
+            {
+
                 // get subscription details 
-                var subDetails = await entMgr.GetStripeSubscriptionDetails(subId, entApiKey);   
+                var subDetails = await entMgr.GetStripeSubscriptionDetails(subId, entApiKey);
 
                 State.SubscriptionDetails = subDetails.Model;
-            } 
-            
+            }
+
+        }
+
+        public virtual async Task<Status> HasLicenseAccessWithLookup(IdentityManagerClient idMgr, string entApiKey, string username, string lookup)
+        {
+            var licenseAccess = await idMgr.HasLicenseAccess(entApiKey, username, AllAnyTypes.All, new List<string>() { "lcu" });
+
+            return licenseAccess.Status ? Status.Success : Status.Unauthorized.Clone($"No license found for user {username}");
         }
 
         public virtual async Task<Status> RequestAuthorization(SecurityManagerClient secMgr, ApplicationManagerClient appMgr, IdentityManagerClient idMgr, string userID, string enterpriseID, string hostName)
@@ -660,7 +893,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 var emailModel = new MetadataModel();
                 model.Metadata.Add(new KeyValuePair<string, JToken>("AccessRequestEmail", JToken.Parse(JsonConvert.SerializeObject(email))));
 
-                appMgr.SendAccessRequestEmail(model, enterpriseID);
+                await appMgr.SendAccessRequestEmail(model, enterpriseID);
             }
 
             // If successful, adjust state to reflect that a request was sent for this enterprise by this user
@@ -696,6 +929,23 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             });
         }
 
+        public virtual async Task<Status> SetupRepositories(DevOpsArchitectClient devOpsArch, string username)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
+            {
+                var resp = await devOpsArch.SetupRepositories(new Personas.DevOps.SetupRepositoriesRequest()
+                {
+                    EnvironmentLookup = State.EnvironmentLookup,
+                    ProjectID = State.ProjectID,
+                    Username = username
+                }, State.NewEnterpriseAPIKey);
+
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
+
         public virtual void UpdateStatus(Status status)
         {
             State.Status = status;
@@ -707,13 +957,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             if (bootOption != null)
             {
-                if (status != null){
+                if (status != null)
+                {
                     bootOption.Status = status;
 
-                    if(status.Code == 0){
-                        UpdateBootOptionText(bootOptionLookup);             
+                    if (status.Code == 0)
+                    {
+                        UpdateBootOptionText(bootOptionLookup);
                     }
-                }   
+                }
                 if (loading.HasValue)
                     bootOption.Loading = loading.Value;
             }
@@ -723,7 +975,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             var bootOption = State.BootOptions.FirstOrDefault(bo => bo.Lookup == bootOptionLookup);
 
-            switch(bootOption.Lookup){
+            switch (bootOption.Lookup)
+            {
                 case "Project":
                     bootOption.Name = "Workspace Details Configured";
                     break;
@@ -809,22 +1062,25 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             var response = await entMgr.ValidateSubscription(subscriberId, entApiKey);
 
             // If subscription status is inactive
-            if (!response.Status) {
+            if (!response.Status)
+            {
 
                 // Get the user's LATs from the graph db
                 var licenseAccess = await idMgr.ListLicenseAccessTokens(entApiKey, username, new List<string>() { "LCU" });
 
                 // If user has a LAT that is not limited trial, expire the LAT
-                foreach(LicenseAccessToken token in licenseAccess.Model) {
+                foreach (LicenseAccessToken token in licenseAccess.Model)
+                {
 
                     token.IsLocked = true;
 
-                    if (token.Lookup != "LCU.NapkinIDE.LimitedTrial") {
+                    if (token.Lookup != "LCU.NapkinIDE.LimitedTrial")
+                    {
                         await idMgr.IssueLicenseAccess(token, entApiKey);
                     }
                 }
 
-                return Status.Success;   
+                return Status.Success;
             }
 
             return response.Status;
