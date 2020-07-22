@@ -79,14 +79,15 @@
         "problemMatcher": "$msCompile"
     },
     {
-        "type": "func",
-        "dependsOn": "build",
-        "options": {
-            "cwd": "${workspaceFolder}/bin/Debug/netcoreapp3.1"
-        },
-        "command": "host start",
-        "isBackground": true,
-        "problemMatcher": "$func-watch"
-    }   
+      "type": "shell",
+      "label": "run functions host",
+      "dependsOn": "build",
+      "options": {
+        "cwd": "${workspaceFolder}/${workspaceFolderBasename}/bin/Debug/netcoreapp3.1"
+      },
+      "command": "func host start",
+      "isBackground": true,
+      "problemMatcher": "$func-watch"
+    } 
   ]
 }
