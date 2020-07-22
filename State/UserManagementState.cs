@@ -108,6 +108,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual string ProjectID { get; set; }
 
         [DataMember]
+        public virtual string RequestAuthorizationSent { get; set; }
+
+        [DataMember]
         [JsonConverter(typeof(StringEnumConverter))]
         public virtual NapkinIDESetupStepTypes SetupStep { get; set; }
 
