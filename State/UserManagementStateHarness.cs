@@ -662,7 +662,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 model.Metadata.Add(new KeyValuePair<string, JToken>("AccessRequestEmail", JToken.Parse(JsonConvert.SerializeObject(email))));
 
                 var reqResult  = await appMgr.SendAccessRequestEmail(model, enterpriseID);
-
+                      
                 State.RequestAuthorizationSent = reqResult.Status.ToString();
             }
 

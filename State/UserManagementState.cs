@@ -99,7 +99,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual string PaymentMethodID { get; set; }
 
         [DataMember]
-        public virtual string PendingAuthorizationRequests { get; set; }
+        public virtual string RequestAuthorizationSent { get; set; }
 
         [DataMember]
         public virtual List<JourneyPersona> Personas { get; set; }

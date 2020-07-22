@@ -47,13 +47,35 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             var thirdPartyData = await secMgr.RetrieveIdentityThirdPartyData(entApiKey, username, "LCU-USER-BILLING.TermsOfService", "LCU-USER-BILLING.EnterpriseAgreement");
 
+            var agreementTokens = await secMgr.RetrieveEnterpriseThirdPartyData(entApiKey,"LCU-USER-BILLING.TermsOfService","LCU-USER-BILLING.EnterpriseAgreement");
+            
             State.RequiredOptIns = new List<string>();
 
             if (!thirdPartyData.Status || !thirdPartyData.Model.ContainsKey("LCU-USER-BILLING.TermsOfService"))
+            {
                 State.RequiredOptIns.Add("ToS");
+            } else {
+                dynamic tokenResult = thirdPartyData.Model["LCU-USER-BILLING.TermsOfService"].JSONConvert<dynamic>();
+                dynamic tosResult = agreementTokens.Model["LCU-USER-BILLING.TermsOfService"].JSONConvert<dynamic>();
+
+                if (Convert.ToDateTime(tokenResult.Token) < Convert.ToDateTime(tosResult.LastUpdated))
+                {
+                    State.RequiredOptIns.Add("ToS");
+                }
+            }
 
             if (!thirdPartyData.Status || !thirdPartyData.Model.ContainsKey("LCU-USER-BILLING.EnterpriseAgreement"))
+            {
                 State.RequiredOptIns.Add("EA");
+            } else {
+                dynamic tokenResult = thirdPartyData.Model["LCU-USER-BILLING.EnterpriseAgreement"].JSONConvert<dynamic>();
+                dynamic eaResult = agreementTokens.Model["LCU-USER-BILLING.EnterpriseAgreement"].JSONConvert<dynamic>();
+
+                if (Convert.ToDateTime(tokenResult.Token) < Convert.ToDateTime(eaResult.LastUpdated))
+                {
+                    State.RequiredOptIns.Add("EA");
+                }
+            }
         }
 
         public virtual async Task LoadBillingPlans(EnterpriseManagerClient entMgr, string entApiKey, string licenseType)
@@ -159,6 +181,19 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             if (force || State.PaymentStatus)
                 State = new UserBillingState();
         }  
+
+        public virtual async Task<Status> SetServiceAgreementDate(SecurityManagerClient secMgr, string entApiKey, DateTime tosDate, DateTime eaDate) 
+        {
+            var resp = await secMgr.SetEnterpriseThirdPartyData(entApiKey, new Dictionary<string, string>()
+                {
+                    { "LCU-USER-BILLING.TermsOfService", tosDate.ToString() },
+                    { "LCU-USER-BILLING.EnterpriseAgreement", tosDate.ToString() }
+                });
+
+            return resp.Status;
+        }
         #endregion
+
+
     }
 }
