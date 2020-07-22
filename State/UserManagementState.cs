@@ -99,6 +99,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual string PaymentMethodID { get; set; }
 
         [DataMember]
+        public virtual string PendingAuthorizationRequests { get; set; }
+
+        [DataMember]
         public virtual List<JourneyPersona> Personas { get; set; }
 
         [DataMember]
@@ -234,6 +237,31 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         [DataMember]
         public virtual string Content { get; set; }
+
+        [DataMember]
+        public virtual string EmailTo { get; set; }
+
+        [DataMember]
+        public virtual string EmailFrom { get; set; }
+
+
+    }
+
+    [DataContract]
+    public class FeedbackEmail
+    {
+
+        [DataMember]
+        public virtual string User { get; set; }
+
+        [DataMember]
+        public virtual string EnterpriseID { get; set; }
+
+        [DataMember]
+        public virtual string Subject { get; set; }
+
+        [DataMember]
+        public virtual string FeedbackReason { get; set; }
 
         [DataMember]
         public virtual string EmailTo { get; set; }

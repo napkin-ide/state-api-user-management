@@ -459,7 +459,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> CancelSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entApiKey, string username)
+        public virtual async Task<Status> CancelSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entApiKey, string username, string reason)
         {
             // get subscription token by user name
             var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entApiKey, username, "LCU-STRIPE-SUBSCRIPTION-ID");
@@ -487,6 +487,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 }
 
                 // Send email to let user know the cancellation took place 
+                await SendFeedback(entMgr, entApiKey, username, reason);
 
                 return Status.Success;
             }
@@ -826,7 +827,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             // get subscription token by user name
             var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entApiKey, username, "LCU-STRIPE-SUBSCRIPTION-ID");
 
-            string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"].ToString();
+            string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"]?.ToString();
 
             if (!String.IsNullOrEmpty(subId))
             {
@@ -893,7 +894,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 var emailModel = new MetadataModel();
                 model.Metadata.Add(new KeyValuePair<string, JToken>("AccessRequestEmail", JToken.Parse(JsonConvert.SerializeObject(email))));
 
-                await appMgr.SendAccessRequestEmail(model, enterpriseID);
+                var reqResult  = await appMgr.SendAccessRequestEmail(model, enterpriseID);
+
+                State.RequestAuthorizationSent = reqResult.Status.ToString();
             }
 
             // If successful, adjust state to reflect that a request was sent for this enterprise by this user
@@ -995,6 +998,30 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             }
 
             State.BootOptions.FirstOrDefault(bo => bo.Lookup == bootOptionLookup).Name = bootOption.Name;
+        }
+
+        public virtual async Task<Status> SendFeedback(EnterpriseManagerClient entMgr, string entApiKey, string username, string feedback) 
+        {
+ 
+                // Send email from app manager client 
+                var model = new MetadataModel();
+
+                var email = new FeedbackEmail()
+                {
+                    FeedbackReason = feedback,
+                    EmailFrom = "registration@fathym.com",
+                    EmailTo = "marketing@fathym.com",
+                    User = username,
+                    Subject = "Service feedback",
+                    EnterpriseID = entApiKey
+                };
+
+                var emailModel = new MetadataModel();
+                model.Metadata.Add(new KeyValuePair<string, JToken>("FeedbackEmail", JToken.Parse(JsonConvert.SerializeObject(email))));
+
+                await entMgr.SendFeedbackEmail(model, entApiKey);
+
+                return Status.Success;
         }
 
         public virtual void SetNapkinIDESetupStep(NapkinIDESetupStepTypes step)
