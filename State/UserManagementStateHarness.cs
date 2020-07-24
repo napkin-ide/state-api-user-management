@@ -284,13 +284,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                         {
                             Name = "Freeboard",
                             Description = "Freeboard is an open source tool for visualizing data.",
-                            PathRegex = "/observations/freeboard*"
+                            PathRegex = "/freeboard*"
                         },
                         DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
                         {
                             new Graphs.Registry.Enterprises.Apps.DAFViewConfiguration()
                             {
-                                BaseHref = "/observations/freeboard/",
+                                BaseHref = "/freeboard/",
                                 NPMPackage = "@semanticjs/freeboard",
                                 PackageVersion = "latest",
                                 Priority = 500,
@@ -311,15 +311,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                         {
                             Application = new Graphs.Registry.Enterprises.Apps.Application()
                             {
-                                Name = "LCU Observational Charts",
+                                Name = "LCU Charts",
                                 Description = "LCU Charts is an application based on Fathym's open source charting library that provides a great starting point for creating customized visualizations.",
-                                PathRegex = "/observations/lcu-charts*"
+                                PathRegex = "/lcu-charts*"
                             },
                             DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
                             {
                                 new Graphs.Registry.Enterprises.Apps.DAFViewConfiguration()
                                 {
-                                    BaseHref = "/observations/lcu-charts/",
+                                    BaseHref = "/lcu-charts/",
                                     NPMPackage = "@lowcodeunit/lcu-charts",
                                     PackageVersion = "latest",
                                     Priority = 500,
@@ -343,7 +343,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                             {
                                 Name = $"Warm Query APIs - iot",
                                 Description = "These API proxies make it easy to connect and work with your observational data.",
-                                PathRegex = "/api/data-flow/iot/query*"
+                                PathRegex = "/api/data-flow/iot/warm-query*"
                             },
                             DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
                             {
@@ -366,16 +366,16 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                         {
                             Application = new Graphs.Registry.Enterprises.Apps.Application()
                             {
-                                Name = $"Ingest APIs - iot",
-                                Description = "These API proxies make it easy to connect and send your own observational data.",
-                                PathRegex = "/api/data-flow/iot/ingest*"
+                                Name = $"Data Stream APIs - iot",
+                                Description = "These API proxies make it easy to connect and send your own device data.",
+                                PathRegex = "/api/data-flow/iot/data-stream*"
                             },
                             DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
                             {
                                 new Graphs.Registry.Enterprises.Apps.DAFAPIConfiguration()
                                 {
                                     APIRoot = "https://www.google.com",
-                                    InboundPath = "data-flow/iot/ingest",
+                                    InboundPath = "data-flow/iot/data-stream",
                                     Priority = 500,
                                     Security = "x-event-hub-key~___"
                                 }
