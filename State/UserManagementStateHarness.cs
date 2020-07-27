@@ -896,7 +896,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 var reqResult  = await appMgr.SendAccessRequestEmail(model, enterpriseID);
 
-                State.RequestAuthorizationSent = reqResult.Status.ToString();
+                State.RequestAuthorizationSent = (reqResult.Status) ? "True" : "False";
             }
 
             // If successful, adjust state to reflect that a request was sent for this enterprise by this user
