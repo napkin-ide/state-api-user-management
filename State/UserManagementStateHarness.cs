@@ -611,7 +611,19 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task ConfigureAzureLocationOptions(EnterpriseArchitectClient entArch)
         {
-            var azureRegions = await entArch.ListAzureRegions(State.EnvSettings.JSONConvert<AzureInfrastructureConfig>(), new List<string>() { "Microsoft.SignalRService/SignalR" });
+            // var azureRegions = await entArch.ListAzureRegions(State.EnvSettings.JSONConvert<AzureInfrastructureConfig>(), new List<string>() { "Microsoft.SignalRService/SignalR" });
+
+            var svcTypesStr = new List<string>() { "Microsoft.SignalRService/SignalR" }.IsNullOrEmpty() ? "" : "serviceType=" + String.Join("&serviceType=", new List<string>() { "Microsoft.SignalRService/SignalR" });
+
+            var azureRegions = await entArch.With<BaseResponse<Dictionary<string, string>>>(async client =>
+            {
+                var resp = await client.PostAsJsonAsync($"environments/azure/regions?{svcTypesStr}",  
+                    State.EnvSettings.JSONConvert<AzureInfrastructureConfig>());
+
+                var str = await resp.Content.ReadAsStringAsync();
+
+                return str.FromJSON<BaseResponse<Dictionary<string, string>>>();
+            });
 
             State.AzureLocationOptions = azureRegions.Model;
         }
@@ -894,7 +906,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 var emailModel = new MetadataModel();
                 model.Metadata.Add(new KeyValuePair<string, JToken>("AccessRequestEmail", JToken.Parse(JsonConvert.SerializeObject(email))));
 
-                var reqResult  = await appMgr.SendAccessRequestEmail(model, enterpriseID);
+                var reqResult = await appMgr.SendAccessRequestEmail(model, enterpriseID);
 
                 State.RequestAuthorizationSent = (reqResult.Status) ? "True" : "False";
             }
@@ -1000,28 +1012,28 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.BootOptions.FirstOrDefault(bo => bo.Lookup == bootOptionLookup).Name = bootOption.Name;
         }
 
-        public virtual async Task<Status> SendFeedback(EnterpriseManagerClient entMgr, string entApiKey, string username, string feedback) 
+        public virtual async Task<Status> SendFeedback(EnterpriseManagerClient entMgr, string entApiKey, string username, string feedback)
         {
- 
-                // Send email from app manager client 
-                var model = new MetadataModel();
 
-                var email = new FeedbackEmail()
-                {
-                    FeedbackReason = feedback,
-                    EmailFrom = "registration@fathym.com",
-                    EmailTo = "marketing@fathym.com",
-                    User = username,
-                    Subject = "Service feedback",
-                    EnterpriseID = entApiKey
-                };
+            // Send email from app manager client 
+            var model = new MetadataModel();
 
-                var emailModel = new MetadataModel();
-                model.Metadata.Add(new KeyValuePair<string, JToken>("FeedbackEmail", JToken.Parse(JsonConvert.SerializeObject(email))));
+            var email = new FeedbackEmail()
+            {
+                FeedbackReason = feedback,
+                EmailFrom = "registration@fathym.com",
+                EmailTo = "marketing@fathym.com",
+                User = username,
+                Subject = "Service feedback",
+                EnterpriseID = entApiKey
+            };
 
-                await entMgr.SendFeedbackEmail(model, entApiKey);
+            var emailModel = new MetadataModel();
+            model.Metadata.Add(new KeyValuePair<string, JToken>("FeedbackEmail", JToken.Parse(JsonConvert.SerializeObject(email))));
 
-                return Status.Success;
+            await entMgr.SendFeedbackEmail(model, entApiKey);
+
+            return Status.Success;
         }
 
         public virtual void SetNapkinIDESetupStep(NapkinIDESetupStepTypes step)
