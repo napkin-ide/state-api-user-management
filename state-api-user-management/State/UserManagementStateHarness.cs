@@ -611,19 +611,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task ConfigureAzureLocationOptions(EnterpriseArchitectClient entArch)
         {
-            // var azureRegions = await entArch.ListAzureRegions(State.EnvSettings.JSONConvert<AzureInfrastructureConfig>(), new List<string>() { "Microsoft.SignalRService/SignalR" });
-
-            var svcTypesStr = new List<string>() { "Microsoft.SignalRService/SignalR" }.IsNullOrEmpty() ? "" : "serviceType=" + String.Join("&serviceType=", new List<string>() { "Microsoft.SignalRService/SignalR" });
-
-            var azureRegions = await entArch.With<BaseResponse<Dictionary<string, string>>>(async client =>
-            {
-                var resp = await client.PostAsJsonAsync($"environments/azure/regions?{svcTypesStr}",  
-                    State.EnvSettings.JSONConvert<AzureInfrastructureConfig>());
-
-                var str = await resp.Content.ReadAsStringAsync();
-
-                return str.FromJSON<BaseResponse<Dictionary<string, string>>>();
-            });
+            var azureRegions = await entArch.ListAzureRegions(State.EnvSettings.JSONConvert<AzureInfrastructureConfig>(), new List<string>() { "Microsoft.SignalRService/SignalR" });
 
             State.AzureLocationOptions = azureRegions.Model;
         }
