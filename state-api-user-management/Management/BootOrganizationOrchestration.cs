@@ -161,7 +161,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         infraStatus.Code = Status.Initialized.Code;
 
-                        harness.UpdateBootOption("Infrastructure", 2, status: infraStatus);
+                        harness.UpdateBootOption("Infrastructure", 2, status: Status.Initialized.Clone("Building and Releasing Environment Infrastructure as Code configuration...");
                     }
                     else
                     {

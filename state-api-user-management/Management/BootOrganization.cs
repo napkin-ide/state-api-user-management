@@ -60,7 +60,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
             {
                 harness.SetBootOptionsLoading();
 
-                harness.UpdateBootOption("Project", status: Status.Initialized.Clone("Configuring Project Environment..."));
+                harness.UpdateBootOption("Project", 1, status: Status.Initialized.Clone("Configuring Project Environment..."));
 
                 harness.UpdateStatus(null);
 
