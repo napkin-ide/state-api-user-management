@@ -320,7 +320,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                 new Graphs.Registry.Enterprises.Apps.DAFViewConfiguration()
                                 {
                                     BaseHref = "/lcu-charts/",
-                                    NPMPackage = "@lowcodeunit/lcu-charts",
+                                    NPMPackage = "@lowcodeunit/lcu-charts-demo",
                                     PackageVersion = "latest",
                                     Priority = 500,
                                     StateConfig = new
