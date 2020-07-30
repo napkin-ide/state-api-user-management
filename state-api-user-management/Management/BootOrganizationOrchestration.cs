@@ -161,7 +161,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         infraStatus.Code = Status.Initialized.Code;
 
-                        harness.UpdateBootOption("Infrastructure", 2, status: Status.Initialized.Clone("Building and Releasing Environment Infrastructure as Code configuration...");
+                        harness.UpdateBootOption("Infrastructure", 2, status: Status.Initialized.Clone("Building and Releasing Environment Infrastructure..."));
                     }
                     else
                     {
@@ -464,7 +464,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     var status = await harness.BootDAFInfrastructure(devOpsArch, stateCtxt.StateDetails.Username);
 
                     if (status)
-                        harness.UpdateBootOption("Infrastructure", 2, status: Status.Initialized.Clone("Building and Releasing Environment Infrastructure as Code configuration..."));
+                        harness.UpdateBootOption("Infrastructure", 2, status: Status.Initialized.Clone("Building and Releasing Environment Infrastructure..."));
                     else
                         harness.UpdateBootOption("Infrastructure", 1, status: Status.GeneralError.Clone("Error Configuring Project Infrastructure, retrying."));
 
