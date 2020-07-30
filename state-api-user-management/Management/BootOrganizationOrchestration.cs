@@ -417,7 +417,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     var status = await harness.BootOrganizationEnterprise(entArch, stateCtxt.StateDetails.EnterpriseAPIKey, stateCtxt.StateDetails.Username);
 
                     if (status)
-                        harness.UpdateBootOption("Project", status: Status.Initialized.Clone("Workspace Enterprise Configured, setting up environment"), loading: false);
+                        harness.UpdateBootOption("Project", status: Status.Initialized.Clone("Workspace Enterprise Configured, setting up environment"));
                     else
                         harness.UpdateBootOption("Project", status: Status.GeneralError.Clone("Error Configuring Workspace Enterprise, retrying."));
 
