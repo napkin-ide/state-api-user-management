@@ -121,7 +121,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual List<LicenseAccessToken> Subscribers { get; set; }
 
         [DataMember]
-        public virtual StripeSubscriptionDetails SubscriptionDetails { get; set; }      
+        public virtual StripeSubscriptionDetails SubscriptionDetails { get; set; }
 
         [DataMember]
         public virtual string Template { get; set; }
@@ -176,6 +176,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
     public class BootOption
     {
         [DataMember]
+        public virtual int CompletedSteps { get; set; }
+
+        [DataMember]
         public virtual string Description { get; set; }
 
         [DataMember]
@@ -193,6 +196,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         [DataMember]
         public virtual Status Status { get; set; }
+
+        [DataMember]
+        public virtual int TotalSteps { get; set; }
     }
 
     [DataContract]

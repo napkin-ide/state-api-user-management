@@ -565,14 +565,16 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 Name = "Configure Workspace Details",
                 Lookup = "Project",
                 Description = "Data Configuration, Workspace Set Up, Default secure-hosting",
-                SetupStep = NapkinIDESetupStepTypes.OrgDetails
+                SetupStep = NapkinIDESetupStepTypes.OrgDetails,
+                TotalSteps = 2
             });
 
             State.BootOptions.Add(new BootOption()
             {
                 Name = "Connect to DevOps",
                 Lookup = "DevOps",
-                Description = "Source Control, Builds, Deployment"
+                Description = "Source Control, Builds, Deployment",
+                TotalSteps = 8
             });
 
             State.BootOptions.Add(new BootOption()
@@ -580,14 +582,16 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 Name = "Connect Infrastructure",
                 Lookup = "Infrastructure",
                 Description = "Scalable, Cost Effective Infrastructure Configuration",
-                SetupStep = NapkinIDESetupStepTypes.AzureSetup
+                SetupStep = NapkinIDESetupStepTypes.AzureSetup,
+                TotalSteps = 2
             });
 
             State.BootOptions.Add(new BootOption()
             {
                 Name = "Configure Domain",
                 Lookup = "Domain",
-                Description = "User Security, Host Setup, Free Open Source SSL"
+                Description = "User Security, Host Setup, Free Open Source SSL",
+                TotalSteps = 3
             });
 
             var currentInfraOpt = State.InfrastructureOptions[State.Template];
@@ -596,7 +600,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             {
                 Name = "Orchestrate Micro-Application",
                 Lookup = "MicroApps",
-                Description = $"{currentInfraOpt}, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™"
+                Description = $"{currentInfraOpt}, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™",
+                TotalSteps = 4
             });
         }
 
@@ -954,7 +959,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.Status = status;
         }
 
-        public virtual void UpdateBootOption(string bootOptionLookup, Status status = null, bool? loading = null)
+        public virtual void UpdateBootOption(string bootOptionLookup, int bootStep, Status status = null, bool? loading = null)
         {
             var bootOption = State.BootOptions.FirstOrDefault(bo => bo.Lookup == bootOptionLookup);
 
@@ -969,6 +974,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                         UpdateBootOptionText(bootOptionLookup);
                     }
                 }
+
+                bootOption.CompletedSteps = bootStep - 1;
+
                 if (loading.HasValue)
                     bootOption.Loading = loading.Value;
             }
