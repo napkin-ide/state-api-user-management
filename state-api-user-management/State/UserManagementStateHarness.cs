@@ -297,23 +297,17 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
-                var resp = await appDev.ConfigureNapkinIDEForIoTWelcome(State.NewEnterpriseAPIKey, State.EnvironmentLookup, State.Host);
-
-                var status = resp.Status;
-
                 var dfLookup = "iot"; //  Will need to be handled differently if default ever changes in ConfigureNapkinIDEForIoTWelcome
 
-                if (status)
+                var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
                 {
-                    var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                    Application = new Graphs.Registry.Enterprises.Apps.Application()
                     {
-                        Application = new Graphs.Registry.Enterprises.Apps.Application()
-                        {
-                            Name = "Freeboard",
-                            Description = "Freeboard is an open source tool for visualizing data.",
-                            PathRegex = "/freeboard*"
-                        },
-                        DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
+                        Name = "Freeboard",
+                        Description = "Freeboard is an open source tool for visualizing data.",
+                        PathRegex = "/freeboard*"
+                    },
+                    DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
                         {
                             new Graphs.Registry.Enterprises.Apps.DAFViewConfiguration()
                             {
@@ -329,21 +323,21 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                 }.JSONConvert<MetadataModel>()
                             }
                         }
-                    }, State.NewEnterpriseAPIKey, State.Host);
+                }, State.NewEnterpriseAPIKey, State.Host);
 
-                    status = saveResp.Status;
+                var status = saveResp.Status;
 
-                    if (status)
+                if (status)
+                {
+                    saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
                     {
-                        saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                        Application = new Graphs.Registry.Enterprises.Apps.Application()
                         {
-                            Application = new Graphs.Registry.Enterprises.Apps.Application()
-                            {
-                                Name = "LCU Charts",
-                                Description = "LCU Charts is an application based on Fathym's open source charting library that provides a great starting point for creating customized visualizations.",
-                                PathRegex = "/lcu-charts*"
-                            },
-                            DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
+                            Name = "LCU Charts",
+                            Description = "LCU Charts is an application based on Fathym's open source charting library that provides a great starting point for creating customized visualizations.",
+                            PathRegex = "/lcu-charts*"
+                        },
+                        DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
                             {
                                 new Graphs.Registry.Enterprises.Apps.DAFViewConfiguration()
                                 {
@@ -358,29 +352,29 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                     }.JSONConvert<MetadataModel>()
                                 }
                             }
-                        }, State.NewEnterpriseAPIKey, State.Host);
+                    }, State.NewEnterpriseAPIKey, State.Host);
 
-                        status = saveResp.Status;
-                    }
+                    status = saveResp.Status;
+                }
 
-                    if (status)
+                if (status)
+                {
+                    var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseAPIKey, State.EnvironmentLookup,
+                        "warm-query");
+
+                    //  TODO:  Support multiple
+                    await infraDets.Model.Take(1).Each(async infraDet =>
                     {
-                        var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseAPIKey, State.EnvironmentLookup,
-                            "warm-query");
-
-                        //  TODO:  Support multiple
-                        await infraDets.Model.Take(1).Each(async infraDet =>
+                        saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
                         {
-                            saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                            Application = new Graphs.Registry.Enterprises.Apps.Application()
                             {
-                                Application = new Graphs.Registry.Enterprises.Apps.Application()
-                                {
-                                    Name = $"Warm Query APIs - {dfLookup} - {infraDet.DisplayName}",
-                                    Description = "These API proxies make it easy to connect and work with your observational data.",
-                                    PathRegex = $"/api/data-flow/{dfLookup}/warm-query*"
-                                },
-                                DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
-                                {
+                                Name = $"Warm Query APIs - {dfLookup} - {infraDet.DisplayName}",
+                                Description = "These API proxies make it easy to connect and work with your observational data.",
+                                PathRegex = $"/api/data-flow/{dfLookup}/warm-query*"
+                            },
+                            DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
+                            {
                                     new Graphs.Registry.Enterprises.Apps.DAFAPIConfiguration()
                                     {
                                         APIRoot = infraDet.Connections["$api"],
@@ -389,31 +383,31 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                         Priority = 500,
                                         Security = $"x-functions-key~{infraDet.Connections["default"]}"
                                     }
-                                }
-                            }, State.NewEnterpriseAPIKey, State.Host);
+                            }
+                        }, State.NewEnterpriseAPIKey, State.Host);
 
-                            status = saveResp.Status;
-                        });
-                    }
+                        status = saveResp.Status;
+                    });
+                }
 
-                    if (status)
+                if (status)
+                {
+                    var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseAPIKey, State.EnvironmentLookup,
+                        "data-stream");
+
+                    //  TODO:  Support multiple
+                    await infraDets.Model.Take(1).Each(async infraDet =>
                     {
-                        var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseAPIKey, State.EnvironmentLookup,
-                            "data-stream");
-
-                        //  TODO:  Support multiple
-                        await infraDets.Model.Take(1).Each(async infraDet =>
+                        saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
                         {
-                            saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                            Application = new Graphs.Registry.Enterprises.Apps.Application()
                             {
-                                Application = new Graphs.Registry.Enterprises.Apps.Application()
-                                {
-                                    Name = $"Data Stream APIs - {dfLookup} - {infraDet.DisplayName}",
-                                    Description = "This API proxies make it easy to connect and send your own device data.",
-                                    PathRegex = $"/api/data-flow/{dfLookup}/data-stream*"
-                                },
-                                DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
-                                {
+                                Name = $"Data Stream APIs - {dfLookup} - {infraDet.DisplayName}",
+                                Description = "This API proxies make it easy to connect and send your own device data.",
+                                PathRegex = $"/api/data-flow/{dfLookup}/data-stream*"
+                            },
+                            DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
+                            {
                                     new Graphs.Registry.Enterprises.Apps.DAFAPIConfiguration()
                                     {
                                         APIRoot = "eventhub-name",
@@ -422,15 +416,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                         Priority = 500,
                                         Security = $"Microsoft.Azure.EventHubs~{infraDet.Connections.First().Value}"
                                     }
-                                }
-                            }, State.NewEnterpriseAPIKey, State.Host);
-                        });
+                            }
+                        }, State.NewEnterpriseAPIKey, State.Host);
+                    });
 
-                        status = saveResp.Status;
-                    }
+                    status = saveResp.Status;
                 }
 
-                return resp.Status;
+                return status;
             }
             else
                 return Status.GeneralError.Clone("Boot not properly configured.");
