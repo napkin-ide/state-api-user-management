@@ -297,7 +297,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                 StateConfig = new
                                 {
                                     ActionRoot = "/api/state",
-                                    Root = "/api/state"
+                                    Root = "/api/state",
+                                    FreeboardConfigURL = "/templates/freeboard/DeviceDemoDashboard.json"
                                 }.JSONConvert<MetadataModel>()
                             }
                         }
@@ -350,7 +351,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                 new Graphs.Registry.Enterprises.Apps.DAFAPIConfiguration()
                                 {
                                     APIRoot = "https://www.google.com",
-                                    InboundPath = "data-flow/iot/query",
+                                    InboundPath = "data-flow/iot/warm-query",
+                                    Methods = "GET",
                                     Priority = 500,
                                     Security = "x-functions-key~___"
                                 }
@@ -376,6 +378,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                 {
                                     APIRoot = "https://www.google.com",
                                     InboundPath = "data-flow/iot/data-stream",
+                                    Methods = "POST PUT",
                                     Priority = 500,
                                     Security = "x-event-hub-key~___"
                                 }
