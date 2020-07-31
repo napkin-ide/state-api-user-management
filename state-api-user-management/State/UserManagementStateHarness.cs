@@ -256,7 +256,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> BootIoTWelcome(ApplicationDeveloperClient appDev)
+        public virtual async Task<Status> BootIoTWelcome(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr)
         {
             if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
@@ -264,11 +264,22 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 var status = resp.Status;
 
+                var dfLookup = "iot"; //  Will need to be handled differently if default ever changes in ConfigureNapkinIDEForIoTWelcome
+
+                if (status)
+                {
+                    //  Initializing warm-storage call
+                    var infraDetsResp = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseAPIKey, State.EnvironmentLookup,
+                        "warm-storage");
+
+                    status = infraDetsResp.Status;
+                }
+
                 if (status)
                 {
                     var dfResp = await appDev.DeployDataFlow(new Personas.Applications.DeployDataFlowRequest()
                     {
-                        DataFlowLookup = "iot"  //  Will need to be handled differently if default ever changes in ConfigureNapkinIDEForIoTWelcome
+                        DataFlowLookup = dfLookup
                     }, State.NewEnterpriseAPIKey, State.EnvironmentLookup);
 
                     status = dfResp.Status;
@@ -338,52 +349,66 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                     if (status)
                     {
-                        saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
-                        {
-                            Application = new Graphs.Registry.Enterprises.Apps.Application()
-                            {
-                                Name = $"Warm Query APIs - iot",
-                                Description = "These API proxies make it easy to connect and work with your observational data.",
-                                PathRegex = "/api/data-flow/iot/warm-query*"
-                            },
-                            DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
-                            {
-                                new Graphs.Registry.Enterprises.Apps.DAFAPIConfiguration()
-                                {
-                                    APIRoot = "https://www.google.com",
-                                    InboundPath = "data-flow/iot/warm-query",
-                                    Methods = "GET",
-                                    Priority = 500,
-                                    Security = "x-functions-key~___"
-                                }
-                            }
-                        }, State.NewEnterpriseAPIKey, State.Host);
+                        var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseAPIKey, State.EnvironmentLookup,
+                            "warm-query");
 
-                        status = saveResp.Status;
+                        //  TODO:  Support multiple
+                        await infraDets.Model.Take(1).Each(async infraDet =>
+                        {
+                            saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                            {
+                                Application = new Graphs.Registry.Enterprises.Apps.Application()
+                                {
+                                    Name = $"Warm Query APIs - {dfLookup} - {infraDet.DisplayName}",
+                                    Description = "These API proxies make it easy to connect and work with your observational data.",
+                                    PathRegex = $"/api/data-flow/{dfLookup}/warm-query*"
+                                },
+                                DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
+                                {
+                                    new Graphs.Registry.Enterprises.Apps.DAFAPIConfiguration()
+                                    {
+                                        APIRoot = infraDet.Connections["$api"],
+                                        InboundPath = $"data-flow/{dfLookup}/warm-query",
+                                        Methods = "GET",
+                                        Priority = 500,
+                                        Security = $"x-functions-key~{infraDet.Connections["default"]}"
+                                    }
+                                }
+                            }, State.NewEnterpriseAPIKey, State.Host);
+
+                            status = saveResp.Status;
+                        });
                     }
 
                     if (status)
                     {
-                        saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                        var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseAPIKey, State.EnvironmentLookup,
+                            "data-stream");
+
+                        //  TODO:  Support multiple
+                        await infraDets.Model.Take(1).Each(async infraDet =>
                         {
-                            Application = new Graphs.Registry.Enterprises.Apps.Application()
+                            saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
                             {
-                                Name = $"Data Stream APIs - iot",
-                                Description = "These API proxies make it easy to connect and send your own device data.",
-                                PathRegex = "/api/data-flow/iot/data-stream*"
-                            },
-                            DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
-                            {
-                                new Graphs.Registry.Enterprises.Apps.DAFAPIConfiguration()
+                                Application = new Graphs.Registry.Enterprises.Apps.Application()
                                 {
-                                    APIRoot = "https://www.google.com",
-                                    InboundPath = "data-flow/iot/data-stream",
-                                    Methods = "POST PUT",
-                                    Priority = 500,
-                                    Security = "x-event-hub-key~___"
+                                    Name = $"Data Stream APIs - {dfLookup} - {infraDet.DisplayName}",
+                                    Description = "This API proxies make it easy to connect and send your own device data.",
+                                    PathRegex = $"/api/data-flow/{dfLookup}/data-stream*"
+                                },
+                                DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
+                                {
+                                    new Graphs.Registry.Enterprises.Apps.DAFAPIConfiguration()
+                                    {
+                                        APIRoot = "eventhub-name",
+                                        InboundPath = $"data-flow/{dfLookup}/data-stream",
+                                        Methods = "POST PUT",
+                                        Priority = 500,
+                                        Security = $"Microsoft.Azure.EventHubs~{infraDet.Connections.First().Value}"
+                                    }
                                 }
-                            }
-                        }, State.NewEnterpriseAPIKey, State.Host);
+                            }, State.NewEnterpriseAPIKey, State.Host);
+                        });
 
                         status = saveResp.Status;
                     }
