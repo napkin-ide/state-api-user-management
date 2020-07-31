@@ -287,6 +287,22 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 else
                     status = Status.GeneralError.Clone("Unable to save the data flow");
 
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
+
+        public virtual async Task<Status> SetupIoTWelcome(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr)
+        {
+            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
+                var resp = await appDev.ConfigureNapkinIDEForIoTWelcome(State.NewEnterpriseAPIKey, State.EnvironmentLookup, State.Host);
+
+                var status = resp.Status;
+
+                var dfLookup = "iot"; //  Will need to be handled differently if default ever changes in ConfigureNapkinIDEForIoTWelcome
+
                 if (status)
                 {
                     var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
@@ -629,7 +645,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 Name = "Orchestrate Micro-Application",
                 Lookup = "MicroApps",
                 Description = $"{currentInfraOpt}, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™",
-                TotalSteps = 4
+                TotalSteps = 5
             });
         }
 
