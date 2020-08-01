@@ -282,6 +282,32 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
     }
 
     [DataContract]
+    public class NotificationEmail
+    {
+        [DataMember]
+        public virtual string Content { get; set; }
+
+        [DataMember]
+        public virtual string EmailTo { get; set; }
+
+        [DataMember]
+        public virtual string EmailFrom { get; set; }
+
+        [DataMember]
+        public virtual string EnterpriseID { get; set; }
+        
+        [DataMember]
+        public virtual string ReplyTo { get; set; }
+        
+        [DataMember]
+        public virtual string Subject { get; set; }
+        
+        [DataMember]
+        public virtual string User { get; set; }
+
+    }
+
+    [DataContract]
     public enum UserTypes
     {
         [EnumMember]

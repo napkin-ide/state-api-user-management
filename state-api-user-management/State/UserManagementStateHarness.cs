@@ -31,6 +31,7 @@ using Newtonsoft.Json.Linq;
 using LCU.Personas.Client.Security;
 using LCU.Personas.Security;
 using LCU.Personas;
+using LCU.State.API.NapkinIDE.UserManagement.Management;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.State
 {
@@ -498,6 +499,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> CancelSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entApiKey, string username, string reason)
         {
+            string mrktEmail = "marketing@fathym.com";
+
             // get subscription token by user name
             var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entApiKey, username, "LCU-STRIPE-SUBSCRIPTION-ID");
 
@@ -523,8 +526,22 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     await idMgr.IssueLicenseAccess(token, entApiKey);
                 }
 
-                // Send email to let user know the cancellation took place 
-                await SendFeedback(entMgr, entApiKey, username, reason);
+                var cancelNotice = new SendNotificationRequest(){ 
+                    EmailFrom = mrktEmail,
+                    EmailTo = username,
+                    Subject = "Cancellation notice",
+                    Content = @"Hi there\n\nThanks for trying out Fathym! We are constantly upgrading and improving our framework and hope see you again someday soon. \n\n
+                                We are always listening to our users. If you have any feedback or suggestions for features we should add, please feel free to reply to this email and let us know. \n\n
+                                Thanks again,\n
+                                Team Fathym",
+                    ReplyTo = ""
+                }
+
+                // Send email to let  the cancellation took place 
+                await SendFeedback(entMgr, entApiKey, mrktEmail, reason);
+
+                // Send email to user to let them know cancellation has taken place
+                await SendNotification(entMgr, entApiKey, username, cancelNotice);
 
                 return Status.Success;
             }
@@ -1065,6 +1082,18 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             model.Metadata.Add(new KeyValuePair<string, JToken>("FeedbackEmail", JToken.Parse(JsonConvert.SerializeObject(email))));
 
             await entMgr.SendFeedbackEmail(model, entApiKey);
+
+            return Status.Success;
+        }
+
+        public virtual async Task<Status> SendNotification(EnterpriseManagerClient entMgr, string entApiKey, string username, SendNotificationRequest notification)
+        {
+            // Send email from app manager client 
+            var model = new MetadataModel();
+
+            model.Metadata.Add(new KeyValuePair<string, JToken>("SendNotificationRequest", JToken.Parse(JsonConvert.SerializeObject(notification))));
+
+            await entMgr.SendNotification(model, entApiKey);
 
             return Status.Success;
         }
