@@ -338,20 +338,20 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                             PathRegex = "/lcu-charts*"
                         },
                         DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
+                        {
+                            new Graphs.Registry.Enterprises.Apps.DAFViewConfiguration()
                             {
-                                new Graphs.Registry.Enterprises.Apps.DAFViewConfiguration()
+                                BaseHref = "/lcu-charts/",
+                                NPMPackage = "@lowcodeunit/lcu-charts-demo",
+                                PackageVersion = "latest",
+                                Priority = 500,
+                                StateConfig = new
                                 {
-                                    BaseHref = "/lcu-charts/",
-                                    NPMPackage = "@lowcodeunit/lcu-charts-demo",
-                                    PackageVersion = "latest",
-                                    Priority = 500,
-                                    StateConfig = new
-                                    {
-                                        ActionRoot = "/api/state",
-                                        Root = "/api/state"
-                                    }.JSONConvert<MetadataModel>()
-                                }
+                                    ActionRoot = "/api/state",
+                                    Root = "/api/state"
+                                }.JSONConvert<MetadataModel>()
                             }
+                        }
                     }, State.NewEnterpriseAPIKey, State.Host);
 
                     status = saveResp.Status;
@@ -410,7 +410,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                             {
                                     new Graphs.Registry.Enterprises.Apps.DAFAPIConfiguration()
                                     {
-                                        APIRoot = "eventhub-name",
+                                        APIRoot = infraDet.DisplayName,
                                         InboundPath = $"data-flow/{dfLookup}/data-stream",
                                         Methods = "POST PUT",
                                         Priority = 500,
