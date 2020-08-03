@@ -535,7 +535,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                 Thanks again,\n
                                 Team Fathym",
                     ReplyTo = ""
-                }
+                };
 
                 // Send email to let  the cancellation took place 
                 await SendFeedback(entMgr, entApiKey, mrktEmail, reason);
