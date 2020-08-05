@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>state_api_user_management_tests</RootNamespace>
-    <IsPackable>false</IsPackable>    
+    <IsPackable>false</IsPackable>     
   </PropertyGroup>
 
   <ItemGroup>
