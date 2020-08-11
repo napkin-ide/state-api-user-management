@@ -529,7 +529,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 var cancelNotice = new SendNotificationRequest(){ 
                     EmailFrom = mrktEmail,
                     EmailTo = username,
-                    Subject = "Cancellation notice",
+                    Subject = "Subscription Cancelled",
                     Content = @"Hi there\n\nThanks for trying out Fathym! We are constantly upgrading and improving our framework and hope see you again someday soon. \n\n
                                 We are always listening to our users. If you have any feedback or suggestions for features we should add, please feel free to reply to this email and let us know. \n\n
                                 Thanks again,\n
