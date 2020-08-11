@@ -1079,6 +1079,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             };
 
             var emailModel = new MetadataModel();
+            
             model.Metadata.Add(new KeyValuePair<string, JToken>("FeedbackEmail", JToken.Parse(JsonConvert.SerializeObject(email))));
 
             await entMgr.SendFeedbackEmail(model, entApiKey);
