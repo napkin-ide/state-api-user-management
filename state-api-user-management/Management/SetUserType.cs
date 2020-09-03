@@ -11,7 +11,7 @@ using System.Runtime.Serialization;
 using Fathym.API;
 using Fathym;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.Storage.Blob;
 using LCU.State.API.NapkinIDE.UserManagement.State;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Management
@@ -29,7 +29,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
         [FunctionName("SetUserType")]
         public static async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
-            [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
+            [Blob("state-api/{headers.lcu-ent-lookup}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             return await stateBlob.WithStateHarness<UserManagementState, SetUserTypeRequest, UserManagementStateHarness>(req, signalRMessages, log,
                 async (harness, userDetsReq) =>

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.Storage.Blob;
 using Fathym;
 using System.Runtime.Serialization;
 using LCU.Personas.Client.Enterprises;
@@ -43,7 +43,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
         public virtual async Task<IActionResult> Run([HttpTrigger] HttpRequest req, ILogger log,
             [DurableClient] IDurableOrchestrationClient starter,
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
-            [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
+            [Blob("state-api/{headers.lcu-ent-lookup}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             await initializeBoot(req, log, signalRMessages, stateBlob);
 

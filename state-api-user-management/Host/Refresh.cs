@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Fathym;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.Storage.Blob;
 using System.Runtime.Serialization;
 using Fathym.API;
 using System.Collections.Generic;
@@ -19,7 +19,6 @@ using LCU.StateAPI.Utilities;
 using System.Security.Claims;
 using LCU.Personas.Client.Enterprises;
 using LCU.Personas.Client.Security;
-using Castle.Core.Configuration;
 using LCU.State.API.NapkinIDE.UserManagement.State;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Host
@@ -44,7 +43,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
 
     public class Refresh
     {
-        protected readonly string billingEntApiKey;
+        protected readonly string billingEntLookup;
 
         protected readonly EnterpriseArchitectClient entArch;
 
@@ -54,7 +53,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
 
         public Refresh(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
         {
-            billingEntApiKey = Environment.GetEnvironmentVariable("LCU-BILLING-ENTERPRISE-API-KEY");
+            billingEntLookup = Environment.GetEnvironmentVariable("LCU-BILLING-ENTERPRISE-API-KEY");
 
             this.entArch = entArch;
 
@@ -67,7 +66,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
         [FunctionName("Refresh")]
         public virtual async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
             [SignalR(HubName = UserManagementState.HUB_NAME)] IAsyncCollector<SignalRMessage> signalRMessages,
-            [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
+            [Blob("state-api/{headers.lcu-ent-lookup}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             var stateDetails = StateUtils.LoadStateDetails(req);
 
@@ -93,7 +92,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
         #region Helpers
         protected virtual async Task<Status> refreshUserBilling(UserBillingStateHarness harness, ILogger log, StateDetails stateDetails, RefreshBillingRequest request)
         {
-            await harness.Refresh(entMgr, secMgr, billingEntApiKey, stateDetails.Username, request.LicenseType);
+            await harness.Refresh(entMgr, secMgr, billingEntLookup, stateDetails.Username, request.LicenseType);
 
             return Status.Success;
         }
@@ -110,11 +109,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
 
             harness.DetermineSetupStep();
 
-            await harness.LoadSubscriptionDetails(entMgr, secMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username);
+            await harness.LoadSubscriptionDetails(entMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username);
 
             await Task.WhenAll(new[]{
-                harness.LoadRegistrationHosts(entMgr, stateDetails.EnterpriseAPIKey),
-                // harness.HasDevOpsOAuth(entMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username)
+                harness.LoadRegistrationHosts(entMgr, stateDetails.EnterpriseLookup),
+                // harness.HasDevOpsOAuth(entMgr, stateDetails.EnterpriseLookup, stateDetails.Username)
             });
 
             // TODO: may need to track auth requests in the future

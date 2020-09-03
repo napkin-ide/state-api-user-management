@@ -22,7 +22,7 @@ namespace state_api_user_management_tests
         [TestMethod]
         public async Task TestListLicenses()
         {
-            LcuEntApiKey = "3ebd1c0d-22d0-489e-a46f-3260103c8cd7";            
+            LcuEntLookup = "3ebd1c0d-22d0-489e-a46f-3260103c8cd7";            
             PrincipalId = "george.hatch@fathym.com";
 
             addRequestHeaders();

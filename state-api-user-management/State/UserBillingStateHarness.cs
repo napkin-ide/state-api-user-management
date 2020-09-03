@@ -43,9 +43,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         #endregion
 
         #region API Methods
-        public virtual async Task DetermineRequiredOptIns(SecurityManagerClient secMgr, string entApiKey, string username)
+        public virtual async Task DetermineRequiredOptIns(SecurityManagerClient secMgr, string entLookup, string username)
         {
-            var thirdPartyData = await secMgr.RetrieveIdentityThirdPartyData(entApiKey, username, "LCU-USER-BILLING.TermsOfService", "LCU-USER-BILLING.EnterpriseAgreement");
+            var thirdPartyData = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-USER-BILLING.TermsOfService", "LCU-USER-BILLING.EnterpriseAgreement");
 
             State.RequiredOptIns = new List<string>();
 
@@ -56,9 +56,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 State.RequiredOptIns.Add("EA");
         }
 
-        public virtual async Task LoadBillingPlans(EnterpriseManagerClient entMgr, string entApiKey, string licenseType)
+        public virtual async Task LoadBillingPlans(EnterpriseManagerClient entMgr, string entLookup, string licenseType)
         {
-            var plansResp = await entMgr.ListBillingPlanOptions(entApiKey, licenseType);
+            var plansResp = await entMgr.ListBillingPlanOptions(entLookup, licenseType);
 
             State.Plans = plansResp.Model ?? new List<BillingPlanOption>();
 
@@ -78,15 +78,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.Username = username;
         }
 
-        public virtual async Task CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr, string entApiKey,
+        public virtual async Task CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr, string entLookup,
             string username, string methodId, string customerName, string plan, int trialPeriodDays)
         {
             State.CustomerName = customerName;
 
             State.PaymentMethodID = methodId;
 
-            // var completeResp = await entMgr.Post<CompleteStripeSubscriptionRequest, CompleteStripeSubscriptionResponse>($"billing/{entApiKey}/stripe/subscription",
-            var completeResp = await entMgr.CompleteStripeSubscription(entApiKey,
+            // var completeResp = await entMgr.Post<CompleteStripeSubscriptionRequest, CompleteStripeSubscriptionResponse>($"billing/{entLookup}/stripe/subscription",
+            var completeResp = await entMgr.CompleteStripeSubscription(entLookup,
                     new CompleteStripeSubscriptionRequest()
                     {
                         CustomerName = State.CustomerName,
@@ -102,7 +102,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             {
                 State.PurchasedPlanLookup = plan;
 
-                var resp = await secMgr.SetIdentityThirdPartyData(entApiKey, username, new Dictionary<string, string>()
+                var resp = await secMgr.SetIdentityThirdPartyData(entLookup, username, new Dictionary<string, string>()
                 {
                     { "LCU-USER-BILLING.TermsOfService", DateTimeOffset.UtcNow.ToString() },
                     { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() },
@@ -115,7 +115,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 var token = planOption.JSONConvert<LicenseAccessToken>();
 
-                token.EnterpriseAPIKey = entApiKey;
+                token.EnterpriseLookup = entLookup;
 
                 token.Lookup = licenseType;
 
@@ -125,7 +125,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 token.Username = username;
 
-                var setLicenseAccessResp = await idMgr.IssueLicenseAccess(token, entApiKey);
+                var setLicenseAccessResp = await idMgr.IssueLicenseAccess(token, entLookup);
 
                 State.PaymentStatus = setLicenseAccessResp.Status;
 
@@ -135,11 +135,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             }
         }
 
-        public virtual async Task Refresh(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entApiKey, string username, string licenseType)
+        public virtual async Task Refresh(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entLookup, string username, string licenseType)
         {
             ResetStateCheck();
 
-            await LoadBillingPlans(entMgr, entApiKey, licenseType);
+            await LoadBillingPlans(entMgr, entLookup, licenseType);
 
             var ltName = licenseType == "lcu" ? "Fathym Framework" : licenseType == "forecast" ? "Fathym Forecast" : "";
 
@@ -151,7 +151,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             SetUsername(username);
 
-            await DetermineRequiredOptIns(secMgr, entApiKey, username);
+            await DetermineRequiredOptIns(secMgr, entLookup, username);
         }
 
         public virtual void ResetStateCheck(bool force = false)

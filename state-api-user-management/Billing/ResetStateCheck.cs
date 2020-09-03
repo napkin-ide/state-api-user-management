@@ -11,7 +11,7 @@ using System.Runtime.Serialization;
 using Fathym.API;
 using Fathym;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.Storage.Blob;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using LCU.Personas.Client.Enterprises;
 using LCU.StateAPI.Utilities;
@@ -44,7 +44,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
         [FunctionName("ResetStateCheck")]
         public virtual async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
             [SignalR(HubName = UserManagementState.HUB_NAME)] IAsyncCollector<SignalRMessage> signalRMessages,
-            [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
+            [Blob("state-api/{headers.lcu-ent-lookup}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             var stateDetails = StateUtils.LoadStateDetails(req);
 
@@ -55,7 +55,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
                 harness.ResetStateCheck(force: true);
 
-                await harness.Refresh(entMgr, secMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username, dataReq.LicenseType);
+                await harness.Refresh(entMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, dataReq.LicenseType);
 
                 return Status.Success;
             });

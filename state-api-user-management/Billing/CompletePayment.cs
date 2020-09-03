@@ -11,7 +11,7 @@ using System.Runtime.Serialization;
 using Fathym.API;
 using Fathym;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.Storage.Blob;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using LCU.Personas.Client.Enterprises;
 using LCU.StateAPI.Utilities;
@@ -41,7 +41,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
     public class CompletePayment
     {
-        protected readonly string billingEntApiKey;
+        protected readonly string billingEntLookup;
 
         protected readonly EnterpriseManagerClient entMgr;
 
@@ -51,7 +51,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
         public CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr)
         {
-            billingEntApiKey = Environment.GetEnvironmentVariable("LCU-BILLING-ENTERPRISE-API-KEY");
+            billingEntLookup = Environment.GetEnvironmentVariable("LCU-BILLING-ENTERPRISE-API-KEY");
 
             this.entMgr = entMgr;
 
@@ -63,7 +63,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
         [FunctionName("CompletePayment")]
         public virtual async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
-            [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
+            [Blob("state-api/{headers.lcu-ent-lookup}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             var stateDetails = StateUtils.LoadStateDetails(req);
 
@@ -72,7 +72,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
             {
                 log.LogInformation($"Executing CompletePayment Action.");
 
-                await harness.CompletePayment(entMgr, secMgr, idMgr, billingEntApiKey, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan, payReq.TrialPeriodDays);
+                await harness.CompletePayment(entMgr, secMgr, idMgr, billingEntLookup, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan, payReq.TrialPeriodDays);
 
                 //  TODO:  Set State Status and Loading
 

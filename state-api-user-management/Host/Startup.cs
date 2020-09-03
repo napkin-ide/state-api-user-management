@@ -16,7 +16,6 @@ using LCU.StateAPI.Hosting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 
 [assembly: FunctionsStartup(typeof(LCU.State.API.NapkinIDE.UserManagement.Host.Startup))]
 

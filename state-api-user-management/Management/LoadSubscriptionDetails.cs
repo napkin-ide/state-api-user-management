@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Runtime.Serialization;
 using LCU.State.API.NapkinIDE.UserManagement;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.Storage.Blob;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Fathym;
 using LCU.Personas.Client.Enterprises;
@@ -37,7 +37,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
         [FunctionName("LoadSubscriptionDetails")]
         public virtual async Task<Status> Run([HttpTrigger] HttpRequest req, ILogger log,
             [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
-            [Blob("state-api/{headers.lcu-ent-api-key}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
+            [Blob("state-api/{headers.lcu-ent-lookup}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             return await stateBlob.WithStateHarness<UserManagementState, dynamic, UserManagementStateHarness>(req, signalRMessages, log,
                 async (harness, reqData) =>
@@ -46,7 +46,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                await harness.LoadSubscriptionDetails(engMgr, secMgr, stateDetails.EnterpriseAPIKey, stateDetails.Username);
+                await harness.LoadSubscriptionDetails(engMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username);
 
                 return Status.Success;
             });

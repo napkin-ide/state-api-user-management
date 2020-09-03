@@ -22,7 +22,7 @@ namespace state_api_user_management_tests
         [TestMethod]
         public async Task TestRequestUserAccess()
         {
-            LcuEntApiKey = "";            
+            LcuEntLookup = "";            
             PrincipalId = "";
 
             addRequestHeaders();

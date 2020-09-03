@@ -84,7 +84,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual bool Loading { get; set; }
 
         [DataMember]
-        public virtual string NewEnterpriseAPIKey { get; set; }
+        public virtual string NewEnterpriseLookup { get; set; }
 
         [DataMember]
         public virtual string OrganizationDescription { get; set; }

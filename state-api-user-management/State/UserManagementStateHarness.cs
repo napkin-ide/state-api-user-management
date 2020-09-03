@@ -69,20 +69,20 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             }
         }
 
-        public virtual async Task<Status> BootOrganizationEnterprise(EnterpriseArchitectClient entArch, string parentEntApiKey, string username)
+        public virtual async Task<Status> BootOrganizationEnterprise(EnterpriseArchitectClient entArch, string parentEntLookup, string username)
         {
             var status = Status.Success;
 
-            if (State.NewEnterpriseAPIKey.IsNullOrEmpty())
+            if (State.NewEnterpriseLookup.IsNullOrEmpty())
             {
                 var entRes = await entArch.CreateEnterprise(new CreateEnterpriseRequest()
                 {
                     Description = State.OrganizationDescription ?? State.OrganizationName,
                     Host = State.Host,
                     Name = State.OrganizationName
-                }, parentEntApiKey, username);
+                }, parentEntLookup, username);
 
-                State.NewEnterpriseAPIKey = entRes.Model?.PrimaryAPIKey;
+                State.NewEnterpriseLookup = entRes.Model?.EnterpriseLookup;
 
                 status = entRes.Status;
             }
@@ -96,16 +96,16 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             var status = Status.Success;
 
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && State.EnvironmentLookup.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && State.EnvironmentLookup.IsNullOrEmpty())
             {
                 var envResp = await devOpsArch.EnsureEnvironment(new Personas.DevOps.EnsureEnvironmentRequest()
                 {
                     EnvSettings = State.EnvSettings,
                     OrganizationLookup = State.OrganizationLookup,
-                }, State.NewEnterpriseAPIKey);
+                }, State.NewEnterpriseLookup);
 
                 // var envResp = await devOpsArch.With(async client => {
-                //     var res = await client.PostAsJsonAsync($"infrastructure/{State.NewEnterpriseAPIKey}/ensure/env", new Personas.DevOps.EnsureEnvironmentRequest()
+                //     var res = await client.PostAsJsonAsync($"infrastructure/{State.NewEnterpriseLookup}/ensure/env", new Personas.DevOps.EnsureEnvironmentRequest()
                 //     {
                 //         EnvSettings = State.EnvSettings,
                 //         OrganizationLookup = State.OrganizationLookup,
@@ -121,8 +121,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 status = envResp.Status;
             }
-            else if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
-                await entMgr.SaveEnvironmentSettings(State.EnvSettings, State.NewEnterpriseAPIKey, State.EnvironmentLookup);
+            else if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+                await entMgr.SaveEnvironmentSettings(State.EnvSettings, State.NewEnterpriseLookup, State.EnvironmentLookup);
 
             UpdateStatus(status);
 
@@ -131,7 +131,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> BootDAFInfrastructure(DevOpsArchitectClient devOpsArch, string username)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
             {
                 var resp = await devOpsArch.SetEnvironmentInfrastructure(new Personas.DevOps.SetEnvironmentInfrastructureRequest()
                 {
@@ -139,7 +139,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     ProjectID = State.ProjectID,
                     Template = State.Template,
                     Username = username
-                }, State.NewEnterpriseAPIKey);
+                }, State.NewEnterpriseLookup);
 
                 return resp.Status;
             }
@@ -147,14 +147,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> BootHost(EnterpriseArchitectClient entArch, string parentEntApiKey)
+        public virtual async Task<Status> BootHost(EnterpriseArchitectClient entArch, string parentEntLookup)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
                 var response = await entArch.EnsureHost(new EnsureHostRequest()
                 {
                     EnviromentLookup = State.EnvironmentLookup
-                }, State.NewEnterpriseAPIKey, State.Host, State.EnvironmentLookup, parentEntApiKey);
+                }, State.NewEnterpriseLookup, State.Host, State.EnvironmentLookup, parentEntLookup);
 
                 return response.Status;
             }
@@ -164,9 +164,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> BootHostAuthApp(EnterpriseArchitectClient entArch)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
-                var resp = await entArch.EnsureHostAuthApp(State.NewEnterpriseAPIKey, State.Host, State.EnvironmentLookup);
+                var resp = await entArch.EnsureHostAuthApp(State.NewEnterpriseLookup, State.Host, State.EnvironmentLookup);
 
                 return resp.Status;
             }
@@ -174,14 +174,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> BootHostSSL(EnterpriseArchitectClient entArch, string parentEntApiKey)
+        public virtual async Task<Status> BootHostSSL(EnterpriseArchitectClient entArch, string parentEntLookup)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
                 var resp = await entArch.EnsureHostsSSL(new EnsureHostsSSLRequest()
                 {
                     Hosts = new List<string>() { State.Host }
-                }, State.NewEnterpriseAPIKey, State.EnvironmentLookup, parentEntApiKey);
+                }, State.NewEnterpriseLookup, State.EnvironmentLookup, parentEntLookup);
 
                 return resp.Status;
             }
@@ -191,9 +191,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> BootMicroAppsRuntime(EnterpriseArchitectClient entArch)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
-                var resp = await entArch.EnsureLCURuntime(State.NewEnterpriseAPIKey, State.EnvironmentLookup);
+                var resp = await entArch.EnsureLCURuntime(State.NewEnterpriseLookup, State.EnvironmentLookup);
 
                 return resp.Status;
             }
@@ -203,13 +203,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> BootBuildDefinitions(DevOpsArchitectClient devOpsArch, string username)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
             {
                 var resp = await devOpsArch.EnsureBuilds(new Personas.DevOps.EnsureBuildsRequest()
                 {
                     ProjectID = State.ProjectID,
                     Username = username
-                }, State.NewEnterpriseAPIKey);
+                }, State.NewEnterpriseLookup);
 
                 return resp.Status;
             }
@@ -219,9 +219,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> BootDataApps(ApplicationDeveloperClient appDev)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
-                var resp = await appDev.ConfigureNapkinIDEForDataApps(State.NewEnterpriseAPIKey);
+                var resp = await appDev.ConfigureNapkinIDEForDataApps(State.NewEnterpriseLookup);
 
                 return resp.Status;
             }
@@ -231,9 +231,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> BootDataFlow(ApplicationDeveloperClient appDev)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
-                var resp = await appDev.ConfigureNapkinIDEForDataFlows(State.NewEnterpriseAPIKey);
+                var resp = await appDev.ConfigureNapkinIDEForDataFlows(State.NewEnterpriseLookup);
 
                 return resp.Status;
             }
@@ -243,13 +243,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> BootFeeds(DevOpsArchitectClient devOpsArch, string username)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
                 var resp = await devOpsArch.EnsureFeed(new Personas.DevOps.EnsureFeedRequest()
                 {
                     EnvironmentLookup = State.EnvironmentLookup,
                     Username = username
-                }, State.NewEnterpriseAPIKey);
+                }, State.NewEnterpriseLookup);
 
                 return resp.Status;
             }
@@ -259,9 +259,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> BootIoTWelcome(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
-                var resp = await appDev.ConfigureNapkinIDEForIoTWelcome(State.NewEnterpriseAPIKey, State.EnvironmentLookup, State.Host);
+                var resp = await appDev.ConfigureNapkinIDEForIoTWelcome(State.NewEnterpriseLookup, State.EnvironmentLookup, State.Host);
 
                 var status = resp.Status;
 
@@ -270,7 +270,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 if (status)
                 {
                     //  Initializing warm-storage call
-                    var infraDetsResp = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseAPIKey, State.EnvironmentLookup,
+                    var infraDetsResp = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseLookup, State.EnvironmentLookup,
                         "warm-storage");
 
                     status = infraDetsResp.Status;
@@ -281,7 +281,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     var dfResp = await appDev.DeployDataFlow(new Personas.Applications.DeployDataFlowRequest()
                     {
                         DataFlowLookup = dfLookup
-                    }, State.NewEnterpriseAPIKey, State.EnvironmentLookup);
+                    }, State.NewEnterpriseLookup, State.EnvironmentLookup);
 
                     status = dfResp.Status;
                 }
@@ -296,7 +296,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> SetupIoTWelcome(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
                 var dfLookup = "iot"; //  Will need to be handled differently if default ever changes in ConfigureNapkinIDEForIoTWelcome
 
@@ -308,14 +308,16 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                         Description = "Freeboard is an open source tool for visualizing data.",
                         PathRegex = "/freeboard*"
                     },
-                    DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
+                    DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
+                    {
+                        new Graphs.Registry.Enterprises.Apps.DAFApplication()
                         {
-                            new Graphs.Registry.Enterprises.Apps.DAFViewConfiguration()
+                            Priority = 500,
+                            Details = new Graphs.Registry.Enterprises.Apps.DAFViewApplicationDetails()
                             {
                                 BaseHref = "/freeboard/",
                                 NPMPackage = "@semanticjs/freeboard",
                                 PackageVersion = "latest",
-                                Priority = 500,
                                 StateConfig = new
                                 {
                                     ActionRoot = "/api/state",
@@ -324,7 +326,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                 }.JSONConvert<MetadataModel>()
                             }
                         }
-                }, State.NewEnterpriseAPIKey, State.Host);
+                    }
+                }, State.NewEnterpriseLookup, State.Host);
 
                 var status = saveResp.Status;
 
@@ -338,29 +341,32 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                             Description = "LCU Charts is an application based on Fathym's open source charting library that provides a great starting point for creating customized visualizations.",
                             PathRegex = "/lcu-charts*"
                         },
-                        DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
+                        DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
                         {
-                            new Graphs.Registry.Enterprises.Apps.DAFViewConfiguration()
+                            new Graphs.Registry.Enterprises.Apps.DAFApplication() 
                             {
-                                BaseHref = "/lcu-charts/",
-                                NPMPackage = "@lowcodeunit/lcu-charts-demo",
-                                PackageVersion = "latest",
                                 Priority = 500,
-                                StateConfig = new
+                                Details = new Graphs.Registry.Enterprises.Apps.DAFViewApplicationDetails()
                                 {
-                                    ActionRoot = "/api/state",
-                                    Root = "/api/state"
-                                }.JSONConvert<MetadataModel>()
+                                    BaseHref = "/lcu-charts/",
+                                    NPMPackage = "@lowcodeunit/lcu-charts-demo",
+                                    PackageVersion = "latest",
+                                    StateConfig = new
+                                    {
+                                        ActionRoot = "/api/state",
+                                        Root = "/api/state"
+                                    }.JSONConvert<MetadataModel>()
+                                }
                             }
                         }
-                    }, State.NewEnterpriseAPIKey, State.Host);
+                    }, State.NewEnterpriseLookup, State.Host);
 
                     status = saveResp.Status;
                 }
 
                 if (status)
                 {
-                    var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseAPIKey, State.EnvironmentLookup,
+                    var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseLookup, State.EnvironmentLookup,
                         "warm-query");
 
                     //  TODO:  Support multiple
@@ -374,18 +380,21 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                 Description = "These API proxies make it easy to connect and work with your observational data.",
                                 PathRegex = $"/api/data-flow/{dfLookup}/warm-query*"
                             },
-                            DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
+                            DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
                             {
-                                    new Graphs.Registry.Enterprises.Apps.DAFAPIConfiguration()
+                                new Graphs.Registry.Enterprises.Apps.DAFApplication()
+                                {
+                                    Priority = 500,
+                                    Details = new Graphs.Registry.Enterprises.Apps.DAFAPIApplicationDetails()
                                     {
                                         APIRoot = infraDet.Connections["$api"],
                                         InboundPath = $"data-flow/{dfLookup}/warm-query",
                                         Methods = "GET",
-                                        Priority = 500,
                                         Security = $"x-functions-key~{infraDet.Connections["default"]}"
                                     }
+                                }
                             }
-                        }, State.NewEnterpriseAPIKey, State.Host);
+                        }, State.NewEnterpriseLookup, State.Host);
 
                         status = saveResp.Status;
                     });
@@ -393,7 +402,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 if (status)
                 {
-                    var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseAPIKey, State.EnvironmentLookup,
+                    var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseLookup, State.EnvironmentLookup,
                         "data-stream");
 
                     //  TODO:  Support multiple
@@ -407,18 +416,21 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                 Description = "This API proxies make it easy to connect and send your own device data.",
                                 PathRegex = $"/api/data-flow/{dfLookup}/data-stream*"
                             },
-                            DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplicationConfiguration>()
+                            DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
                             {
-                                    new Graphs.Registry.Enterprises.Apps.DAFAPIConfiguration()
+                                new Graphs.Registry.Enterprises.Apps.DAFApplication()
+                                {
+                                    Priority = 500,
+                                    Details = new Graphs.Registry.Enterprises.Apps.DAFAPIApplicationDetails()
                                     {
                                         APIRoot = infraDet.DisplayName,
                                         InboundPath = $"data-flow/{dfLookup}/data-stream",
                                         Methods = "POST PUT",
-                                        Priority = 500,
                                         Security = $"Microsoft.Azure.EventHubs~{infraDet.Connections.First().Value}"
                                     }
+                                }
                             }
-                        }, State.NewEnterpriseAPIKey, State.Host);
+                        }, State.NewEnterpriseLookup, State.Host);
                     });
 
                     status = saveResp.Status;
@@ -432,14 +444,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> BootReleaseDefinitions(DevOpsArchitectClient devOpsArch, string username)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
             {
                 var resp = await devOpsArch.EnsureReleases(new Personas.DevOps.EnsureReleasesRequest()
                 {
                     EnvironmentLookup = State.EnvironmentLookup,
                     ProjectID = State.ProjectID,
                     Username = username
-                }, State.NewEnterpriseAPIKey);
+                }, State.NewEnterpriseLookup);
 
                 return resp.Status;
             }
@@ -449,14 +461,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> BootRepositories(DevOpsArchitectClient devOpsArch, string username)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
             {
                 var resp = await devOpsArch.EnsureRepositories(new Personas.DevOps.EnsureRepositoriesRequest()
                 {
                     EnvironmentLookup = State.EnvironmentLookup,
                     ProjectID = State.ProjectID,
                     Username = username
-                }, State.NewEnterpriseAPIKey);
+                }, State.NewEnterpriseLookup);
 
                 return resp.Status;
             }
@@ -466,14 +478,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> BootServiceEndpoints(DevOpsArchitectClient devOpsArch, string username)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
             {
                 var resp = await devOpsArch.EnsureServiceEndpoints(new Personas.DevOps.EnsureServiceEndpointsRequest()
                 {
                     EnvironmentLookup = State.EnvironmentLookup,
                     ProjectID = State.ProjectID,
                     Username = username
-                }, State.NewEnterpriseAPIKey);
+                }, State.NewEnterpriseLookup);
 
                 return resp.Status;
             }
@@ -483,13 +495,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> BootTaskLibrary(DevOpsArchitectClient devOpsArch, string username)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
             {
                 var resp = await devOpsArch.EnsureTaskLibrary(new EnsureTaskLibraryRequest()
                 {
                     ProjectID = State.ProjectID,
                     Username = username
-                }, State.NewEnterpriseAPIKey);
+                }, State.NewEnterpriseLookup);
 
                 return resp.Status;
             }
@@ -497,33 +509,33 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> CancelSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entApiKey, string username, string reason)
+        public virtual async Task<Status> CancelSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entLookup, string username, string reason)
         {
             string mrktEmail = "marketing@fathym.com";
 
             // get subscription token by user name
-            var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entApiKey, username, "LCU-STRIPE-SUBSCRIPTION-ID");
+            var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-STRIPE-SUBSCRIPTION-ID");
 
             string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"].ToString();
 
             if (String.IsNullOrEmpty(subId)) return Status.GeneralError.Clone($"No subscripton ID was found for user {username}");
 
             // Issue cancellation
-            var response = await entMgr.CancelSubscription(subId, entApiKey);
+            var response = await entMgr.CancelSubscription(subId, entLookup);
 
             // If subscription is successfully cancelled
             if (response.Status)
             {
 
                 // Get the user's LATs from the graph db
-                var licenseAccess = await idMgr.ListLicenseAccessTokens(entApiKey, username, new List<string>() { "LCU" });
+                var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() { "LCU" });
 
                 // Expire the LAT
                 foreach (LicenseAccessToken token in licenseAccess.Model)
                 {
                     token.IsLocked = true;
                     token.ExpirationDate = System.DateTime.Now;
-                    await idMgr.IssueLicenseAccess(token, entApiKey);
+                    await idMgr.IssueLicenseAccess(token, entLookup);
                 }
 
                 var cancelNotice = new SendNotificationRequest(){ 
@@ -538,10 +550,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 };
 
                 // Send email to let  the cancellation took place 
-                await SendFeedback(entMgr, entApiKey, mrktEmail, reason);
+                await SendFeedback(entMgr, entLookup, mrktEmail, reason);
 
                 // Send email to user to let them know cancellation has taken place
-                await SendNotification(entMgr, entApiKey, username, cancelNotice);
+                await SendNotification(entMgr, entLookup, username, cancelNotice);
 
                 return Status.Success;
             }
@@ -553,20 +565,20 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             var status = Status.GeneralError;
 
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
             {
                 var bldsResp = await devOpsArch.AreBuildsComplete(new AreBuildsCompleteRequest()
                 {
                     ProjectID = State.ProjectID,
                     Username = username
-                }, State.NewEnterpriseAPIKey);
+                }, State.NewEnterpriseLookup);
 
                 var rlsResp = await devOpsArch.AreReleaseDeploysComplete(new AreReleaseDeploysCompleteRequest()
                 {
                     EnvironmentLookup = State.EnvironmentLookup,
                     ProjectID = State.ProjectID,
                     Username = username
-                }, State.NewEnterpriseAPIKey);
+                }, State.NewEnterpriseLookup);
 
                 status = bldsResp.Status && rlsResp.Status;
             }
@@ -809,9 +821,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             };
         }
 
-        public virtual async Task<Status> DenyAccess(ApplicationManagerClient appMgr, string entApiKey, string token)
+        public virtual async Task<Status> DenyAccess(ApplicationManagerClient appMgr, string entLookup, string token)
         {
-            var response = await appMgr.DenyAccess(token, entApiKey);
+            var response = await appMgr.DenyAccess(token, entLookup);
 
             return Status.Success;
         }
@@ -824,13 +836,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> EnsureDevOpsProject(DevOpsArchitectClient devOpsArch, string username)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
                 var resp = await devOpsArch.EnsureDevOpsProject(new EnsureDevOpsProjectRequest()
                 {
                     EnvironmentLookup = State.EnvironmentLookup,
                     Username = username
-                }, State.NewEnterpriseAPIKey);
+                }, State.NewEnterpriseLookup);
 
                 State.ProjectID = resp.Model.HasValue ? resp.Model.Value.ToString() : null;
 
@@ -840,51 +852,51 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> GrantAccess(ApplicationManagerClient appMgr, string entApiKey, string token)
+        public virtual async Task<Status> GrantAccess(ApplicationManagerClient appMgr, string entLookup, string token)
         {
-            var response = await appMgr.GrantAccess(token, entApiKey);
+            var response = await appMgr.GrantAccess(token, entLookup);
 
             return Status.Success;
         }
 
-        // public virtual async Task HasDevOpsOAuth(EnterpriseManagerClient entMgr, string entApiKey, string username)
+        // public virtual async Task HasDevOpsOAuth(EnterpriseManagerClient entMgr, string entLookup, string username)
         // {
-        //     var hasDevOps = await entMgr.HasDevOpsOAuth(entApiKey, username);
+        //     var hasDevOps = await entMgr.HasDevOpsOAuth(entLookup, username);
 
         //     State.HasDevOpsOAuth = hasDevOps.Status;
         // }
 
-        public virtual async Task ListSubscribers(IdentityManagerClient idMgr, string entApiKey)
+        public virtual async Task ListSubscribers(IdentityManagerClient idMgr, string entLookup)
         {
             // Get the list of subscribers based on subscriber status
-            var subscriberResp = await idMgr.ListLicensedSubscribers(entApiKey);
+            var subscriberResp = await idMgr.ListLicensedSubscribers(entLookup);
 
             State.Subscribers = subscriberResp.Model;
         }
 
-        public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entApiKey, string username)
+        public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entLookup, string username)
         {
-            var licenseAccess = await idMgr.ListLicenseAccessTokens(entApiKey, username, new List<string>() { "lcu" });
+            var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() { "lcu" });
 
             State.UserLicenses = licenseAccess.Model;
 
             return (licenseAccess != null) ? Status.Success : Status.Unauthorized.Clone($"No licenses found for user {username}");
         }
 
-        public virtual async Task LoadRegistrationHosts(EnterpriseManagerClient entMgr, string entApiKey)
+        public virtual async Task LoadRegistrationHosts(EnterpriseManagerClient entMgr, string entLookup)
         {
             if (State.HostOptions.IsNullOrEmpty())
             {
-                var regHosts = await entMgr.ListRegistrationHosts(entApiKey);
+                var regHosts = await entMgr.ListRegistrationHosts(entLookup);
 
                 State.HostOptions = regHosts.Model;
             }
         }
 
-        public virtual async Task LoadSubscriptionDetails(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entApiKey, string username)
+        public virtual async Task LoadSubscriptionDetails(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entLookup, string username)
         {
             // get subscription token by user name
-            var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entApiKey, username, "LCU-STRIPE-SUBSCRIPTION-ID");
+            var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-STRIPE-SUBSCRIPTION-ID");
 
             string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"]?.ToString();
 
@@ -892,16 +904,16 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             {
 
                 // get subscription details 
-                var subDetails = await entMgr.GetStripeSubscriptionDetails(subId, entApiKey);
+                var subDetails = await entMgr.GetStripeSubscriptionDetails(subId, entLookup);
 
                 State.SubscriptionDetails = subDetails.Model;
             }
 
         }
 
-        public virtual async Task<Status> HasLicenseAccessWithLookup(IdentityManagerClient idMgr, string entApiKey, string username, string lookup)
+        public virtual async Task<Status> HasLicenseAccessWithLookup(IdentityManagerClient idMgr, string entLookup, string username, string lookup)
         {
-            var licenseAccess = await idMgr.HasLicenseAccess(entApiKey, username, AllAnyTypes.All, new List<string>() { "lcu" });
+            var licenseAccess = await idMgr.HasLicenseAccess(entLookup, username, AllAnyTypes.All, new List<string>() { "lcu" });
 
             return licenseAccess.Status ? Status.Success : Status.Unauthorized.Clone($"No license found for user {username}");
         }
@@ -993,14 +1005,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> SetupRepositories(DevOpsArchitectClient devOpsArch, string username)
         {
-            if (!State.NewEnterpriseAPIKey.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty() && !State.ProjectID.IsNullOrEmpty())
             {
                 var resp = await devOpsArch.SetupRepositories(new Personas.DevOps.SetupRepositoriesRequest()
                 {
                     EnvironmentLookup = State.EnvironmentLookup,
                     ProjectID = State.ProjectID,
                     Username = username
-                }, State.NewEnterpriseAPIKey);
+                }, State.NewEnterpriseLookup);
 
                 return resp.Status;
             }
@@ -1062,7 +1074,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.BootOptions.FirstOrDefault(bo => bo.Lookup == bootOptionLookup).Name = bootOption.Name;
         }
 
-        public virtual async Task<Status> SendFeedback(EnterpriseManagerClient entMgr, string entApiKey, string username, string feedback)
+        public virtual async Task<Status> SendFeedback(EnterpriseManagerClient entMgr, string entLookup, string username, string feedback)
         {
 
             // Send email from app manager client 
@@ -1075,26 +1087,26 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 EmailTo = "marketing@fathym.com",
                 User = username,
                 Subject = "Service feedback",
-                EnterpriseID = entApiKey
+                EnterpriseID = entLookup
             };
 
             var emailModel = new MetadataModel();
             
             model.Metadata.Add(new KeyValuePair<string, JToken>("FeedbackEmail", JToken.Parse(JsonConvert.SerializeObject(email))));
 
-            await entMgr.SendFeedbackEmail(model, entApiKey);
+            await entMgr.SendFeedbackEmail(model, entLookup);
 
             return Status.Success;
         }
 
-        public virtual async Task<Status> SendNotification(EnterpriseManagerClient entMgr, string entApiKey, string username, SendNotificationRequest notification)
+        public virtual async Task<Status> SendNotification(EnterpriseManagerClient entMgr, string entLookup, string username, SendNotificationRequest notification)
         {
             // Send email from app manager client 
             var model = new MetadataModel();
 
             model.Metadata.Add(new KeyValuePair<string, JToken>("SendNotificationRequest", JToken.Parse(JsonConvert.SerializeObject(notification))));
 
-            await entMgr.SendNotification(model, entApiKey);
+            await entMgr.SendNotification(model, entLookup);
 
             return Status.Success;
         }
@@ -1107,7 +1119,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 ConfigureBootOptions();
         }
 
-        public virtual async Task<Status> SetLicenseAccess(IdentityManagerClient idMgr, string entApiKey, string username, int trialLength, bool isLocked, bool isReset)
+        public virtual async Task<Status> SetLicenseAccess(IdentityManagerClient idMgr, string entLookup, string username, int trialLength, bool isLocked, bool isReset)
         {
             var response = await idMgr.IssueLicenseAccess(new LicenseAccessToken()
             {
@@ -1115,7 +1127,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 IsReset = isReset,
                 TrialPeriodDays = trialLength,
                 Username = username
-            }, entApiKey);
+            }, entLookup);
 
             return response.Status;
         }
@@ -1158,17 +1170,17 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.UserType = userType;
         }
 
-        public virtual async Task<Status> ValidateSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, string entApiKey, string username, string subscriberId)
+        public virtual async Task<Status> ValidateSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, string entLookup, string username, string subscriberId)
         {
             // Get subscription status from Stripe for a user
-            var response = await entMgr.ValidateSubscription(subscriberId, entApiKey);
+            var response = await entMgr.ValidateSubscription(subscriberId, entLookup);
 
             // If subscription status is inactive
             if (!response.Status)
             {
 
                 // Get the user's LATs from the graph db
-                var licenseAccess = await idMgr.ListLicenseAccessTokens(entApiKey, username, new List<string>() { "LCU" });
+                var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() { "LCU" });
 
                 // If user has a LAT that is not limited trial, expire the LAT
                 foreach (LicenseAccessToken token in licenseAccess.Model)
@@ -1178,7 +1190,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                     if (token.Lookup != "LCU.NapkinIDE.LimitedTrial")
                     {
-                        await idMgr.IssueLicenseAccess(token, entApiKey);
+                        await idMgr.IssueLicenseAccess(token, entLookup);
                     }
                 }
 
