@@ -322,7 +322,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                 {
                                     ActionRoot = "/api/state",
                                     Root = "/api/state",
-                                    FreeboardConfigURL = "/templates/freeboard/DeviceDemoDashboard_NewModel.json"
+                                    FreeboardConfigURL = "templates/freeboard/DeviceDemoDashboard.json"
                                 }.JSONConvert<MetadataModel>()
                             }
                         }
