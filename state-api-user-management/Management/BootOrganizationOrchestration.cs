@@ -27,6 +27,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
         #region Fields
         protected ApplicationDeveloperClient appDev;
 
+        protected ApplicationManagerClient appMgr;
+
         protected DevOpsArchitectClient devOpsArch;
 
         protected EnterpriseArchitectClient entArch;
@@ -35,10 +37,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
         #endregion
 
         #region Constructors
-        public BootOrganizationOrchestration(ApplicationDeveloperClient appDev, DevOpsArchitectClient devOpsArch, EnterpriseArchitectClient entArch,
-            EnterpriseManagerClient entMgr)
+        public BootOrganizationOrchestration(ApplicationDeveloperClient appDev, ApplicationManagerClient appMgr, DevOpsArchitectClient devOpsArch, 
+            EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr)
         {
             this.appDev = appDev;
+
+            this.appMgr = appMgr;
 
             this.devOpsArch = devOpsArch;
 
@@ -526,7 +530,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     {
                         log.LogInformation($"Setting up IoT Applications...");
 
-                        var status = await harness.SetupIoTWelcome(appDev, entMgr);
+                        var status = await harness.SetupIoTWelcome(appDev, appMgr, entMgr);
 
                         if (status)
                             harness.UpdateBootOption("MicroApps", 4, status: Status.Initialized.Clone("Configuring Data Aplicationps Low-Code Unit™..."));
