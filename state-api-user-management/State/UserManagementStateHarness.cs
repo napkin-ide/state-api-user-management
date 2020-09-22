@@ -875,9 +875,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task HasAzureOAuth(EnterpriseManagerClient entMgr, string entLookup, string username)
         {
-            var hasDevOps = await entMgr.HasAzureOAuth(entLookup, username);
+            // var hasDevOps = await entMgr.HasAzureOAuth(entLookup, username);
 
-            State.HasAzureOAuth = hasDevOps.Status;
+            // State.HasAzureOAuth = hasDevOps.Status;
         }
 
         // public virtual async Task HasDevOpsOAuth(EnterpriseManagerClient entMgr, string entLookup, string username)
