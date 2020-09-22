@@ -617,9 +617,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             {
                 if (shouldStep)
                 {
-                    await HasAzureOAuth(entMgr, entLookup, username);
+                    // await HasAzureOAuth(entMgr, entLookup, username);
 
-                    if (State.HasAzureOAuth)
+                    // if (State.HasAzureOAuth)
                         SetNapkinIDESetupStep(NapkinIDESetupStepTypes.Review);
                 }
                 else

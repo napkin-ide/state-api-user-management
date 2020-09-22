@@ -59,7 +59,7 @@ namespace LCU.State.API.NapkinIDE.Setup.Management
             return await stateBlob.WithStateHarness<UserManagementState, ConfigureInfrastructureRequest, UserManagementStateHarness>(req, signalRMessages, log,
                 async (harness, reqData) =>
             {
-                log.LogInformation($"Executing SetUserDetails Action.");
+                log.LogInformation($"Executing ConfigureInfrastructure Action.");
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 

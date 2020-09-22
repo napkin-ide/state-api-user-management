@@ -48,7 +48,7 @@ namespace LCU.State.API.NapkinIDE.Setup.Management
             return await stateBlob.WithStateHarness<UserManagementState, SetOrganizationDetailsRequest, UserManagementStateHarness>(req, signalRMessages, log,
                 async (harness, reqData) =>
             {
-                log.LogInformation($"Executing SetUserDetails Action.");
+                log.LogInformation($"Executing SetOrganizationDetails Action.");
 
                 await harness.SetOrganizationDetails(entMgr, reqData.Name, reqData.Description, reqData.Lookup, true);
 
