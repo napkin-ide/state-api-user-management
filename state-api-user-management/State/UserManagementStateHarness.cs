@@ -495,6 +495,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     Username = username
                 }, State.NewEnterpriseLookup);
 
+                await Task.Delay(2500);
+
                 return resp.Status;
             }
             else
