@@ -570,14 +570,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
                     {
-                        log.LogInformation($"Booting Data Applications Low-Code Unit™...");
+                        log.LogInformation($"Booting Applications Low-Code Unit™...");
 
                         var status = await harness.BootDataApps(appDev);
 
                         if (status)
                             harness.UpdateBootOption("MicroApps", 6, status: Status.Initialized.Clone("Configuring Data Flow Low-Code Unit™...."));
                         else
-                            harness.UpdateBootOption("MicroApps", 5, status: Status.GeneralError.Clone("Error Configuring Data Applications Low-Code Unit™, retrying."));
+                            harness.UpdateBootOption("MicroApps", 5, status: Status.GeneralError.Clone("Error Configuring Applications Low-Code Unit™, retrying."));
 
                         harness.UpdateStatus(status);
 

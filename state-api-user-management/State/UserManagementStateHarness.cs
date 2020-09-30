@@ -687,7 +687,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             {
                 Name = "Orchestrate Micro-Application",
                 Lookup = "MicroApps",
-                Description = $"{currentInfraOpt}, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™",
+                Description = $"{currentInfraOpt}, Data Flow LCU, Application Flow LCU",
                 TotalSteps = 6
             });
         }
