@@ -257,24 +257,29 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> BootIoTWelcome(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr)
+        public virtual async Task<Status> BootIoTWelcome(ApplicationDeveloperClient appDev)
         {
             if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
                 var resp = await appDev.ConfigureNapkinIDEForIoTWelcome(State.NewEnterpriseLookup, State.EnvironmentLookup, State.Host);
 
-                var status = resp.Status;
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
 
+        public virtual async Task<Status> DeployIoTDataFlow(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr)
+        {
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
                 var dfLookup = "iot"; //  Will need to be handled differently if default ever changes in ConfigureNapkinIDEForIoTWelcome
 
-                if (status)
-                {
-                    //  Initializing warm-storage call
-                    var infraDetsResp = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseLookup, State.EnvironmentLookup,
-                        "warm-storage");
+                //  Initializing warm-storage call
+                var infraDetsResp = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseLookup, State.EnvironmentLookup,
+                    "warm-storage");
 
-                    status = infraDetsResp.Status;
-                }
+                var status = infraDetsResp.Status;
 
                 if (status)
                 {
@@ -288,7 +293,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 else
                     status = Status.GeneralError.Clone("Unable to save the data flow");
 
-                return resp.Status;
+                return status;
             }
             else
                 return Status.GeneralError.Clone("Boot not properly configured.");
@@ -622,7 +627,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     // await HasAzureOAuth(entMgr, entLookup, username);
 
                     // if (State.HasAzureOAuth)
-                        SetNapkinIDESetupStep(NapkinIDESetupStepTypes.Review);
+                    SetNapkinIDESetupStep(NapkinIDESetupStepTypes.Review);
                 }
                 else
                     await ConfigureAzureLocationOptions(entArch);
@@ -683,7 +688,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 Name = "Orchestrate Micro-Application",
                 Lookup = "MicroApps",
                 Description = $"{currentInfraOpt}, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™",
-                TotalSteps = 5
+                TotalSteps = 6
             });
         }
 
