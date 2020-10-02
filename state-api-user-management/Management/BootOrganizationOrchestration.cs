@@ -27,6 +27,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
         #region Fields
         protected ApplicationDeveloperClient appDev;
 
+        protected ApplicationManagerClient appMgr;
+
         protected DevOpsArchitectClient devOpsArch;
 
         protected EnterpriseArchitectClient entArch;
@@ -35,10 +37,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
         #endregion
 
         #region Constructors
-        public BootOrganizationOrchestration(ApplicationDeveloperClient appDev, DevOpsArchitectClient devOpsArch, EnterpriseArchitectClient entArch,
-            EnterpriseManagerClient entMgr)
+        public BootOrganizationOrchestration(ApplicationDeveloperClient appDev, ApplicationManagerClient appMgr, DevOpsArchitectClient devOpsArch,
+            EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr)
         {
             this.appDev = appDev;
+
+            this.appMgr = appMgr;
 
             this.devOpsArch = devOpsArch;
 
@@ -490,7 +494,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         if (harness.State.Template == "fathym\\daf-iot-starter")
                             harness.UpdateBootOption("MicroApps", 2, status: Status.Initialized.Clone("Configuring IoT Data Flow..."));
                         else
-                            harness.UpdateBootOption("MicroApps", 3, status: Status.Initialized.Clone("Configuring Data Aplicationps Low-Code Unit™..."));
+                            harness.UpdateBootOption("MicroApps", 4, status: Status.Initialized.Clone("Configuring Data Aplicationps Low-Code Unit™..."));
                     else
                         harness.UpdateBootOption("MicroApps", 1, status: Status.GeneralError.Clone("Error Configuring Micro-Applications Runtime, retrying."));
 
@@ -499,58 +503,81 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     return status;
                 });
 
-            status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
-                stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
-                {
-                    if (harness.State.Template == "fathym\\daf-iot-starter")
+            if (status)
+                status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
+                    stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
                     {
-                        log.LogInformation($"Creating IoT Data Flow...");
+                        if (harness.State.Template == "fathym\\daf-iot-starter")
+                        {
+                            log.LogInformation($"Configuring IoT Data Flow...");
 
-                        var status = await harness.BootIoTWelcome(appDev, entMgr);
+                            var status = await harness.BootIoTWelcome(appDev);
 
-                        if (status)
-                            harness.UpdateBootOption("MicroApps", 3, status: Status.Initialized.Clone("Setting up IoT Applications..."));
-                        else
-                            harness.UpdateBootOption("MicroApps", 2, status: Status.GeneralError.Clone("Error Configuring IoT Data Flow, retrying."));
+                            if (status)
+                                harness.UpdateBootOption("MicroApps", 3, status: Status.Initialized.Clone("Deploying IoT Data Flow..."));
+                            else
+                                harness.UpdateBootOption("MicroApps", 2, status: Status.GeneralError.Clone("Error Configuring IoT Data Flow, retrying."));
 
-                        harness.UpdateStatus(status);
-                    }
+                            harness.UpdateStatus(status);
+                        }
 
-                    return status;
-                });
-
-            status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
-                stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
-                {
-                    if (harness.State.Template == "fathym\\daf-iot-starter")
-                    {
-                        log.LogInformation($"Setting up IoT Applications...");
-
-                        var status = await harness.SetupIoTWelcome(appDev, entMgr);
-
-                        if (status)
-                            harness.UpdateBootOption("MicroApps", 4, status: Status.Initialized.Clone("Configuring Data Aplicationps Low-Code Unit™..."));
-                        else
-                            harness.UpdateBootOption("MicroApps", 3, status: Status.GeneralError.Clone("Error setting up IoT Applications, retrying."));
-
-                        harness.UpdateStatus(status);
-                    }
-
-                    return status;
-                });
+                        return status;
+                    });
 
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
                     {
-                        log.LogInformation($"Booting Data Applications Low-Code Unit™...");
+                        if (harness.State.Template == "fathym\\daf-iot-starter")
+                        {
+                            log.LogInformation($"Deploying IoT Data Flow...");
+
+                            var status = await harness.DeployIoTDataFlow(appDev, entMgr);
+
+                            if (status)
+                                harness.UpdateBootOption("MicroApps", 4, status: Status.Initialized.Clone("Setting up IoT Applications..."));
+                            else
+                                harness.UpdateBootOption("MicroApps", 3, status: Status.GeneralError.Clone("Error Deploying IoT Data Flow, retrying."));
+
+                            harness.UpdateStatus(status);
+                        }
+
+                        return status;
+                    });
+
+            if (status)
+                status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
+                    stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
+                    {
+                        if (harness.State.Template == "fathym\\daf-iot-starter")
+                        {
+                            log.LogInformation($"Setting up IoT Applications...");
+
+                            var status = await harness.SetupIoTWelcome(appDev, appMgr, entMgr);
+
+                            if (status)
+                                harness.UpdateBootOption("MicroApps", 5, status: Status.Initialized.Clone("Configuring Data Aplicationps Low-Code Unit™..."));
+                            else
+                                harness.UpdateBootOption("MicroApps", 4, status: Status.GeneralError.Clone("Error setting up IoT Applications, retrying."));
+
+                            harness.UpdateStatus(status);
+                        }
+
+                        return status;
+                    });
+
+            if (status)
+                status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
+                    stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
+                    {
+                        log.LogInformation($"Booting Applications Low-Code Unit™...");
 
                         var status = await harness.BootDataApps(appDev);
 
                         if (status)
-                            harness.UpdateBootOption("MicroApps", 5, status: Status.Initialized.Clone("Configuring Data Flow Low-Code Unit™...."));
+                            harness.UpdateBootOption("MicroApps", 6, status: Status.Initialized.Clone("Configuring Data Flow Low-Code Unit™...."));
                         else
-                            harness.UpdateBootOption("MicroApps", 4, status: Status.GeneralError.Clone("Error Configuring Data Applications Low-Code Unit™, retrying."));
+                            harness.UpdateBootOption("MicroApps", 5, status: Status.GeneralError.Clone("Error Configuring Applications Low-Code Unit™, retrying."));
 
                         harness.UpdateStatus(status);
 
@@ -567,12 +594,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         if (status)
                         {
-                            harness.UpdateBootOption("MicroApps", 6, status: Status.Success.Clone("Micro-Applications Orechestration Configured"), loading: false);
+                            harness.UpdateBootOption("MicroApps", 7, status: Status.Success.Clone("Micro-Applications Orechestration Configured"), loading: false);
 
                             harness.CompleteBoot();
                         }
                         else
-                            harness.UpdateBootOption("MicroApps", 5, status: Status.GeneralError.Clone("Error Configuring Data Flow Low-Code Unit™, retrying."));
+                            harness.UpdateBootOption("MicroApps", 6, status: Status.GeneralError.Clone("Error Configuring Data Flow Low-Code Unit™, retrying."));
 
                         harness.UpdateStatus(status);
 

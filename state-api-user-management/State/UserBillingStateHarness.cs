@@ -113,7 +113,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 var licenseType = planOption.Metadata["LicenseType"].ToString();
 
-                var token = planOption.JSONConvert<LicenseAccessToken>();
+                var token = new LicenseAccessToken();
+
+                token.Details = planOption.JSONConvert<MetadataModel>();
 
                 token.EnterpriseLookup = entLookup;
 

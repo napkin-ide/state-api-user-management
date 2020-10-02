@@ -66,6 +66,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual MetadataModel EnvSettings { get; set; }
 
         [DataMember]
+        public virtual bool HasAzureOAuth { get; set; }
+
+        [DataMember]
         public virtual bool HasDevOpsOAuth { get; set; }
 
         [DataMember]

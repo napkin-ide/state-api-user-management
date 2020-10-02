@@ -14,6 +14,7 @@ using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.Azure.Storage.Blob;
 using LCU.Personas.Client.Enterprises;
 using LCU.State.API.NapkinIDE.UserManagement.State;
+using LCU.StateAPI.Utilities;
 
 namespace LCU.State.API.NapkinIDE.Setup.Management
 {
@@ -58,9 +59,12 @@ namespace LCU.State.API.NapkinIDE.Setup.Management
             return await stateBlob.WithStateHarness<UserManagementState, ConfigureInfrastructureRequest, UserManagementStateHarness>(req, signalRMessages, log,
                 async (harness, reqData) =>
             {
-                log.LogInformation($"Executing SetUserDetails Action.");
+                log.LogInformation($"Executing ConfigureInfrastructure Action.");
 
-                await harness.ConfigureInfrastructure(entArch, entMgr, reqData.InfrastructureType, reqData.UseDefaultSettings, reqData.Settings, reqData.Template, reqData.ShouldStep);
+                var stateDetails = StateUtils.LoadStateDetails(req);
+
+                await harness.ConfigureInfrastructure(entArch, entMgr, reqData.InfrastructureType, reqData.UseDefaultSettings, reqData.Settings, 
+                    reqData.Template, reqData.ShouldStep, stateDetails.EnterpriseLookup, stateDetails.Username);
 
                 return Status.Success;
             });

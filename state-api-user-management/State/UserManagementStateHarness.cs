@@ -257,24 +257,29 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> BootIoTWelcome(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr)
+        public virtual async Task<Status> BootIoTWelcome(ApplicationDeveloperClient appDev)
         {
             if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
                 var resp = await appDev.ConfigureNapkinIDEForIoTWelcome(State.NewEnterpriseLookup, State.EnvironmentLookup, State.Host);
 
-                var status = resp.Status;
+                return resp.Status;
+            }
+            else
+                return Status.GeneralError.Clone("Boot not properly configured.");
+        }
 
+        public virtual async Task<Status> DeployIoTDataFlow(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr)
+        {
+            if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
+            {
                 var dfLookup = "iot"; //  Will need to be handled differently if default ever changes in ConfigureNapkinIDEForIoTWelcome
 
-                if (status)
-                {
-                    //  Initializing warm-storage call
-                    var infraDetsResp = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseLookup, State.EnvironmentLookup,
-                        "warm-storage");
+                //  Initializing warm-storage call
+                var infraDetsResp = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseLookup, State.EnvironmentLookup,
+                    "warm-storage");
 
-                    status = infraDetsResp.Status;
-                }
+                var status = infraDetsResp.Status;
 
                 if (status)
                 {
@@ -288,27 +293,34 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 else
                     status = Status.GeneralError.Clone("Unable to save the data flow");
 
-                return resp.Status;
+                return status;
             }
             else
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> SetupIoTWelcome(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr)
+        public virtual async Task<Status> SetupIoTWelcome(ApplicationDeveloperClient appDev, ApplicationManagerClient appMgr,
+            EnterpriseManagerClient entMgr)
         {
             if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
                 var dfLookup = "iot"; //  Will need to be handled differently if default ever changes in ConfigureNapkinIDEForIoTWelcome
 
-                var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                var apps = await appMgr.ListApplications(State.NewEnterpriseLookup);
+
+                var status = apps.Status;
+
+                if (!apps.Model.Any(app => app.PathRegex == "/freeboard*"))
                 {
-                    Application = new Graphs.Registry.Enterprises.Apps.Application()
+                    var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
                     {
-                        Name = "Freeboard",
-                        Description = "Freeboard is an open source tool for visualizing data.",
-                        PathRegex = "/freeboard*"
-                    },
-                    DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
+                        Application = new Graphs.Registry.Enterprises.Apps.Application()
+                        {
+                            Name = "Freeboard",
+                            Description = "Freeboard is an open source tool for visualizing data.",
+                            PathRegex = "/freeboard*"
+                        },
+                        DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
                     {
                         new Graphs.Registry.Enterprises.Apps.DAFApplication()
                         {
@@ -327,13 +339,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                             }
                         }
                     }
-                }, State.NewEnterpriseLookup, State.Host);
+                    }, State.NewEnterpriseLookup, State.Host);
 
-                var status = saveResp.Status;
+                    status = saveResp.Status;
+                }
 
-                if (status)
+                if (status && !apps.Model.Any(app => app.PathRegex == "/lcu-charts*"))
                 {
-                    saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                    var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
                     {
                         Application = new Graphs.Registry.Enterprises.Apps.Application()
                         {
@@ -343,7 +356,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                         },
                         DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
                         {
-                            new Graphs.Registry.Enterprises.Apps.DAFApplication() 
+                            new Graphs.Registry.Enterprises.Apps.DAFApplication()
                             {
                                 Priority = 500,
                                 Details = new Graphs.Registry.Enterprises.Apps.DAFViewApplicationDetails()
@@ -364,7 +377,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     status = saveResp.Status;
                 }
 
-                if (status)
+                if (status && !apps.Model.Any(app => app.PathRegex == $"/api/data-flow/{dfLookup}/warm-query*"))
                 {
                     var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseLookup, State.EnvironmentLookup,
                         "warm-query");
@@ -372,7 +385,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     //  TODO:  Support multiple
                     await infraDets.Model.Take(1).Each(async infraDet =>
                     {
-                        saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                        var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
                         {
                             Application = new Graphs.Registry.Enterprises.Apps.Application()
                             {
@@ -400,7 +413,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     });
                 }
 
-                if (status)
+                if (status && !apps.Model.Any(app => app.PathRegex == $"/api/data-flow/{dfLookup}/data-stream*"))
                 {
                     var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseLookup, State.EnvironmentLookup,
                         "data-stream");
@@ -408,7 +421,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     //  TODO:  Support multiple
                     await infraDets.Model.Take(1).Each(async infraDet =>
                     {
-                        saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                        var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
                         {
                             Application = new Graphs.Registry.Enterprises.Apps.Application()
                             {
@@ -431,9 +444,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                 }
                             }
                         }, State.NewEnterpriseLookup, State.Host);
-                    });
 
-                    status = saveResp.Status;
+                        status = saveResp.Status;
+                    });
                 }
 
                 return status;
@@ -487,6 +500,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     Username = username
                 }, State.NewEnterpriseLookup);
 
+                await Task.Delay(2500);
+
                 return resp.Status;
             }
             else
@@ -538,7 +553,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     await idMgr.IssueLicenseAccess(token, entLookup);
                 }
 
-                var cancelNotice = new SendNotificationRequest(){ 
+                var cancelNotice = new SendNotificationRequest()
+                {
                     EmailFrom = mrktEmail,
                     EmailTo = username,
                     Subject = "Subscription Cancelled",
@@ -592,7 +608,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         }
 
         public virtual async Task ConfigureInfrastructure(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr, string infraType, bool useDefaultSettings,
-            MetadataModel settings, string template, bool shouldStep)
+            MetadataModel settings, string template, bool shouldStep, string entLookup, string username)
         {
             var envLookup = $"{State.OrganizationLookup}-prd";
 
@@ -607,7 +623,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             if (State.AzureInfrastructureValid)
             {
                 if (shouldStep)
+                {
+                    // await HasAzureOAuth(entMgr, entLookup, username);
+
+                    // if (State.HasAzureOAuth)
                     SetNapkinIDESetupStep(NapkinIDESetupStepTypes.Review);
+                }
                 else
                     await ConfigureAzureLocationOptions(entArch);
 
@@ -666,8 +687,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             {
                 Name = "Orchestrate Micro-Application",
                 Lookup = "MicroApps",
-                Description = $"{currentInfraOpt}, Data Flow Low-Code Unit™, Data Applications Low-Code Unit™",
-                TotalSteps = 5
+                Description = $"{currentInfraOpt}, Data Flow LCU, Application Flow LCU",
+                TotalSteps = 6
             });
         }
 
@@ -857,6 +878,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             var response = await appMgr.GrantAccess(token, entLookup);
 
             return Status.Success;
+        }
+
+        public virtual async Task HasAzureOAuth(EnterpriseManagerClient entMgr, string entLookup, string username)
+        {
+            // var hasDevOps = await entMgr.HasAzureOAuth(entLookup, username);
+
+            // State.HasAzureOAuth = hasDevOps.Status;
         }
 
         // public virtual async Task HasDevOpsOAuth(EnterpriseManagerClient entMgr, string entLookup, string username)
@@ -1091,7 +1119,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             };
 
             var emailModel = new MetadataModel();
-            
+
             model.Metadata.Add(new KeyValuePair<string, JToken>("FeedbackEmail", JToken.Parse(JsonConvert.SerializeObject(email))));
 
             await entMgr.SendFeedbackEmail(model, entLookup);

@@ -34,7 +34,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
             return await stateBlob.WithStateHarness<UserManagementState, SetUserTypeRequest, UserManagementStateHarness>(req, signalRMessages, log,
                 async (harness, userDetsReq) =>
             {
-                log.LogInformation($"Executing SetUserDetails Action.");
+                log.LogInformation($"Executing SetUserType Action.");
 
                 harness.SetUserType(userDetsReq.UserType);
 

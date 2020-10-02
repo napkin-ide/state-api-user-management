@@ -109,6 +109,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
 
             harness.DetermineSetupStep();
 
+            await harness.HasAzureOAuth(entMgr, stateDetails.EnterpriseLookup, stateDetails.Username);
+
             await harness.LoadSubscriptionDetails(entMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username);
 
             await Task.WhenAll(new[]{
