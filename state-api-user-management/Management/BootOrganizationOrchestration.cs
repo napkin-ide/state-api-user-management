@@ -494,7 +494,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         if (harness.State.Template == "fathym\\daf-iot-starter")
                             harness.UpdateBootOption("MicroApps", 2, status: Status.Initialized.Clone("Configuring IoT Data Flow..."));
                         else
-                            harness.UpdateBootOption("MicroApps", 4, status: Status.Initialized.Clone("Configuring Data Aplicationps Low-Code Unit™..."));
+                            harness.UpdateBootOption("MicroApps", 4, status: Status.Initialized.Clone("Configuring Data Applications Low-Code Unit™..."));
                     else
                         harness.UpdateBootOption("MicroApps", 1, status: Status.GeneralError.Clone("Error Configuring Micro-Applications Runtime, retrying."));
 
@@ -556,7 +556,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                             var status = await harness.SetupIoTWelcome(appDev, appMgr, entMgr);
 
                             if (status)
-                                harness.UpdateBootOption("MicroApps", 5, status: Status.Initialized.Clone("Configuring Data Aplicationps Low-Code Unit™..."));
+                                harness.UpdateBootOption("MicroApps", 5, status: Status.Initialized.Clone("Configuring Data Applications Low-Code Unit™..."));
                             else
                                 harness.UpdateBootOption("MicroApps", 4, status: Status.GeneralError.Clone("Error setting up IoT Applications, retrying."));
 
