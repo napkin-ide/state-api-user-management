@@ -594,7 +594,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         if (status)
                         {
-                            harness.UpdateBootOption("MicroApps", 7, status: Status.Success.Clone("Micro-Applications Orechestration Configured"), loading: false);
+                            harness.UpdateBootOption("MicroApps", 7, status: Status.Success.Clone("Micro-Applications Orchestration Configured"), loading: false);
 
                             harness.CompleteBoot();
                         }
