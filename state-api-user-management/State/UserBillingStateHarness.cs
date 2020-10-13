@@ -37,47 +37,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         #endregion
 
         #region Constructors
-        public UserBillingStateHarness(UserBillingState state)
-            : base(state ?? new UserBillingState())
+        public UserBillingStateHarness(UserBillingState state, ILogger log)
+            : base(state ?? new UserBillingState(), log)
         { }
         #endregion
 
         #region API Methods
-        public virtual async Task DetermineRequiredOptIns(SecurityManagerClient secMgr, string entLookup, string username)
-        {
-            var thirdPartyData = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-USER-BILLING.TermsOfService", "LCU-USER-BILLING.EnterpriseAgreement");
-
-            State.RequiredOptIns = new List<string>();
-
-            if (!thirdPartyData.Status || !thirdPartyData.Model.ContainsKey("LCU-USER-BILLING.TermsOfService"))
-                State.RequiredOptIns.Add("ToS");
-
-            if (!thirdPartyData.Status || !thirdPartyData.Model.ContainsKey("LCU-USER-BILLING.EnterpriseAgreement"))
-                State.RequiredOptIns.Add("EA");
-        }
-
-        public virtual async Task LoadBillingPlans(EnterpriseManagerClient entMgr, string entLookup, string licenseType)
-        {
-            var plansResp = await entMgr.ListBillingPlanOptions(entLookup, licenseType);
-
-            State.Plans = plansResp.Model ?? new List<BillingPlanOption>();
-
-            State.FeaturedPlanGroup = State.Plans.FirstOrDefault(plan =>
-            {
-                return plan.Metadata.ContainsKey("Featured") && plan.Metadata["Featured"].ToObject<bool>();
-            })?.PlanGroup;
-
-            State.PopularPlanGroup = State.Plans.FirstOrDefault(plan =>
-            {
-                return plan.Metadata.ContainsKey("Popular") && plan.Metadata["Popular"].ToObject<bool>();
-            })?.PlanGroup;
-        }
-
-        public virtual void SetUsername(string username)
-        {
-            State.Username = username;
-        }
-
         public virtual async Task CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr, string entLookup,
             string username, string methodId, string customerName, string plan, int trialPeriodDays)
         {
@@ -137,6 +102,36 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             }
         }
 
+        public virtual async Task DetermineRequiredOptIns(SecurityManagerClient secMgr, string entLookup, string username)
+        {
+            var thirdPartyData = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-USER-BILLING.TermsOfService", "LCU-USER-BILLING.EnterpriseAgreement");
+
+            State.RequiredOptIns = new List<string>();
+
+            if (!thirdPartyData.Status || !thirdPartyData.Model.ContainsKey("LCU-USER-BILLING.TermsOfService"))
+                State.RequiredOptIns.Add("ToS");
+
+            if (!thirdPartyData.Status || !thirdPartyData.Model.ContainsKey("LCU-USER-BILLING.EnterpriseAgreement"))
+                State.RequiredOptIns.Add("EA");
+        }
+
+        public virtual async Task LoadBillingPlans(EnterpriseManagerClient entMgr, string entLookup, string licenseType)
+        {
+            var plansResp = await entMgr.ListBillingPlanOptions(entLookup, licenseType);
+
+            State.Plans = plansResp.Model ?? new List<BillingPlanOption>();
+
+            State.FeaturedPlanGroup = State.Plans.FirstOrDefault(plan =>
+            {
+                return plan.Metadata.ContainsKey("Featured") && plan.Metadata["Featured"].ToObject<bool>();
+            })?.PlanGroup;
+
+            State.PopularPlanGroup = State.Plans.FirstOrDefault(plan =>
+            {
+                return plan.Metadata.ContainsKey("Popular") && plan.Metadata["Popular"].ToObject<bool>();
+            })?.PlanGroup;
+        }
+
         public virtual async Task Refresh(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entLookup, string username, string licenseType)
         {
             ResetStateCheck();
@@ -160,7 +155,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             if (force || State.PaymentStatus)
                 State = new UserBillingState();
-        }  
+        }
+
+        public virtual void SetUsername(string username)
+        {
+            State.Username = username;
+        }
         #endregion
     }
 }

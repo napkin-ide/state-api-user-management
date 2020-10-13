@@ -61,7 +61,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
             if (!context.IsReplaying)
                 log.LogInformation($"Booting organization environment for: {stateCtxt.ToJSON()}");
 
-            var genericRetryOptions = new RetryOptions(TimeSpan.FromSeconds(1), 3)
+            var genericRetryOptions = new RetryOptions(TimeSpan.FromSeconds(1), 10)
             {
                 BackoffCoefficient = 1.5,
                 Handle = handleRetryException
@@ -116,7 +116,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         log.LogInformation($"Booting organization micro-application orchestration for: {stateCtxt.ToJSON()}");
 
                     status = await context.CallActivityWithRetryAsync<Status>("BootOrganizationOrchestration_MicroApps", genericRetryOptions, stateCtxt);
-                }
+                }   
                 else if (!context.IsReplaying)
                     log.LogError($"Booting organization domain failed for: {stateCtxt.ToJSON()}");
 
@@ -159,23 +159,23 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                     var canFinalize = await harness.CanFinalize(devOpsArch, stateCtxt.StateDetails.Username);
 
-                    if (!canFinalize)
+                    if (canFinalize)
+                    {
+                        harness.UpdateBootOption("Infrastructure", 4, status: canFinalize.Clone("Infrastructure Configured and Deployed"), loading: false);
+
+                        harness.UpdateBootOption("Domain", 1, status: Status.Initialized.Clone("Configuring Domain Security..."));
+                    }
+                    else
                     {
                         var infraStatus = canFinalize;//.Clone("Waiting for infrastructure deployment to finish...");
 
                         infraStatus.Code = Status.Initialized.Code;
 
-                        harness.UpdateBootOption("Infrastructure", 2, status: Status.Initialized.Clone("Building and Releasing Environment Infrastructure..."));
-                    }
-                    else
-                    {
-                        harness.UpdateBootOption("Infrastructure", 3, status: canFinalize.Clone("Infrastructure Configured and Deployed"), loading: false);
-
-                        harness.UpdateBootOption("Domain", 1, status: Status.Initialized.Clone("Configuring Domain Security..."));
+                        harness.UpdateBootOption("Infrastructure", 3, status: Status.Initialized.Clone("Building and Releasing Environment Infrastructure..."));
                     }
 
                     return canFinalize;
-                });
+                }, preventStatusException: true);
         }
 
         [FunctionName("BootOrganizationOrchestration_DevOps")]
@@ -201,8 +201,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     return status;
                 });
 
+            //  Ensure Repositories
             if (status)
-                //  Ensure Repositories
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
                     {
@@ -325,15 +325,32 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         var status = await harness.SetupRepositories(devOpsArch, stateCtxt.StateDetails.Username);
 
                         if (status)
+                            harness.UpdateBootOption("DevOps", 9, status: Status.Success.Clone("Verifying DevOps Setup"));
+                        else
+                            harness.UpdateBootOption("DevOps", 8, status: Status.GeneralError.Clone("Error Configuring DevOps Environment with Infrastructure as Code builds and releases, retrying."));
+
+                        harness.UpdateStatus(status);
+
+                        return status;
+                    });
+
+            //  Verify DevOps setup
+            if (status)
+                status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
+                    stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
+                    {
+                        log.LogInformation($"Verifying DevOps Setup...");
+
+                        var status = await harness.VerifyDevOpsSetup(entMgr, devOpsArch);
+
+                        if (status)
                         {
-                            harness.UpdateBootOption("DevOps", 9,
-                                status: Status.Success.Clone("DevOps Environment Configured"),
-                                loading: false);
+                            harness.UpdateBootOption("DevOps", 10, status: Status.Success.Clone("DevOps Environment Configured"), loading: false);
 
                             harness.UpdateBootOption("Infrastructure", 1, status: Status.Initialized.Clone("Deploying Environment Infrastructure..."));
                         }
                         else
-                            harness.UpdateBootOption("DevOps", 8, status: Status.GeneralError.Clone("Error Configuring DevOps Environment with Infrastructure as Code builds and releases, retrying."));
+                            harness.UpdateBootOption("DevOps", 9, status: Status.GeneralError.Clone("Error Verifying DevOps Environment, retrying."));
 
                         harness.UpdateStatus(status);
 
@@ -392,13 +409,31 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         var status = await harness.BootHostSSL(entArch, stateCtxt.StateDetails.EnterpriseLookup);
 
                         if (status)
-                        {
-                            harness.UpdateBootOption("Domain", 4, status: Status.Success.Clone("Host Configured"), loading: false);
-
-                            harness.UpdateBootOption("MicroApps", 1, status: Status.Initialized.Clone("Downloading and installing Low-Code Unit™ micro-applications runtime..."));
-                        }
+                            harness.UpdateBootOption("Domain", 4, status: Status.Success.Clone("Verifying Host Configuration..."));
                         else
                             harness.UpdateBootOption("Domain", 3, status: Status.GeneralError.Clone("Error Configuring Host SSL with Let's Encrypt, retrying."));
+
+                        harness.UpdateStatus(status);
+
+                        return status;
+                    });
+
+            if (status)
+                status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
+                    stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
+                    {
+                        log.LogInformation($"Verifying Host Configuration...");
+
+                        var status = await harness.VerifyHosting(entMgr);
+
+                        if (status)
+                        {
+                            harness.UpdateBootOption("Domain", 5, status: Status.Success.Clone("Host Configured & Verified"), loading: false);
+
+                            harness.UpdateBootOption("MicroApps", 1, status: Status.Initialized.Clone("Downloading and installing LCU Runtime..."));
+                        }
+                        else
+                            harness.UpdateBootOption("Domain", 4, status: Status.GeneralError.Clone("Error Verifying Host, retrying."));
 
                         harness.UpdateStatus(status);
 
@@ -414,21 +449,19 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
             [Blob("state-api/{stateCtxt.StateDetails.EnterpriseLookup}/{stateCtxt.StateDetails.HubName}/{stateCtxt.StateDetails.Username}/{stateCtxt.StateDetails.StateKey}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
             var status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
-                stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
-                {
-                    log.LogInformation($"Configuring Workspace Enterprise...");
+               stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
+               {
+                   log.LogInformation($"Configuring Workspace Enterprise...");
 
-                    var status = await harness.BootOrganizationEnterprise(entArch, stateCtxt.StateDetails.EnterpriseLookup, stateCtxt.StateDetails.Username);
+                   var status = await harness.BootOrganizationEnterprise(entArch, stateCtxt.StateDetails.EnterpriseLookup, stateCtxt.StateDetails.Username);
 
-                    if (status)
-                        harness.UpdateBootOption("Project", 2, status: Status.Initialized.Clone("Workspace Enterprise Configured, setting up environment"));
-                    else
-                        harness.UpdateBootOption("Project", 1, status: Status.GeneralError.Clone("Error Configuring Workspace Enterprise, retrying."));
+                   if (status)
+                       harness.UpdateBootOption("Environment", 2, status: Status.Initialized.Clone("Workspace Enterprise Configured, setting up environment"));
+                   else
+                       harness.UpdateBootOption("Environment", 1, status: Status.GeneralError.Clone("Error Configuring Workspace Enterprise, retrying."));
 
-                    harness.UpdateStatus(status);
-
-                    return status;
-                });
+                   return status;
+               });
 
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
@@ -439,15 +472,29 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         var status = await harness.BootOrganizationEnvironment(entMgr, devOpsArch);
 
                         if (status)
+                            harness.UpdateBootOption("Environment", 3, status: Status.Success.Clone("Verifying Environment Configuration"));
+                        else
+                            harness.UpdateBootOption("Environment", 2, status: Status.GeneralError.Clone("Error Configuring Workspace Environment, retrying."));
+
+                        return status;
+                    });
+
+            if (status)
+                status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
+                    stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
+                    {
+                        log.LogInformation($"Verifying Workspace Environment...");
+
+                        var status = await harness.VerifyOrganizationEnvironment(entMgr);
+
+                        if (status)
                         {
-                            harness.UpdateBootOption("Project", 3, status: Status.Success.Clone("Workspace Environment Configured"), loading: false);
+                            harness.UpdateBootOption("Environment", 4, status: Status.Success.Clone("Workspace Environment Configured"), loading: false);
 
                             harness.UpdateBootOption("DevOps", 1, status: Status.Initialized.Clone("Configuring DevOps Environment..."));
                         }
                         else
-                            harness.UpdateBootOption("Project", 2, status: Status.GeneralError.Clone("Error Configuring Workspace Environment, retrying."));
-
-                        harness.UpdateStatus(status);
+                            harness.UpdateBootOption("Environment", 3, status: Status.GeneralError.Clone("Error Verifying Workspace Environment, retrying."));
 
                         return status;
                     });
@@ -460,7 +507,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
             [SignalR(HubName = UserManagementState.HUB_NAME)] IAsyncCollector<SignalRMessage> signalRMessages,
             [Blob("state-api/{stateCtxt.StateDetails.EnterpriseLookup}/{stateCtxt.StateDetails.HubName}/{stateCtxt.StateDetails.Username}/{stateCtxt.StateDetails.StateKey}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
         {
-            return await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
+            var status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                 stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
                 {
                     log.LogInformation($"Configuring Project Infrastructure...");
@@ -468,7 +515,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     var status = await harness.BootDAFInfrastructure(devOpsArch, stateCtxt.StateDetails.Username);
 
                     if (status)
-                        harness.UpdateBootOption("Infrastructure", 2, status: Status.Initialized.Clone("Building and Releasing Environment Infrastructure..."));
+                        harness.UpdateBootOption("Infrastructure", 2, status: Status.Initialized.Clone("Verifying Project Infrastructure Config..."));
                     else
                         harness.UpdateBootOption("Infrastructure", 1, status: Status.GeneralError.Clone("Error Configuring Project Infrastructure, retrying."));
 
@@ -476,6 +523,26 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                     return status;
                 });
+
+            if (status)
+                status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
+                    stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
+                    {
+                        log.LogInformation($"Verifying Project Infrastructure Config...");
+
+                        var status = await harness.VerifyDAFInfrastructure(entMgr);
+
+                        if (status)
+                            harness.UpdateBootOption("Infrastructure", 3, status: Status.Initialized.Clone("Building and Releasing Environment Infrastructure..."));
+                        else
+                            harness.UpdateBootOption("Infrastructure", 2, status: Status.GeneralError.Clone("Error Verifying Project Infrastructure Config, retrying."));
+
+                        harness.UpdateStatus(status);
+
+                        return status;
+                    });
+
+            return status;
         }
 
         [FunctionName("BootOrganizationOrchestration_MicroApps")]
@@ -494,7 +561,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         if (harness.State.Template == "fathym\\daf-iot-starter")
                             harness.UpdateBootOption("MicroApps", 2, status: Status.Initialized.Clone("Configuring IoT Data Flow..."));
                         else
-                            harness.UpdateBootOption("MicroApps", 4, status: Status.Initialized.Clone("Configuring Data Applications Low-Code Unit™..."));
+                            harness.UpdateBootOption("MicroApps", 4, status: Status.Initialized.Clone("Configuring Application Orchestration..."));
                     else
                         harness.UpdateBootOption("MicroApps", 1, status: Status.GeneralError.Clone("Error Configuring Micro-Applications Runtime, retrying."));
 
@@ -553,10 +620,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         {
                             log.LogInformation($"Setting up IoT Applications...");
 
-                            var status = await harness.SetupIoTWelcome(appDev, appMgr, entMgr);
+                            var status = await harness.SetupIoTWelcomeApps(appDev, appMgr, entMgr);
 
                             if (status)
-                                harness.UpdateBootOption("MicroApps", 5, status: Status.Initialized.Clone("Configuring Data Applications Low-Code Unit™..."));
+                                harness.UpdateBootOption("MicroApps", 5, status: Status.Initialized.Clone("Configuring Application Orchestration..."));
                             else
                                 harness.UpdateBootOption("MicroApps", 4, status: Status.GeneralError.Clone("Error setting up IoT Applications, retrying."));
 
@@ -570,14 +637,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
                     {
-                        log.LogInformation($"Booting Applications Low-Code Unit™...");
+                        log.LogInformation($"Configuring Application Orchestration...");
 
-                        var status = await harness.BootDataApps(appDev);
+                        var status = await harness.BootAppOrch(appDev);
 
                         if (status)
                             harness.UpdateBootOption("MicroApps", 6, status: Status.Initialized.Clone("Configuring Data Flow Low-Code Unit™...."));
                         else
-                            harness.UpdateBootOption("MicroApps", 5, status: Status.GeneralError.Clone("Error Configuring Applications Low-Code Unit™, retrying."));
+                            harness.UpdateBootOption("MicroApps", 5, status: Status.GeneralError.Clone("Error Configuring Application Orchestration, retrying."));
 
                         harness.UpdateStatus(status);
 
@@ -593,13 +660,31 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         var status = await harness.BootDataFlow(appDev);
 
                         if (status)
+                            harness.UpdateBootOption("MicroApps", 7, status: Status.Success.Clone("Verifying Micro-Applications Orchestration..."));
+                        else
+                            harness.UpdateBootOption("MicroApps", 6, status: Status.GeneralError.Clone("Error Configuring Data Flow Low-Code Unit™, retrying."));
+
+                        harness.UpdateStatus(status);
+
+                        return status;
+                    });
+
+            if (status)
+                status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
+                    stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
+                    {
+                        log.LogInformation($"Verifying Micro-Applications Orchestration...");
+
+                        var status = await harness.VerifyMicroAppsOrchestration(appMgr);
+
+                        if (status)
                         {
-                            harness.UpdateBootOption("MicroApps", 7, status: Status.Success.Clone("Micro-Applications Orchestration Configured"), loading: false);
+                            harness.UpdateBootOption("MicroApps", 8, status: Status.Success.Clone("Micro-Applications Orchestration Configured"), loading: false);
 
                             harness.CompleteBoot();
                         }
                         else
-                            harness.UpdateBootOption("MicroApps", 6, status: Status.GeneralError.Clone("Error Configuring Data Flow Low-Code Unit™, retrying."));
+                            harness.UpdateBootOption("MicroApps", 7, status: Status.GeneralError.Clone("Error Verifying Micro-Applications Orchestration, retrying."));
 
                         harness.UpdateStatus(status);
 
@@ -644,53 +729,44 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
         {
             var canFinalize = Status.GeneralError;
 
-            var operationTimeoutTime = context.CurrentUtcDateTime.AddMinutes(30);
+            var operationTimeoutTime = context.CurrentUtcDateTime.AddMinutes(60);
 
-            // using (var timeoutCts = new CancellationTokenSource())
-            // {
-            //     while (true)
-            //     {
             if (!context.IsReplaying)
-                log.LogInformation($"Waiting for organization infrastructure to boot for: {stateCtxt.ToJSON()}");
+                log.LogInformation($"Instantiating can finalize loop for: {stateCtxt.ToJSON()}");
 
-            // var operationHasTimedOut = context.CurrentUtcDateTime > operationTimeoutTime;
-
-            // if (operationHasTimedOut)
-            // {
-            //     if (!context.IsReplaying)
-            //         log.LogError($"Booting organization infrastructure timedout for: {stateCtxt.ToJSON()}");
-
-            //     context.SetCustomStatus("Organization Booting has timed out, please try again.");
-
-            //     break;
-            // }
-
-            // // if (!context.IsReplaying)
-            // {
-            //     var deadline = context.CurrentUtcDateTime.AddSeconds(10);
-
-            //     if (!context.IsReplaying)
-            //         log.LogInformation($"Establishing delay timer until {deadline} for: {stateCtxt.ToJSON()}");
-
-            //     await context.CreateTimer(deadline, 0, timeoutCts.Token);
-            // }
-
-            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(10), 500)
+            while (context.CurrentUtcDateTime < operationTimeoutTime)
             {
-                Handle = handleRetryException,
-                RetryTimeout = TimeSpan.FromMinutes(60)
-            };
+                if (!context.IsReplaying)
+                    log.LogInformation($"Waiting for organization infrastructure to boot for: {stateCtxt.ToJSON()}");
 
-            canFinalize = await context.CallActivityWithRetryAsync<Status>("BootOrganizationOrchestration_CanFinalize", retryOptions, stateCtxt);
+                canFinalize = await context.CallActivityAsync<Status>("BootOrganizationOrchestration_CanFinalize", stateCtxt);
 
-            // if (canFinalize)
+                if (canFinalize)
+                {
+                    if (!context.IsReplaying)
+                        log.LogInformation($"Organization infrastructure booted for: {stateCtxt.ToJSON()}");
+
+                    break;
+                }
+                else
+                {
+                    // Wait for the next checkpoint
+                    var nextCheckpoint = context.CurrentUtcDateTime.AddSeconds(30);
+
+                    if (!context.IsReplaying)
+                        log.LogInformation($"Checking organization infrastructure to boot at {nextCheckpoint} for: {stateCtxt.ToJSON()}");
+
+                    await context.CreateTimer(nextCheckpoint, CancellationToken.None);
+                }
+            }
+
+            // var retryOptions = new RetryOptions(TimeSpan.FromSeconds(10), 500)
             // {
-            //     timeoutCts.Cancel();
+            //     Handle = handleRetryException,
+            //     RetryTimeout = TimeSpan.FromMinutes(60)
+            // };
 
-            //     break;
-            // }
-            //     }
-            // }
+            // canFinalize = await context.CallActivityWithRetryAsync<Status>("BootOrganizationOrchestration_CanFinalize", retryOptions, stateCtxt);
 
             return canFinalize;
         }
