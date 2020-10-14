@@ -175,7 +175,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     }
 
                     return canFinalize;
-                }, preventStatusException: true);
+                });//, preventStatusException: true);
         }
 
         [FunctionName("BootOrganizationOrchestration_DevOps")]
@@ -727,46 +727,46 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
         protected virtual async Task<Status> handleCanFinalize(IDurableOrchestrationContext context, ILogger log, StateActionContext stateCtxt)
         {
-            var canFinalize = Status.GeneralError;
+            // var canFinalize = Status.GeneralError;
 
-            var operationTimeoutTime = context.CurrentUtcDateTime.AddMinutes(60);
+            // var operationTimeoutTime = context.CurrentUtcDateTime.AddMinutes(60);
 
-            if (!context.IsReplaying)
-                log.LogInformation($"Instantiating can finalize loop for: {stateCtxt.ToJSON()}");
+            // if (!context.IsReplaying)
+            //     log.LogInformation($"Instantiating can finalize loop for: {stateCtxt.ToJSON()}");
 
-            while (context.CurrentUtcDateTime < operationTimeoutTime)
-            {
-                if (!context.IsReplaying)
-                    log.LogInformation($"Waiting for organization infrastructure to boot for: {stateCtxt.ToJSON()}");
-
-                canFinalize = await context.CallActivityAsync<Status>("BootOrganizationOrchestration_CanFinalize", stateCtxt);
-
-                if (canFinalize)
-                {
-                    if (!context.IsReplaying)
-                        log.LogInformation($"Organization infrastructure booted for: {stateCtxt.ToJSON()}");
-
-                    break;
-                }
-                else
-                {
-                    // Wait for the next checkpoint
-                    var nextCheckpoint = context.CurrentUtcDateTime.AddSeconds(30);
-
-                    if (!context.IsReplaying)
-                        log.LogInformation($"Checking organization infrastructure to boot at {nextCheckpoint} for: {stateCtxt.ToJSON()}");
-
-                    await context.CreateTimer(nextCheckpoint, CancellationToken.None);
-                }
-            }
-
-            // var retryOptions = new RetryOptions(TimeSpan.FromSeconds(10), 500)
+            // while (context.CurrentUtcDateTime < operationTimeoutTime)
             // {
-            //     Handle = handleRetryException,
-            //     RetryTimeout = TimeSpan.FromMinutes(60)
-            // };
+            //     if (!context.IsReplaying)
+            //         log.LogInformation($"Waiting for organization infrastructure to boot for: {stateCtxt.ToJSON()}");
 
-            // canFinalize = await context.CallActivityWithRetryAsync<Status>("BootOrganizationOrchestration_CanFinalize", retryOptions, stateCtxt);
+            //     canFinalize = await context.CallActivityAsync<Status>("BootOrganizationOrchestration_CanFinalize", stateCtxt);
+
+            //     if (canFinalize)
+            //     {
+            //         if (!context.IsReplaying)
+            //             log.LogInformation($"Organization infrastructure booted for: {stateCtxt.ToJSON()}");
+
+            //         break;
+            //     }
+            //     else
+            //     {
+            //         // Wait for the next checkpoint
+            //         var nextCheckpoint = context.CurrentUtcDateTime.AddSeconds(30);
+
+            //         if (!context.IsReplaying)
+            //             log.LogInformation($"Checking organization infrastructure to boot at {nextCheckpoint} for: {stateCtxt.ToJSON()}");
+
+            //         await context.CreateTimer(nextCheckpoint, CancellationToken.None);
+            //     }
+            // }
+
+            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(10), 500)
+            {
+                Handle = handleRetryException,
+                RetryTimeout = TimeSpan.FromMinutes(60)
+            };
+
+            var canFinalize = await context.CallActivityWithRetryAsync<Status>("BootOrganizationOrchestration_CanFinalize", retryOptions, stateCtxt);
 
             return canFinalize;
         }
