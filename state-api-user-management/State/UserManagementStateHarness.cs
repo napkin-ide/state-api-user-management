@@ -1335,9 +1335,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 var dataFlowRes = await appMgr.GetDataFlow(State.NewEnterpriseLookup, State.EnvironmentLookup, "iot");
 
                 if (status)
-                    status = dataFlowRes.Status && dataFlowRes.Model != null;
+                    status = dataFlowRes.Status && dataFlowRes.Model != null ? Status.Success : Status.GeneralError.Clone("Data Flow was not properly configured, retrying.");
 
                 //  Verify Data Flow Deployed
+                if (status)
+                    status = Status.Success;
 
                 //  Verify IoT Welcome Applications
                 if (status)
@@ -1444,6 +1446,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     return da.Details.Metadata.ContainsKey(detailsPropertyCheck) &&
                         !da.Details.Metadata[detailsPropertyCheck].ToString().IsNullOrEmpty();
                 });
+
+            if (!status)
+                status = status.Clone($"Errors configuring the application at {appPath}, retrying.");
 
             return status;
         }
