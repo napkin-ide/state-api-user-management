@@ -1295,7 +1295,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 if (status)
                 {
-                    //  Verify DevOps Repos have been setup correctly and imported
+                    var verifyInfraRepoResp = await devOpsArch.VerifyInfrastructureRepository(new VerifyInfrastructureRepositoryRequest()
+                    {
+                        ProjectID = State.ProjectID,
+                        Username = State.Username
+                    }, State.NewEnterpriseLookup);
                 }
             }
 
