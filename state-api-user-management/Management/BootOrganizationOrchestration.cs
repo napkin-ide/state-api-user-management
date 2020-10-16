@@ -341,7 +341,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     {
                         log.LogInformation($"Verifying DevOps Setup...");
 
-                        var status = await harness.VerifyDevOpsSetup(entMgr, devOpsArch);
+                        var status = await harness.VerifyDevOpsSetup(entMgr);
 
                         if (status)
                         {
@@ -530,7 +530,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     {
                         log.LogInformation($"Verifying Project Infrastructure Config...");
 
-                        var status = await harness.VerifyDAFInfrastructure(entMgr);
+                        var status = await harness.VerifyDAFInfrastructure(entMgr, devOpsArch, stateCtxt.StateDetails.Username);
 
                         if (status)
                             harness.UpdateBootOption("Infrastructure", 3, status: Status.Initialized.Clone("Building and Releasing Environment Infrastructure..."));

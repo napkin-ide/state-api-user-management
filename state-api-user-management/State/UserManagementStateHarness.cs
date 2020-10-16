@@ -415,6 +415,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 if (!status)
                     status = status.Clone("Working to verify your infrstructure is built and released.");
 
+                if (status.Metadata == null)
+                    status.Metadata = new Dictionary<string, JToken>();
+
                 status.Metadata["Builds"] = bldsResp.Status.JSONConvert<JToken>();
 
                 status.Metadata["Releases"] = rlsResp.Status.JSONConvert<JToken>();
@@ -1238,7 +1241,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return response.Status;
         }
 
-        public virtual async Task<Status> VerifyDAFInfrastructure(EnterpriseManagerClient entMgr)
+        public virtual async Task<Status> VerifyDAFInfrastructure(EnterpriseManagerClient entMgr, DevOpsArchitectClient devOpsArch, 
+            string username)
         {
             var status = Status.GeneralError;
 
@@ -1247,12 +1251,23 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             status = verifyEnvSettings(envSettingsMeta, "EnvironmentInfrastructureTemplate",
                 "The Environment Infrastructure Template for your Workspace was not properly configured, retrying.");
 
+            if (status)
+            {
+                var verifyInfraRepoResp = await devOpsArch.VerifyInfrastructureRepository(new VerifyInfrastructureRepositoryRequest()
+                {
+                    ProjectID = State.ProjectID,
+                    Username = username
+                }, State.NewEnterpriseLookup);
+
+                status = verifyInfraRepoResp.Status;
+            }
+
             UpdateStatus(status);
 
             return status;
         }
 
-        public virtual async Task<Status> VerifyDevOpsSetup(EnterpriseManagerClient entMgr, DevOpsArchitectClient devOpsArch)
+        public virtual async Task<Status> VerifyDevOpsSetup(EnterpriseManagerClient entMgr)
         {
             var status = Status.GeneralError;
 
@@ -1292,17 +1307,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 // if (status)
                 //     status = verifyEnvSettingsForDevOps(envSettingsMeta, "xxx", "Release Definitions");
-
-                if (status)
-                {
-                    var verifyInfraRepoResp = await devOpsArch.VerifyInfrastructureRepository(new VerifyInfrastructureRepositoryRequest()
-                    {
-                        ProjectID = State.ProjectID,
-                        Username = State.Username
-                    }, State.NewEnterpriseLookup);
-
-                    status = verifyInfraRepoResp.Status;
-                }
             }
 
             UpdateStatus(status);
