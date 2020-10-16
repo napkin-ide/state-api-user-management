@@ -1300,6 +1300,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                         ProjectID = State.ProjectID,
                         Username = State.Username
                     }, State.NewEnterpriseLookup);
+
+                    status = verifyInfraRepoResp.Status;
                 }
             }
 
