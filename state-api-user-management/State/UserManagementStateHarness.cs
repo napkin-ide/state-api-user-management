@@ -410,7 +410,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     Username = username
                 }, State.NewEnterpriseLookup);
 
-                status = bldsResp.Status && rlsResp.Status;
+                if (!bldsResp.Status)
+                    status = bldsResp.Status;
+                else if (!rlsResp.Status)
+                    status = rlsResp.Status;
+                else
+                    status = bldsResp.Status && rlsResp.Status;
 
                 // if (!status)
                 //     status = status.Clone("Working to verify your infrstructure is built and released.");
@@ -1241,7 +1246,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return response.Status;
         }
 
-        public virtual async Task<Status> VerifyDAFInfrastructure(EnterpriseManagerClient entMgr, DevOpsArchitectClient devOpsArch, 
+        public virtual async Task<Status> VerifyDAFInfrastructure(EnterpriseManagerClient entMgr, DevOpsArchitectClient devOpsArch,
             string username)
         {
             var status = Status.GeneralError;
