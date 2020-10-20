@@ -175,7 +175,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     }
 
                     return canFinalize;
-                });//, preventStatusException: true);
+                }, preventStatusException: true);
+                // });
         }
 
         [FunctionName("BootOrganizationOrchestration_DevOps")]
