@@ -543,6 +543,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         return status;
                     });
 
+            if (status)
+                await Task.Delay(30000);
+
             return status;
         }
 
