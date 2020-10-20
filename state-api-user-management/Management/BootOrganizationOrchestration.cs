@@ -116,7 +116,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         log.LogInformation($"Booting organization micro-application orchestration for: {stateCtxt.ToJSON()}");
 
                     status = await context.CallActivityWithRetryAsync<Status>("BootOrganizationOrchestration_MicroApps", genericRetryOptions, stateCtxt);
-                }   
+                }
                 else if (!context.IsReplaying)
                     log.LogError($"Booting organization domain failed for: {stateCtxt.ToJSON()}");
 
@@ -176,7 +176,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                     return canFinalize;
                 }, preventStatusException: true);
-                // });
+            // });
         }
 
         [FunctionName("BootOrganizationOrchestration_DevOps")]
@@ -534,6 +534,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         var status = await harness.VerifyDAFInfrastructure(entMgr, devOpsArch, stateCtxt.StateDetails.Username);
 
                         if (status)
+                            await Task.Delay(30000);
+
+                        if (status)
                             harness.UpdateBootOption("Infrastructure", 3, status: Status.Initialized.Clone("Building and Releasing Environment Infrastructure..."));
                         else
                             harness.UpdateBootOption("Infrastructure", 2, status: Status.GeneralError.Clone("Error Verifying Project Infrastructure Config, retrying."));
@@ -542,9 +545,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         return status;
                     });
-
-            if (status)
-                await Task.Delay(30000);
 
             return status;
         }
