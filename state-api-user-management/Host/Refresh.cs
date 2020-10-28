@@ -43,8 +43,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
 
     public class Refresh
     {
-        protected readonly string billingEntLookup;
-
         protected readonly EnterpriseArchitectClient entArch;
 
         protected readonly EnterpriseManagerClient entMgr;
@@ -53,8 +51,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
 
         public Refresh(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
         {
-            billingEntLookup = Environment.GetEnvironmentVariable("LCU-BILLING-ENTERPRISE-API-KEY");
-
             this.entArch = entArch;
 
             this.entMgr = entMgr;
@@ -70,7 +66,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
         {
             var stateDetails = StateUtils.LoadStateDetails(req);
 
-            if (stateDetails.StateKey == "billing")
+            if (stateDetails.StateKey.StartsWith("billing"))
                 return await stateBlob.WithStateHarness<UserBillingState, RefreshBillingRequest, UserBillingStateHarness>(req, signalRMessages, log,
                     async (harness, refreshReq, actReq) =>
                 {
@@ -92,7 +88,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
         #region Helpers
         protected virtual async Task<Status> refreshUserBilling(UserBillingStateHarness harness, ILogger log, StateDetails stateDetails, RefreshBillingRequest request)
         {
-            await harness.Refresh(entMgr, secMgr, billingEntLookup, stateDetails.Username, request.LicenseType);
+            await harness.Refresh(entMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, request.LicenseType);
 
             return Status.Success;
         }

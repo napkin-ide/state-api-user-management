@@ -41,8 +41,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
     public class CompletePayment
     {
-        protected readonly string billingEntLookup;
-
         protected readonly EnterpriseManagerClient entMgr;
 
         protected readonly IdentityManagerClient idMgr;
@@ -51,8 +49,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
         public CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr)
         {
-            billingEntLookup = Environment.GetEnvironmentVariable("LCU-BILLING-ENTERPRISE-API-KEY");
-
             this.entMgr = entMgr;
 
             this.idMgr = idMgr;
@@ -72,7 +68,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
             {
                 log.LogInformation($"Executing CompletePayment Action.");
 
-                await harness.CompletePayment(entMgr, secMgr, idMgr, billingEntLookup, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan, payReq.TrialPeriodDays);
+                await harness.CompletePayment(entMgr, secMgr, idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan, payReq.TrialPeriodDays);
 
                 //  TODO:  Set State Status and Loading
 

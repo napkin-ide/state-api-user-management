@@ -138,14 +138,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             await LoadBillingPlans(entMgr, entLookup, licenseType);
 
-            var ltName = licenseType == "lcu" ? "Fathym Framework" : licenseType == "forecast" ? "Fathym Forecast" : "";
-
-            State.LicenseType = new LicenseTypeDetails()
-            {
-                Lookup = licenseType,
-                Name = ltName
-            };
-
             SetUsername(username);
 
             await DetermineRequiredOptIns(secMgr, entLookup, username);
