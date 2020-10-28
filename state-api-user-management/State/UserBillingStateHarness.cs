@@ -98,7 +98,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 State.SubscriptionID = completeResp.SubscriptionID;
 
-                State.SuccessRedirect = licenseType == "lcu" ? "/workspace/new" : "https://forecast.fathym-it.com/";
+                State.SuccessRedirect = planOption.Metadata["SuccessRedirect"].ToString();
             }
         }
 
