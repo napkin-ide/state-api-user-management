@@ -98,7 +98,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 State.SubscriptionID = completeResp.SubscriptionID;
 
-                State.SuccessRedirect = licenseType == "lcu" ? "/workspace/new" : "https://forecast.fathym-it.com/";
+                State.SuccessRedirect = planOption.Metadata["SuccessRedirect"].ToString();
             }
         }
 
@@ -137,14 +137,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             ResetStateCheck();
 
             await LoadBillingPlans(entMgr, entLookup, licenseType);
-
-            var ltName = licenseType == "lcu" ? "Fathym Framework" : licenseType == "forecast" ? "Fathym Forecast" : "";
-
-            State.LicenseType = new LicenseTypeDetails()
-            {
-                Lookup = licenseType,
-                Name = ltName
-            };
 
             SetUsername(username);
 

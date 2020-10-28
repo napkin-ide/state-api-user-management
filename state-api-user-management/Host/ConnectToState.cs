@@ -26,7 +26,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
         {
             var stateDetails = StateUtils.LoadStateDetails(req);
 
-            if (stateDetails.StateKey == "billing")
+            if (stateDetails.StateKey.StartsWith("billing"))
                 return await signalRMessages.ConnectToState<UserBillingState>(req, log, claimsPrincipal, stateBlob, signalRGroupActions);
             else
                 return await signalRMessages.ConnectToState<UserManagementState>(req, log, claimsPrincipal, stateBlob, signalRGroupActions);

@@ -31,6 +31,7 @@ using LCU.Personas.Client.Security;
 using LCU.Personas.Security;
 using LCU.Personas;
 using LCU.State.API.NapkinIDE.UserManagement.Management;
+using LCU.Graphs.Registry.Enterprises.Apps;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.State
 {
@@ -1026,18 +1027,22 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                         new Graphs.Registry.Enterprises.Apps.DAFApplication()
                         {
                             Priority = 500,
-                            Details = new Graphs.Registry.Enterprises.Apps.DAFViewApplicationDetails()
+                            Details = new DAFViewApplicationDetails()
                             {
                                 BaseHref = "/freeboard/",
-                                NPMPackage = "@semanticjs/freeboard",
-                                PackageVersion = "latest",
+                                Package = new DAFApplicationNPMPackage()
+                                {
+                                    Name = "@semanticjs/freeboard",
+                                    Version = "latest",
+                                }.JSONConvert<MetadataModel>(),
+                                PackageType = DAFApplicationPackageTypes.NPM,
                                 StateConfig = new
                                 {
                                     ActionRoot = "/api/state",
                                     Root = "/api/state",
                                     FreeboardConfigURL = "templates/freeboard/DeviceDemoDashboard.json"
                                 }.JSONConvert<MetadataModel>()
-                            }
+                            }.JSONConvert<MetadataModel>()
                         }
                     }
                     }, State.NewEnterpriseLookup, State.Host);
@@ -1063,14 +1068,18 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                 Details = new Graphs.Registry.Enterprises.Apps.DAFViewApplicationDetails()
                                 {
                                     BaseHref = "/lcu-charts/",
-                                    NPMPackage = "@lowcodeunit/lcu-charts-demo",
-                                    PackageVersion = "latest",
+                                    Package = new DAFApplicationNPMPackage()
+                                    {
+                                        Name = "@lowcodeunit/lcu-charts-demo",
+                                        Version = "latest",
+                                    }.JSONConvert<MetadataModel>(),
+                                    PackageType = DAFApplicationPackageTypes.NPM,
                                     StateConfig = new
                                     {
                                         ActionRoot = "/api/state",
                                         Root = "/api/state"
                                     }.JSONConvert<MetadataModel>()
-                                }
+                                }.JSONConvert<MetadataModel>()
                             }
                         }
                     }, State.NewEnterpriseLookup, State.Host);
@@ -1105,7 +1114,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                         InboundPath = $"data-flow/{dfLookup}/warm-query",
                                         Methods = "GET",
                                         Security = $"x-functions-key~{infraDet.Connections["default"]}"
-                                    }
+                                    }.JSONConvert<MetadataModel>()
                                 }
                             }
                         }, State.NewEnterpriseLookup, State.Host);
@@ -1141,7 +1150,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                                         InboundPath = $"data-flow/{dfLookup}/data-stream",
                                         Methods = "POST PUT",
                                         Security = $"Microsoft.Azure.EventHubs~{infraDet.Connections.First().Value}"
-                                    }
+                                    }.JSONConvert<MetadataModel>()
                                 }
                             }
                         }, State.NewEnterpriseLookup, State.Host);
