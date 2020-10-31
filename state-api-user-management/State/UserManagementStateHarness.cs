@@ -1381,13 +1381,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             //  Verify Welcome, Data Apps and Data Flow Blades
             if (status)
-                status = isAppSetup(apps.Model, dafApps, "^/_lcu/lcu-data-apps-lcu\\*$", "NPMPackage");
+                status = isAppSetup(apps.Model, dafApps, "^/_lcu/lcu-data-apps-lcu\\*$", "Package");
 
             if (status)
-                status = isAppSetup(apps.Model, dafApps, "^/_lcu/lcu-data-flow-lcu\\*$", "NPMPackage");
+                status = isAppSetup(apps.Model, dafApps, "^/_lcu/lcu-data-flow-lcu\\*$", "Package");
 
             if (status)
-                status = isAppSetup(apps.Model, dafApps, "^/_lcu/lcu-guided-tour-lcu\\*$", "NPMPackage");
+                status = isAppSetup(apps.Model, dafApps, "^/_lcu/lcu-guided-tour-lcu\\*$", "Package");
 
             UpdateStatus(status);
 
