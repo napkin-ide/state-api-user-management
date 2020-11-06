@@ -47,8 +47,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         [DataMember]
         public virtual List<BootOption> BootOptions { get; set; }
 
-        [DataMember]
-        public virtual List<JourneyDetail> Details { get; set; }
+        // [DataMember]
+        // public virtual List<JourneyDetail> Details { get; set; }
 
         [DataMember]
         public virtual string DevOpsAppID { get; set; }
@@ -104,8 +104,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         [DataMember]
         public virtual string PendingAuthorizationRequests { get; set; }
 
-        [DataMember]
-        public virtual List<JourneyPersona> Personas { get; set; }
+        // [DataMember]
+        // public virtual List<JourneyPersona> Personas { get; set; }
 
         [DataMember]
         public virtual string ProjectID { get; set; }
@@ -135,9 +135,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         [DataMember]
         public virtual bool TermsAccepted { get; set; }
 
-        [DataMember]
-        [JsonConverter(typeof(StringEnumConverter))]
-        public virtual UserTypes UserType { get; set; }
+        // [DataMember]
+        // [JsonConverter(typeof(StringEnumConverter))]
+        // public virtual UserTypes UserType { get; set; }
 
         [DataMember]
         public virtual string Username { get; set; }
