@@ -36,7 +36,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
             {
                 log.LogInformation($"Executing SetUserType Action.");
 
-                harness.SetUserType(userDetsReq.UserType);
+                //harness.SetUserType(userDetsReq.UserType);
 
                 return Status.Success;
             });

@@ -540,139 +540,139 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.InfrastructureOptions["fathym\\daf-iot-starter"] = "Low-Code Unit™ Runtime w/ IoT";
         }
 
-        public virtual void ConfigureJourneys()
-        {
-            State.Details = new List<JourneyDetail>()
-            {
-                new JourneyDetail()
-                {
-                    Name = "SPAs with Angular",
-                    Lookup = "AngularSPA",
-                    Description = "Create and host your next Angular application with Fathym's Low-Code Unit™."
-                },
-                new JourneyDetail()
-                {
-                    Name = "Low-Code Unit™ Blade",
-                    Lookup = "LCUBlade",
-                    Description = "Create a new Low-Code Unit™ Blade for your Enterprise IDE."
-                },
-                new JourneyDetail()
-                {
-                    Name = "Edge to App",
-                    Lookup = "EdgeToApp",
-                    Description = "Leverage a number of edge devices to explore the workflow for delivering edge data to customer applications."
-                },
-                new JourneyDetail()
-                {
-                    Name = "Power BI Data Applications",
-                    Lookup = "PowerBIDataApps",
-                    Description = "Securely host and deliver your PowerBI reports internally and with customers."
-                },
-                new JourneyDetail()
-                {
-                    Name = "Build a Dashboard",
-                    Lookup = "DashboardBasic",
-                    Description = "Build a dashboard rapidly."
-                },
-                new JourneyDetail()
-                {
-                    Name = "Deploy Freeboard",
-                    Lookup = "DashboardFreeboard",
-                    Description = "Build a freeobard deployment rapidly."
-                },
-                new JourneyDetail()
-                {
-                    Name = "User Setup",
-                    Lookup = "UserSetup",
-                    Description = "Complete your user profile."
-                },
-                new JourneyDetail()
-                {
-                    Name = "Container Deployment Strategy",
-                    Lookup = "ContainerDeployment",
-                    Description = "Setup and configure your enterprise container deployment strategy."
-                },
-                new JourneyDetail()
-                {
-                    Name = "Splunk for Enterprise",
-                    Lookup = "SplunkEnterprise",
-                    Description = "Splunk enterprise setup in a snap."
-                },
-                new JourneyDetail()
-                {
-                    Name = "Open Source your Legacy",
-                    Lookup = "OpenSourceLegacy",
-                    Description = "A pathway to moving your enterprise legacy applications to the open source."
-                },
-                new JourneyDetail()
-                {
-                    Name = "Onboard ABB Flow Device",
-                    Lookup = "ABB G5 Flow Device",
-                    Description = "A pathway to moving your enterprise legacy applications to the open source."
-                },
-                new JourneyDetail()
-                {
-                    Name = "Fathym Classic for Enterprise",
-                    Lookup = "FathymClassicEnterprise",
-                    Description = "Fathym Classic enterprise setup in a snap."
-                }
-            };
-        }
+        // public virtual void ConfigureJourneys()
+        // {
+        //     State.Details = new List<JourneyDetail>()
+        //     {
+        //         new JourneyDetail()
+        //         {
+        //             Name = "SPAs with Angular",
+        //             Lookup = "AngularSPA",
+        //             Description = "Create and host your next Angular application with Fathym's Low-Code Unit™."
+        //         },
+        //         new JourneyDetail()
+        //         {
+        //             Name = "Low-Code Unit™ Blade",
+        //             Lookup = "LCUBlade",
+        //             Description = "Create a new Low-Code Unit™ Blade for your Enterprise IDE."
+        //         },
+        //         new JourneyDetail()
+        //         {
+        //             Name = "Edge to App",
+        //             Lookup = "EdgeToApp",
+        //             Description = "Leverage a number of edge devices to explore the workflow for delivering edge data to customer applications."
+        //         },
+        //         new JourneyDetail()
+        //         {
+        //             Name = "Power BI Data Applications",
+        //             Lookup = "PowerBIDataApps",
+        //             Description = "Securely host and deliver your PowerBI reports internally and with customers."
+        //         },
+        //         new JourneyDetail()
+        //         {
+        //             Name = "Build a Dashboard",
+        //             Lookup = "DashboardBasic",
+        //             Description = "Build a dashboard rapidly."
+        //         },
+        //         new JourneyDetail()
+        //         {
+        //             Name = "Deploy Freeboard",
+        //             Lookup = "DashboardFreeboard",
+        //             Description = "Build a freeobard deployment rapidly."
+        //         },
+        //         new JourneyDetail()
+        //         {
+        //             Name = "User Setup",
+        //             Lookup = "UserSetup",
+        //             Description = "Complete your user profile."
+        //         },
+        //         new JourneyDetail()
+        //         {
+        //             Name = "Container Deployment Strategy",
+        //             Lookup = "ContainerDeployment",
+        //             Description = "Setup and configure your enterprise container deployment strategy."
+        //         },
+        //         new JourneyDetail()
+        //         {
+        //             Name = "Splunk for Enterprise",
+        //             Lookup = "SplunkEnterprise",
+        //             Description = "Splunk enterprise setup in a snap."
+        //         },
+        //         new JourneyDetail()
+        //         {
+        //             Name = "Open Source your Legacy",
+        //             Lookup = "OpenSourceLegacy",
+        //             Description = "A pathway to moving your enterprise legacy applications to the open source."
+        //         },
+        //         new JourneyDetail()
+        //         {
+        //             Name = "Onboard ABB Flow Device",
+        //             Lookup = "ABB G5 Flow Device",
+        //             Description = "A pathway to moving your enterprise legacy applications to the open source."
+        //         },
+        //         new JourneyDetail()
+        //         {
+        //             Name = "Fathym Classic for Enterprise",
+        //             Lookup = "FathymClassicEnterprise",
+        //             Description = "Fathym Classic enterprise setup in a snap."
+        //         }
+        //     };
+        // }
 
-        public virtual void ConfigurePersonas()
-        {
-            // if (state.Personas.IsNullOrEmpty())
-            State.Personas = new List<JourneyPersona>()
-            {
-                new JourneyPersona()
-                {
-                    Name = "Developer Journeys",
-                    Lookup = "Develop",
-                    Descriptions = new List<string>() {
-                        "Start from a number of developer journeys that will get you up and running in minutes."
-                    },
-                    DetailLookupCategories = new Dictionary<string, List<string>>()
-                    {
-                        {
-                            "Featured", new List<string>()
-                            {
-                                "AngularSPA",
-                                "LCUBlade",
-                                "EdgeToApp",
-                                "PowerBIDataApps"
-                            }
-                        }
-                    }
-                },
-                // new JourneyPersona()
-                // {
-                //     Name = "Designer Journeys",
-                //     Lookup = "Design",
-                //     Descriptions = new List<string>() {
-                //         "Start from a number of designer journeys that will get you up and running in minutes."
-                //     }
-                // },
-                new JourneyPersona()
-                {
-                    Name = "Admin Journeys",
-                    Lookup = "Manage",
-                    Descriptions = new List<string>() {
-                        "Start from a number of admin journeys that will get you up and running in minutes."
-                    },
-                    DetailLookupCategories = new Dictionary<string, List<string>>()
-                    {
-                        {
-                            "Featured", new List<string>()
-                            {
-                                "UserSetup",
-                                "PowerBIDataApps",
-                                "ContainerDeployment"
-                            }
-                        }
-                    }
-                }
-            };
-        }
+        // public virtual void ConfigurePersonas()
+        // {
+        //     // if (state.Personas.IsNullOrEmpty())
+        //     State.Personas = new List<JourneyPersona>()
+        //     {
+        //         new JourneyPersona()
+        //         {
+        //             Name = "Developer Journeys",
+        //             Lookup = "Develop",
+        //             Descriptions = new List<string>() {
+        //                 "Start from a number of developer journeys that will get you up and running in minutes."
+        //             },
+        //             DetailLookupCategories = new Dictionary<string, List<string>>()
+        //             {
+        //                 {
+        //                     "Featured", new List<string>()
+        //                     {
+        //                         "AngularSPA",
+        //                         "LCUBlade",
+        //                         "EdgeToApp",
+        //                         "PowerBIDataApps"
+        //                     }
+        //                 }
+        //             }
+        //         },
+        //         // new JourneyPersona()
+        //         // {
+        //         //     Name = "Designer Journeys",
+        //         //     Lookup = "Design",
+        //         //     Descriptions = new List<string>() {
+        //         //         "Start from a number of designer journeys that will get you up and running in minutes."
+        //         //     }
+        //         // },
+        //         new JourneyPersona()
+        //         {
+        //             Name = "Admin Journeys",
+        //             Lookup = "Manage",
+        //             Descriptions = new List<string>() {
+        //                 "Start from a number of admin journeys that will get you up and running in minutes."
+        //             },
+        //             DetailLookupCategories = new Dictionary<string, List<string>>()
+        //             {
+        //                 {
+        //                     "Featured", new List<string>()
+        //                     {
+        //                         "UserSetup",
+        //                         "PowerBIDataApps",
+        //                         "ContainerDeployment"
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     };
+        // }
 
         public virtual async Task<Status> DenyAccess(ApplicationManagerClient appMgr, string entLookup, string token)
         {
@@ -1165,10 +1165,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual void SetUserType(UserTypes userType)
-        {
-            State.UserType = userType;
-        }
+        // public virtual void SetUserType(UserTypes userType)
+        // {
+        //     State.UserType = userType;
+        // }
 
         public virtual void UpdateStatus(Status status)
         {

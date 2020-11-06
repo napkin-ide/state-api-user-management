@@ -97,11 +97,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
         {
             harness.ConfigureInfrastructureOptions();
 
-            harness.ConfigureJourneys();
+            //harness.ConfigureJourneys();
 
-            harness.ConfigurePersonas();
+            //harness.ConfigurePersonas();
 
-            harness.SetUserType(harness.State.Personas.FirstOrDefault().Lookup.As<UserTypes>());
+            //harness.SetUserType(harness.State.Personas.FirstOrDefault().Lookup.As<UserTypes>());
 
             harness.DetermineSetupStep();
 
