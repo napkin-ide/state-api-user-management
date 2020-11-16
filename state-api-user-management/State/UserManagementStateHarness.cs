@@ -705,7 +705,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     status = dfResp.Status;
                 }
                 else
+                {
                     status = Status.GeneralError.Clone("Unable to save the data flow");
+                }
 
                 return status;
             }
