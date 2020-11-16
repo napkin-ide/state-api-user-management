@@ -688,6 +688,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 var dfLookup = "iot"; //  Will need to be handled differently if default ever changes in ConfigureNapkinIDEForIoTWelcome
 
                 //  Initializing warm-storage call
+                //  TODO:  May not be needed anymore as the initial template takes care of this
                 var infraDetsResp = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseLookup, State.EnvironmentLookup,
                     "warm-storage");
 
@@ -697,7 +698,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 {
                     var dfResp = await appDev.DeployDataFlow(new Personas.Applications.DeployDataFlowRequest()
                     {
-                        DataFlowLookup = dfLookup
+                        DataFlowLookup = dfLookup,
+                        PreventASAModules = true
                     }, State.NewEnterpriseLookup, State.EnvironmentLookup);
 
                     status = dfResp.Status;
