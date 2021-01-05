@@ -419,7 +419,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     status = bldsResp.Status && rlsResp.Status;
 
                 if (!status)
-                    status = status.Clone("Working to verify your infrstructure is built and released.");
+                    status = status.Clone("Working to verify your infrastructure is built and released.");
 
                 if (status.Metadata == null)
                     status.Metadata = new Dictionary<string, JToken>();
