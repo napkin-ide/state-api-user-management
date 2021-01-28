@@ -21,6 +21,9 @@ using LCU.State.API.NapkinIDE.UserManagement.State;
 using LCU.Personas.Client.Identity;
 using System.Collections.Generic;
 using LCU.Personas.Enterprises;
+using System.Net;
+using System.Net.Http;
+using System.Text;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 {
@@ -34,19 +37,24 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
         }
 
         [FunctionName("ListBillingOptions")]
-        public virtual async Task<BaseResponse<List<BillingPlanOption>>> Run([HttpTrigger] HttpRequest req, ILogger log)
+        public virtual async Task<HttpResponseMessage> Run([HttpTrigger] HttpRequest req, ILogger log)
         {
             var entLookup = req.Headers["lcu-ent-lookup"];
-            
+
             var licenseType = req.Query["licenseType"];
 
             log.LogInformation($"ListBillingPlanOptions with {entLookup} for {licenseType}.");
-            
+
             var plansResp = await entMgr.ListBillingPlanOptions(entLookup, licenseType);
 
             log.LogInformation($"Plans response: {plansResp.Status.ToJSON()}");
 
-            return plansResp;
+            var statusCode = plansResp.Status || plansResp.Status == Status.NotLocated ? HttpStatusCode.OK : HttpStatusCode.InternalServerError;
+
+            return new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(plansResp.ToJSON(), Encoding.UTF8, "application/json")
+            };
         }
     }
 }
