@@ -38,7 +38,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
         {
             var entLookup = req.Headers["lcu-ent-lookup"];
             
-            var licenseType = req.Headers["licenseType"];
+            var licenseType = req.Query["licenseType"];
 
             log.LogInformation($"ListBillingPlanOptions with {entLookup} for {licenseType}.");
             
