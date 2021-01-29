@@ -687,25 +687,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             {
                 var dfLookup = "iot"; //  Will need to be handled differently if default ever changes in ConfigureNapkinIDEForIoTWelcome
 
-                //  Initializing warm-storage call
-                //  TODO:  May not be needed anymore as the initial template takes care of this
-                var infraDetsResp = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseLookup, State.EnvironmentLookup,
-                    "warm-storage");
-
-                var status = infraDetsResp.Status;
-
-                if (status)
+                var dfResp = await appDev.DeployDataFlow(new Personas.Applications.DeployDataFlowRequest()
                 {
-                    var dfResp = await appDev.DeployDataFlow(new Personas.Applications.DeployDataFlowRequest()
-                    {
-                        DataFlowLookup = dfLookup,
-                        PreventASAModules = true
-                    }, State.NewEnterpriseLookup, State.EnvironmentLookup);
+                    DataFlowLookup = dfLookup,
+                    PreventASAModules = true
+                }, State.NewEnterpriseLookup, State.EnvironmentLookup);
 
-                    status = dfResp.Status;
-                }
-                else
-                    status = Status.GeneralError.Clone("Unable to save the data flow");
+                var status = dfResp.Status;
 
                 return status;
             }
@@ -1083,6 +1071,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 log.LogInformation($"Completed setup freeboaard call: {status.ToJSON()}");
             }
+            else
+                status = Status.Success;
 
             return status;
         }
@@ -1131,6 +1121,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 log.LogInformation($"Completed setup lcu-charts call: {status.ToJSON()}");
             }
+            else
+                status = Status.Success;
 
             return status;
         }
@@ -1181,6 +1173,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     log.LogInformation($"Completed setup warm query call: {status.ToJSON()}");
                 });
             }
+            else
+                status = Status.Success;
 
             return status;
         }
@@ -1188,7 +1182,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         protected virtual async Task<Status> setupDeviceStreamApplication(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr,
             List<Application> apps, string dfLookup)
         {
-            var status = Status.GeneralError.Clone("Cevice Stream not setup");
+            var status = Status.GeneralError.Clone("Device Stream not setup");
 
             if (!apps.Any(app => app.PathRegex == $"/api/data-flow/{dfLookup}/data-stream*"))
             {
@@ -1231,6 +1225,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     log.LogInformation($"Completed setup data stream call: {status.ToJSON()}");
                 });
             }
+            else
+                status = Status.Success;
 
             return status;
         }
