@@ -1178,7 +1178,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             if (State.Status == null || State.Status)
                 log.LogInformation($"Updating status: {(status ?? Status.Success).ToJSON()}");
-                else
+            else
                 log.LogError($"Updating with error status: {(status ?? Status.Success).ToJSON()}");
         }
 
@@ -1468,14 +1468,25 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             {
                 var app = apps.First(a => a.ID == c.Key);
 
-                return Regex.IsMatch(app.PathRegex, appPath);
+                var check = Regex.IsMatch(app.PathRegex, appPath);
+
+                log.LogInformation($"Completed check for {app.PathRegex} on {appPath}: {check}");
+
+                return check;
             }).Value;
 
             if (check != null)
                 status = !check.DAFApps.IsNullOrEmpty() && check.DAFApps.All(da =>
                 {
-                    return da.Details.Metadata.ContainsKey(detailsPropertyCheck) &&
+                    var containsPropCheck = da.Details.Metadata.ContainsKey(detailsPropertyCheck) &&
                         !da.Details.Metadata[detailsPropertyCheck].ToString().IsNullOrEmpty();
+
+                    log.LogInformation($"Completed property check for {detailsPropertyCheck} on {appPath}: {containsPropCheck}");
+
+                    if (!containsPropCheck)
+                        log.LogInformation($"Properties for check {appPath}: {da.Details.Metadata?.Keys.ToJSON()}");
+
+                    return containsPropCheck;
                 });
 
             if (!status)
