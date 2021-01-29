@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="DarkLoop.Azure.WebJobs.Authorize" Version="1.0.25-preview" />
-    <PackageReference Include="LCU.StateAPI" Version="1.363.21029.7" />
+    <PackageReference Include="LCU.StateAPI" Version="1.364.21029.10" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.1" />
   </ItemGroup>
