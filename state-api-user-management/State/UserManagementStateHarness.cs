@@ -1464,6 +1464,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             var status = Status.GeneralError;
 
+            log.LogInformation($"Checking if app {appPath} is setup");
+
             var check = checks.FirstOrDefault(c =>
             {
                 var app = apps.First(a => a.ID == c.Key);
