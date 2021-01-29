@@ -1175,6 +1175,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual void UpdateStatus(Status status)
         {
             State.Status = status;
+
+            if (State.Status == null || State.Status)
+                log.LogInformation($"Updating status: {(status ?? Status.Success).ToJSON()}");
+                else
+                log.LogError($"Updating with error status: {(status ?? Status.Success).ToJSON()}");
         }
 
         public virtual void UpdateBootOption(string bootOptionLookup, int bootStep, Status status = null, bool? loading = null)
