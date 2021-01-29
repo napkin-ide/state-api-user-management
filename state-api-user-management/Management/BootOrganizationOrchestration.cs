@@ -202,6 +202,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     return status;
                 });
 
+            log.LogInformation($"Status out: {status.ToJSON()}");
+
             //  Ensure Repositories
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
@@ -220,6 +222,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         return status;
                     });
+
+            log.LogInformation($"Status out: {status.ToJSON()}");
 
             //  Ensure Feed
             if (status)
@@ -240,6 +244,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         return status;
                     });
 
+            log.LogInformation($"Status out: {status.ToJSON()}");
+
             //  Ensure Service Endpoints
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
@@ -258,6 +264,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         return status;
                     });
+
+            log.LogInformation($"Status out: {status.ToJSON()}");
 
             //  Ensure Task Library
             if (status)
@@ -278,6 +286,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         return status;
                     });
 
+            log.LogInformation($"Status out: {status.ToJSON()}");
+
             //  Ensure Build Definitions
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
@@ -296,6 +306,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         return status;
                     });
+
+            log.LogInformation($"Status out: {status.ToJSON()}");
 
             //  Ensure Release Definitions
             if (status)
@@ -316,6 +328,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         return status;
                     });
 
+            log.LogInformation($"Status out: {status.ToJSON()}");
+
             //  Setup Repositories
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
@@ -334,6 +348,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         return status;
                     });
+
+            log.LogInformation($"Status out: {status.ToJSON()}");
 
             //  Verify DevOps setup
             if (status)
@@ -357,6 +373,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         return status;
                     });
+
+            log.LogInformation($"Status out: {status.ToJSON()}");
 
             return status;
         }
@@ -383,6 +401,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     return status;
                 });
 
+            log.LogInformation($"Status out: {status.ToJSON()}");
+
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
@@ -401,6 +421,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         return status;
                     });
 
+            log.LogInformation($"Status out: {status.ToJSON()}");
+
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
@@ -418,6 +440,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         return status;
                     });
+
+            log.LogInformation($"Status out: {status.ToJSON()}");
 
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
@@ -440,6 +464,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         return status;
                     });
+
+            log.LogInformation($"Status out: {status.ToJSON()}");
 
             return status;
         }
@@ -464,6 +490,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                    return status;
                });
 
+            log.LogInformation($"Status out: {status.ToJSON()}");
+
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
@@ -479,6 +507,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         return status;
                     });
+
+            log.LogInformation($"Status out: {status.ToJSON()}");
 
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
@@ -499,6 +529,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         return status;
                     });
+
+            log.LogInformation($"Status out: {status.ToJSON()}");
 
             return status;
         }
@@ -525,6 +557,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     return status;
                 });
 
+            log.LogInformation($"Status out: {status.ToJSON()}");
+
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
@@ -545,6 +579,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         return status;
                     });
+
+            log.LogInformation($"Status out: {status.ToJSON()}");
 
             return status;
         }
@@ -574,6 +610,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                     return status;
                 });
 
+            log.LogInformation($"Status out: {status.ToJSON()}");
+
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
@@ -594,6 +632,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         return status;
                     });
+
+            log.LogInformation($"Status out: {status.ToJSON()}");
 
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
@@ -616,6 +656,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         return status;
                     });
 
+            log.LogInformation($"Status out: {status.ToJSON()}");
+
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
@@ -637,6 +679,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         return status;
                     });
 
+            log.LogInformation($"Status out: {status.ToJSON()}");
+
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
@@ -655,6 +699,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
                         return status;
                     });
 
+            log.LogInformation($"Status out: {status.ToJSON()}");
+
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
                     stateCtxt.ActionRequest, signalRMessages, log, async (harness, reqData) =>
@@ -672,6 +718,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         return status;
                     });
+
+            log.LogInformation($"Status out: {status.ToJSON()}");
 
             if (status)
                 status = await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(stateCtxt.StateDetails,
@@ -694,6 +742,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                         return status;
                     });
+
+            log.LogInformation($"Status out: {status.ToJSON()}");
 
             return status;
         }
