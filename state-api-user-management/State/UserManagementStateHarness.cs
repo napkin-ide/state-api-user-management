@@ -1139,7 +1139,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseLookup, State.EnvironmentLookup,
                     "warm-query");
 
-                log.LogInformation("Loaded warm query infrastructure details.");
+                log.LogInformation("Loaded warm query infrastructure details");
+
+                log.LogInformation($"Data stream infra details: {infraDets.ToJSON()}");//TODO: Maybe shift to debug
 
                 //  TODO:  Support multiple
                 await infraDets.Model.Take(1).Each(async infraDet =>
@@ -1192,6 +1194,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     "data-stream");
 
                 log.LogInformation("Loaded data stream infrastructure details.");
+
+                log.LogInformation($"Data stream infra details: {infraDets.ToJSON()}");//TODO: Maybe shift to debug
 
                 //  TODO:  Support multiple
                 await infraDets.Model.Take(1).Each(async infraDet =>
