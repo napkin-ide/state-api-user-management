@@ -1008,7 +1008,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                         setupFreeboardApplication(appDev, apps.Model),
                         setupLcuChartsApplication(appDev, apps.Model),
                         setupWarmQueryApplication(appDev, entMgr, apps.Model, dfLookup),
-                        setupDeviceStreamApplication(appDev, entMgr, apps.Model, dfLookup)
+                        setupDataStreamApplication(appDev, entMgr, apps.Model, dfLookup)
                     };
 
                     var stati = await Task.WhenAll(appTasks);
@@ -1181,10 +1181,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return status;
         }
 
-        protected virtual async Task<Status> setupDeviceStreamApplication(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr,
+        protected virtual async Task<Status> setupDataStreamApplication(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr,
             List<Application> apps, string dfLookup)
         {
-            var status = Status.GeneralError.Clone("Device Stream not setup");
+            var status = Status.GeneralError.Clone("Data Stream not setup");
 
             if (!apps.Any(app => app.PathRegex == $"/api/data-flow/{dfLookup}/data-stream*"))
             {
