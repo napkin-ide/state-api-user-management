@@ -1026,215 +1026,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        protected virtual async Task<Status> setupFreeboardApplication(ApplicationDeveloperClient appDev, List<Application> apps)
-        {
-            var status = Status.GeneralError.Clone("Freeboard not setup");
-
-            if (!apps.Any(app => app.PathRegex == "/freeboard*"))
-            {
-                log.LogInformation("Setting up freeboard application.");
-
-                var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
-                {
-                    Application = new Graphs.Registry.Enterprises.Apps.Application()
-                    {
-                        Name = "Freeboard",
-                        Description = "Freeboard is an open source tool for visualizing data.",
-                        PathRegex = "/freeboard*"
-                    },
-                    DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
-                    {
-                        new Graphs.Registry.Enterprises.Apps.DAFApplication()
-                        {
-                            Priority = 500,
-                            Details = new DAFViewApplicationDetails()
-                            {
-                                BaseHref = "/freeboard/",
-                                Package = new DAFApplicationNPMPackage()
-                                {
-                                    Name = "@semanticjs/freeboard",
-                                    Version = "latest",
-                                }.JSONConvert<MetadataModel>(),
-                                PackageType = DAFApplicationPackageTypes.NPM,
-                                StateConfig = new
-                                {
-                                    ActionRoot = "/api/state",
-                                    Root = "/api/state",
-                                    FreeboardConfigURL = "templates/freeboard/DeviceDemoDashboard.json"
-                                }.JSONConvert<MetadataModel>()
-                            }.JSONConvert<MetadataModel>()
-                        }
-                    }
-                }, State.NewEnterpriseLookup, State.Host);
-
-                status = saveResp.Status;
-
-                log.LogInformation($"Completed setup freeboaard call: {status.ToJSON()}");
-            }
-            else
-                status = Status.Success;
-
-            return status;
-        }
-
-        protected virtual async Task<Status> setupLcuChartsApplication(ApplicationDeveloperClient appDev, List<Application> apps)
-        {
-            var status = Status.GeneralError.Clone("LCU Charts not setup");
-
-            if (!apps.Any(app => app.PathRegex == "/lcu-charts*"))
-            {
-                log.LogInformation("Setting up lcu-charts application.");
-
-                var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
-                {
-                    Application = new Graphs.Registry.Enterprises.Apps.Application()
-                    {
-                        Name = "LCU Charts",
-                        Description = "LCU Charts is an application based on Fathym's open source charting library that provides a great starting point for creating customized visualizations.",
-                        PathRegex = "/lcu-charts*"
-                    },
-                    DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
-                    {
-                        new Graphs.Registry.Enterprises.Apps.DAFApplication()
-                        {
-                            Priority = 500,
-                            Details = new Graphs.Registry.Enterprises.Apps.DAFViewApplicationDetails()
-                            {
-                                BaseHref = "/lcu-charts/",
-                                Package = new DAFApplicationNPMPackage()
-                                {
-                                    Name = "@lowcodeunit/lcu-charts-demo",
-                                    Version = "latest",
-                                }.JSONConvert<MetadataModel>(),
-                                PackageType = DAFApplicationPackageTypes.NPM,
-                                StateConfig = new
-                                {
-                                    ActionRoot = "/api/state",
-                                    Root = "/api/state"
-                                }.JSONConvert<MetadataModel>()
-                            }.JSONConvert<MetadataModel>()
-                        }
-                    }
-                }, State.NewEnterpriseLookup, State.Host);
-
-                status = saveResp.Status;
-
-                log.LogInformation($"Completed setup lcu-charts call: {status.ToJSON()}");
-            }
-            else
-                status = Status.Success;
-
-            return status;
-        }
-
-        protected virtual async Task<Status> setupWarmQueryApplication(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr,
-            List<Application> apps, string dfLookup)
-        {
-            var status = Status.GeneralError.Clone("Warm Query not setup");
-
-            if (!apps.Any(app => app.PathRegex == $"/api/data-flow/{dfLookup}/warm-query*"))
-            {
-                log.LogInformation("Setting up warm query.");
-
-                var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseLookup, State.EnvironmentLookup,
-                    "warm-query");
-
-                log.LogInformation("Loaded warm query infrastructure details");
-
-                log.LogInformation($"Data stream infra details: {infraDets.ToJSON()}");//TODO: Maybe shift to debug
-
-                //  TODO:  Support multiple
-                await infraDets.Model.Take(1).Each(async infraDet =>
-                {
-                    var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
-                    {
-                        Application = new Graphs.Registry.Enterprises.Apps.Application()
-                        {
-                            Name = $"Warm Query APIs - {dfLookup} - {infraDet.DisplayName}",
-                            Description = "These API proxies make it easy to connect and work with your observational data.",
-                            PathRegex = $"/api/data-flow/{dfLookup}/warm-query*"
-                        },
-                        DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
-                        {
-                            new Graphs.Registry.Enterprises.Apps.DAFApplication()
-                            {
-                                Priority = 500,
-                                Details = new Graphs.Registry.Enterprises.Apps.DAFAPIApplicationDetails()
-                                {
-                                    APIRoot = infraDet.Connections["$api"],
-                                    InboundPath = $"data-flow/{dfLookup}/warm-query",
-                                    Methods = "GET",
-                                    Security = $"x-functions-key~{infraDet.Connections["default"]}"
-                                }.JSONConvert<MetadataModel>()
-                            }
-                        }
-                    }, State.NewEnterpriseLookup, State.Host);
-
-                    status = saveResp.Status;
-
-                    log.LogInformation($"Completed setup warm query call: {status.ToJSON()}");
-                });
-            }
-            else
-                status = Status.Success;
-
-            return status;
-        }
-
-        protected virtual async Task<Status> setupDataStreamApplication(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr,
-            List<Application> apps, string dfLookup)
-        {
-            var status = Status.GeneralError.Clone("Data Stream not setup");
-
-            if (!apps.Any(app => app.PathRegex == $"/api/data-flow/{dfLookup}/data-stream*"))
-            {
-                log.LogInformation("Setting up data stream.");
-
-                var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseLookup, State.EnvironmentLookup,
-                    "data-stream");
-
-                log.LogInformation("Loaded data stream infrastructure details.");
-
-                log.LogInformation($"Data stream infra details: {infraDets.ToJSON()}");//TODO: Maybe shift to debug
-
-                //  TODO:  Support multiple
-                await infraDets.Model.Take(1).Each(async infraDet =>
-                {
-                    var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
-                    {
-                        Application = new Graphs.Registry.Enterprises.Apps.Application()
-                        {
-                            Name = $"Data Stream APIs - {dfLookup} - {infraDet.DisplayName}",
-                            Description = "This API proxies make it easy to connect and send your own device data.",
-                            PathRegex = $"/api/data-flow/{dfLookup}/data-stream*"
-                        },
-                        DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
-                        {
-                            new Graphs.Registry.Enterprises.Apps.DAFApplication()
-                            {
-                                Priority = 500,
-                                Details = new Graphs.Registry.Enterprises.Apps.DAFAPIApplicationDetails()
-                                {
-                                    APIRoot = infraDet.DisplayName,
-                                    InboundPath = $"data-flow/{dfLookup}/data-stream",
-                                    Methods = "POST PUT",
-                                    Security = $"Microsoft.Azure.EventHubs~{infraDet.Connections.First().Value}"
-                                }.JSONConvert<MetadataModel>()
-                            }
-                        }
-                    }, State.NewEnterpriseLookup, State.Host);
-
-                    status = saveResp.Status;
-
-                    log.LogInformation($"Completed setup data stream call: {status.ToJSON()}");
-                });
-            }
-            else
-                status = Status.Success;
-
-            return status;
-        }
-
         // public virtual void SetUserType(UserTypes userType)
         // {
         //     State.UserType = userType;
@@ -1570,6 +1361,215 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             var envSettingsResp = await entMgr.GetEnvironmentSettings(State.NewEnterpriseLookup, State.EnvironmentLookup);
 
             return envSettingsResp.Model.Metadata.ToDictionary(k => k.Key, v => v.Value.ToString());
+        }
+
+        protected virtual async Task<Status> setupFreeboardApplication(ApplicationDeveloperClient appDev, List<Application> apps)
+        {
+            var status = Status.GeneralError.Clone("Freeboard not setup");
+
+            if (!apps.Any(app => app.PathRegex == "/freeboard*"))
+            {
+                log.LogInformation("Setting up freeboard application.");
+
+                var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                {
+                    Application = new Graphs.Registry.Enterprises.Apps.Application()
+                    {
+                        Name = "Freeboard",
+                        Description = "Freeboard is an open source tool for visualizing data.",
+                        PathRegex = "/freeboard*"
+                    },
+                    DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
+                    {
+                        new Graphs.Registry.Enterprises.Apps.DAFApplication()
+                        {
+                            Priority = 500,
+                            Details = new DAFViewApplicationDetails()
+                            {
+                                BaseHref = "/freeboard/",
+                                Package = new DAFApplicationNPMPackage()
+                                {
+                                    Name = "@semanticjs/freeboard",
+                                    Version = "latest",
+                                }.JSONConvert<MetadataModel>(),
+                                PackageType = DAFApplicationPackageTypes.NPM,
+                                StateConfig = new
+                                {
+                                    ActionRoot = "/api/state",
+                                    Root = "/api/state",
+                                    FreeboardConfigURL = "templates/freeboard/DeviceDemoDashboard.json"
+                                }.JSONConvert<MetadataModel>()
+                            }.JSONConvert<MetadataModel>()
+                        }
+                    }
+                }, State.NewEnterpriseLookup, State.Host);
+
+                status = saveResp.Status;
+
+                log.LogInformation($"Completed setup freeboaard call: {status.ToJSON()}");
+            }
+            else
+                status = Status.Success;
+
+            return status;
+        }
+
+        protected virtual async Task<Status> setupLcuChartsApplication(ApplicationDeveloperClient appDev, List<Application> apps)
+        {
+            var status = Status.GeneralError.Clone("LCU Charts not setup");
+
+            if (!apps.Any(app => app.PathRegex == "/lcu-charts*"))
+            {
+                log.LogInformation("Setting up lcu-charts application.");
+
+                var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                {
+                    Application = new Graphs.Registry.Enterprises.Apps.Application()
+                    {
+                        Name = "LCU Charts",
+                        Description = "LCU Charts is an application based on Fathym's open source charting library that provides a great starting point for creating customized visualizations.",
+                        PathRegex = "/lcu-charts*"
+                    },
+                    DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
+                    {
+                        new Graphs.Registry.Enterprises.Apps.DAFApplication()
+                        {
+                            Priority = 500,
+                            Details = new Graphs.Registry.Enterprises.Apps.DAFViewApplicationDetails()
+                            {
+                                BaseHref = "/lcu-charts/",
+                                Package = new DAFApplicationNPMPackage()
+                                {
+                                    Name = "@lowcodeunit/lcu-charts-demo",
+                                    Version = "latest",
+                                }.JSONConvert<MetadataModel>(),
+                                PackageType = DAFApplicationPackageTypes.NPM,
+                                StateConfig = new
+                                {
+                                    ActionRoot = "/api/state",
+                                    Root = "/api/state"
+                                }.JSONConvert<MetadataModel>()
+                            }.JSONConvert<MetadataModel>()
+                        }
+                    }
+                }, State.NewEnterpriseLookup, State.Host);
+
+                status = saveResp.Status;
+
+                log.LogInformation($"Completed setup lcu-charts call: {status.ToJSON()}");
+            }
+            else
+                status = Status.Success;
+
+            return status;
+        }
+
+        protected virtual async Task<Status> setupWarmQueryApplication(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr,
+            List<Application> apps, string dfLookup)
+        {
+            var status = Status.GeneralError.Clone("Warm Query not setup");
+
+            if (!apps.Any(app => app.PathRegex == $"/api/data-flow/{dfLookup}/warm-query*"))
+            {
+                log.LogInformation("Setting up warm query.");
+
+                var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseLookup, State.EnvironmentLookup,
+                    "warm-query");
+
+                log.LogInformation("Loaded warm query infrastructure details");
+
+                log.LogInformation($"Data stream infra details: {infraDets.ToJSON()}");//TODO: Maybe shift to debug
+
+                //  TODO:  Support multiple
+                await infraDets.Model.Take(1).Each(async infraDet =>
+                {
+                    var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                    {
+                        Application = new Graphs.Registry.Enterprises.Apps.Application()
+                        {
+                            Name = $"Warm Query APIs - {dfLookup} - {infraDet.DisplayName}",
+                            Description = "These API proxies make it easy to connect and work with your observational data.",
+                            PathRegex = $"/api/data-flow/{dfLookup}/warm-query*"
+                        },
+                        DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
+                        {
+                            new Graphs.Registry.Enterprises.Apps.DAFApplication()
+                            {
+                                Priority = 500,
+                                Details = new Graphs.Registry.Enterprises.Apps.DAFAPIApplicationDetails()
+                                {
+                                    APIRoot = infraDet.Connections["$api"],
+                                    InboundPath = $"data-flow/{dfLookup}/warm-query",
+                                    Methods = "GET",
+                                    Security = $"x-functions-key~{infraDet.Connections["default"]}"
+                                }.JSONConvert<MetadataModel>()
+                            }
+                        }
+                    }, State.NewEnterpriseLookup, State.Host);
+
+                    status = saveResp.Status;
+
+                    log.LogInformation($"Completed setup warm query call: {status.ToJSON()}");
+                });
+            }
+            else
+                status = Status.Success;
+
+            return status;
+        }
+
+        protected virtual async Task<Status> setupDataStreamApplication(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr,
+            List<Application> apps, string dfLookup)
+        {
+            var status = Status.GeneralError.Clone("Data Stream not setup");
+
+            if (!apps.Any(app => app.PathRegex == $"/api/data-flow/{dfLookup}/data-stream*"))
+            {
+                log.LogInformation("Setting up data stream.");
+
+                var infraDets = await entMgr.LoadInfrastructureDetails(State.NewEnterpriseLookup, State.EnvironmentLookup,
+                    "data-stream");
+
+                log.LogInformation("Loaded data stream infrastructure details.");
+
+                log.LogInformation($"Data stream infra details: {infraDets.ToJSON()}");//TODO: Maybe shift to debug
+
+                //  TODO:  Support multiple
+                await infraDets.Model.Take(1).Each(async infraDet =>
+                {
+                    var saveResp = await appDev.SaveAppAndDAFApps(new Personas.Applications.SaveAppAndDAFAppsRequest()
+                    {
+                        Application = new Graphs.Registry.Enterprises.Apps.Application()
+                        {
+                            Name = $"Data Stream APIs - {dfLookup} - {infraDet.DisplayName}",
+                            Description = "This API proxies make it easy to connect and send your own device data.",
+                            PathRegex = $"/api/data-flow/{dfLookup}/data-stream*"
+                        },
+                        DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
+                        {
+                            new Graphs.Registry.Enterprises.Apps.DAFApplication()
+                            {
+                                Priority = 500,
+                                Details = new Graphs.Registry.Enterprises.Apps.DAFAPIApplicationDetails()
+                                {
+                                    APIRoot = infraDet.DisplayName,
+                                    InboundPath = $"data-flow/{dfLookup}/data-stream",
+                                    Methods = "POST PUT",
+                                    Security = $"Microsoft.Azure.EventHubs~{infraDet.Connections.First().Value}"
+                                }.JSONConvert<MetadataModel>()
+                            }
+                        }
+                    }, State.NewEnterpriseLookup, State.Host);
+
+                    status = saveResp.Status;
+
+                    log.LogInformation($"Completed setup data stream call: {status.ToJSON()}");
+                });
+            }
+            else
+                status = Status.Success;
+
+            return status;
         }
 
         protected virtual Status verifyEnvSettingsForDevOps(Dictionary<string, string> envSettingsMeta, string key, string devOpsErrorMsg)

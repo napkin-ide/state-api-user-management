@@ -24,6 +24,7 @@ using LCU.Personas.Enterprises;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using LCU.StateAPI;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 {
@@ -37,6 +38,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
         }
 
         [FunctionName("ListBillingOptions")]
+        [FunctionResponseCache(600, ResponseCacheLocation.Any)]
         public virtual async Task<HttpResponseMessage> Run([HttpTrigger] HttpRequest req, ILogger log)
         {
             var entLookup = req.Headers["lcu-ent-lookup"];
