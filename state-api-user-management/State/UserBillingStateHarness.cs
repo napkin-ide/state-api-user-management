@@ -65,7 +65,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     {
                         CustomerName = State.CustomerName,
                         Plan = plan,
-                        Username = username
+                        Username = username,
+                        TrialPeriodDays = 0
                     });
 
             State.PaymentStatus = completeResp.Status;
@@ -98,6 +99,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             State.SuccessRedirect = planOption.Metadata["SuccessRedirect"].ToString();
             }
+            State.Loading = false;
         }
         public virtual async Task CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr, string entLookup,
             string username, string methodId, string customerName, string plan, int trialPeriodDays)
