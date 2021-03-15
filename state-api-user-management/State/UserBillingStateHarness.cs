@@ -213,6 +213,35 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             State.Username = username;
         }
+
+        public virtual async Task UpdatePaymentInfo(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entLookup,
+            string username, string methodId, string customerName)
+        {
+            State.CustomerName = customerName;
+
+            State.PaymentMethodID = methodId;
+
+            var updateResp = await entMgr.UpdateStripeSubscription(entLookup,
+                    new UpdateStripeSubscriptionRequest()
+                    {
+                        CustomerName = State.CustomerName,
+                        PaymentMethodID = methodId,
+                        Username = username
+                    });
+
+            State.PaymentStatus = updateResp.Status;
+
+            if (State.PaymentStatus)
+            {
+
+                var resp = await secMgr.SetIdentityThirdPartyData(entLookup, username, new Dictionary<string, string>()
+                {
+                    { "LCU-USER-BILLING.TermsOfService", DateTimeOffset.UtcNow.ToString() },
+                    { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() },
+                });
+            }
+
+        }
         #endregion
     }
 }
