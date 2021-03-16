@@ -112,16 +112,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             var licenseType = planOption.Metadata["LicenseType"].ToString();
 
-            // var completeResp = await entMgr.Post<CompleteStripeSubscriptionRequest, CompleteStripeSubscriptionResponse>($"billing/{entLookup}/stripe/subscription",
             var completeResp = await entMgr.CompleteStripeSubscription(entLookup, licenseType,
-                    new CompleteStripeSubscriptionRequest()
-                    {
-                        CustomerName = State.CustomerName,
-                        PaymentMethodID = methodId,
-                        Plan = plan,
-                        TrialPeriodDays = trialPeriodDays,
-                        Username = username
-                    });
+                new CompleteStripeSubscriptionRequest()
+                {
+                    CustomerName = State.CustomerName,
+                    PaymentMethodID = methodId,
+                    Plan = plan,
+                    TrialPeriodDays = trialPeriodDays,
+                    Username = username
+                });
 
             State.PaymentStatus = completeResp.Status;
 
@@ -135,8 +134,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() },
                     { "LCU-STRIPE-SUBSCRIPTION-ID", completeResp.SubscriptionID}
                 });
-
-                
 
                 var token = new LicenseAccessToken();
 
