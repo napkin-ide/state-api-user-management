@@ -434,6 +434,33 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return status;
         }
 
+        // public virtual async Task<Status> ChangeSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entLookup, string username, string plan){
+
+            // await idMgr.RevokeLicenseAccess(entLookup, username, "lcu" );
+
+            // var planOption = this.State.Plans.First(p => p.Lookup == plan);
+
+            // var licenseType = planOption.Metadata["LicenseType"].ToString();
+
+            // await idMgr.IssueLicenseAccess(new LicenseAccessToken()
+            // {
+            //     AccessStartDate = System.DateTime.Now,
+            //     IsLocked = isLocked,
+            //     IsReset = isReset,
+            //     TrialPeriodDays = 0,
+            //     Username = username
+            // }, entLookup);
+
+            // var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-STRIPE-SUBSCRIPTION-ID");
+
+            // string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"].ToString();
+
+            // await entMgr.CancelSubscription(subId, entLookup);
+
+
+        // }
+
+
         public virtual void CompleteBoot()
         {
             State.Booted = true;
