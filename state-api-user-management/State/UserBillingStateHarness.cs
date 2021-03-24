@@ -25,6 +25,7 @@ using LCU.Personas.Client.Identity;
 using Fathym.API;
 using LCU.Personas.Client.Security;
 using LCU.Graphs.Registry.Enterprises.Identity;
+using Fathym.Design;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.State
 {
@@ -45,7 +46,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         #region API Methods
 
         public virtual async Task ChangeSubscription(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr, string entLookup,
-            string username,  string customerName, string plan)
+            string username, string customerName, string plan)
         {
             //cancel existing subscription 
             // await entMgr.CancelSubscriptionByUser(username, entLookup);
@@ -55,9 +56,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             var licenseType = planOption.Metadata["LicenseType"].ToString();
 
             //Remove license access
-            await idMgr.RevokeLicenseAccess(entLookup, username, licenseType );
+            await idMgr.RevokeLicenseAccess(entLookup, username, licenseType);
 
-            
+
 
             // create new subscription
             var completeResp = await entMgr.CompleteStripeSubscription(entLookup, licenseType,
@@ -82,22 +83,22 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     { "LCU-STRIPE-SUBSCRIPTION-ID", completeResp.SubscriptionID}
                 });
 
-            //issue new license access
-            var setLicenseAccessResp = await idMgr.IssueLicenseAccess(new LicenseAccessToken()
-            {
-                AccessStartDate = System.DateTime.Now,
-                Details = planOption.JSONConvert<MetadataModel>(),
-                EnterpriseLookup = entLookup,
-                Lookup = licenseType,
-                TrialPeriodDays = 0,
-                Username = username
-            }, entLookup);
+                //issue new license access
+                var setLicenseAccessResp = await idMgr.IssueLicenseAccess(new LicenseAccessToken()
+                {
+                    AccessStartDate = System.DateTime.Now,
+                    Details = planOption.JSONConvert<MetadataModel>(),
+                    EnterpriseLookup = entLookup,
+                    Lookup = licenseType,
+                    TrialPeriodDays = 0,
+                    Username = username
+                }, entLookup);
 
-            State.PaymentStatus = setLicenseAccessResp.Status;
+                State.PaymentStatus = setLicenseAccessResp.Status;
 
-            State.SubscriptionID = completeResp.SubscriptionID;
+                State.SubscriptionID = completeResp.SubscriptionID;
 
-            State.SuccessRedirect = planOption.Metadata["SuccessRedirect"].ToString();
+                State.SuccessRedirect = planOption.Metadata["SuccessRedirect"].ToString();
             }
             State.Loading = false;
         }
@@ -110,9 +111,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             var planOption = this.State.Plans.First(p => p.Lookup == plan);
 
-            var licenseType = planOption.Metadata["LicenseType"].ToString();
+            var licenseTypeCore = planOption.Metadata["LicenseType"].ToString();
 
-            var completeResp = await entMgr.CompleteStripeSubscription(entLookup, licenseType,
+            var licenseTypes = planOption.Metadata.ContainsKey("LicenseTypeOverrides") ?
+                planOption.Metadata["LicenseTypeOverrides"].ToString().Split('|') : new[] { licenseTypeCore };
+
+            var completeResp = await entMgr.CompleteStripeSubscription(entLookup, licenseTypeCore,
                 new CompleteStripeSubscriptionRequest()
                 {
                     CustomerName = State.CustomerName,
@@ -135,21 +139,28 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     { "LCU-STRIPE-SUBSCRIPTION-ID", completeResp.SubscriptionID}
                 });
 
-                var token = new LicenseAccessToken();
+                var setLicenseAccessResp = await DesignOutline.Instance.Chain<BaseResponse>()
+                    .AddResponsibilities(licenseTypes.Select<string, Func<BaseResponse>>(licenseType =>
+                    {
+                        return () =>
+                        {
+                            var token = new LicenseAccessToken()
+                            {
+                                Details = planOption.JSONConvert<MetadataModel>(),
+                                EnterpriseLookup = entLookup,
+                                Lookup = licenseType,
+                                AccessStartDate = DateTime.Now,
+                                TrialPeriodDays = trialPeriodDays,
+                                Username = username
+                            };
 
-                token.Details = planOption.JSONConvert<MetadataModel>();
+                            var latResp = idMgr.IssueLicenseAccess(token, entLookup).Result;
 
-                token.EnterpriseLookup = entLookup;
-
-                token.Lookup = licenseType;
-
-                token.AccessStartDate = DateTime.Now;
-
-                token.TrialPeriodDays = trialPeriodDays;
-
-                token.Username = username;
-
-                var setLicenseAccessResp = await idMgr.IssueLicenseAccess(token, entLookup);
+                            return latResp;
+                        };
+                    }).ToArray())
+                    .SetShouldContinue(latResp => latResp.Status)
+                    .Run();
 
                 State.PaymentStatus = setLicenseAccessResp.Status;
 
