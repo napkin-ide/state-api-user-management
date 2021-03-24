@@ -48,7 +48,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             string username,  string customerName, string plan)
         {
             //cancel existing subscription 
-            // await entMgr.CancelSubscriptionByUser(username, entLookup);
+            await entMgr.CancelSubscriptionByUser(username, entLookup);
 
             var planOption = this.State.Plans.First(p => p.Lookup == plan);
 
