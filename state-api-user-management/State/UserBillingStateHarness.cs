@@ -114,7 +114,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             var licenseTypeCore = planOption.Metadata["LicenseType"].ToString();
 
             var licenseTypes = planOption.Metadata.ContainsKey("LicenseTypeOverrides") ?
-                planOption.Metadata["LicenseTypeOverrides"].ToString().Split('|') : new[] { licenseTypeCore };
+                planOption.Metadata["LicenseTypeOverrides"].ToString().Split('|', StringSplitOptions.RemoveEmptyEntries) : 
+                new[] { licenseTypeCore };
 
             var completeResp = await entMgr.CompleteStripeSubscription(entLookup, licenseTypeCore,
                 new CompleteStripeSubscriptionRequest()
