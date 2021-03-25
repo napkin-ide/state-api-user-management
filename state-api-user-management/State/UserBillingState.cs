@@ -3,6 +3,7 @@ using Fathym;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
 using LCU.Personas.Enterprises;
+using LCU.Graphs.Registry.Enterprises.Identity;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.State
 {
@@ -12,6 +13,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
     {
         [DataMember]
         public virtual string CustomerName { get; set; }
+
+        [DataMember]
+        public virtual List<LicenseAccessToken> ExistingLicenseTypes { get; set; }
 
         [DataMember]
         public virtual string FeaturedPlanGroup { get; set; }

@@ -23,6 +23,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
     [DataContract]
     public class ListLicensesRequest : BaseRequest
     {
+        [DataMember]
+        public string LicenseType { get; set; }
 
     }
 
@@ -47,7 +49,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                var status = await harness.ListLicenses(idMgr, stateDetails.EnterpriseLookup, stateDetails.Username);
+                var status = await harness.ListLicenses(idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, reqData.LicenseType);
 
                 return status;
             });

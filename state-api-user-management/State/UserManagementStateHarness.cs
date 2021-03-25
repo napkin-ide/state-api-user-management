@@ -788,9 +788,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.Subscribers = subscriberResp.Model;
         }
 
-        public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entLookup, string username)
+        public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entLookup, string username, string licenseType)
         {
-            var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() { "lcu" });
+            var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() { licenseType });
 
             State.UserLicenses = licenseAccess.Model;
 
