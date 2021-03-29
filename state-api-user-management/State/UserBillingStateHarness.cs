@@ -49,7 +49,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             string username, string customerName, string plan)
         {
             //cancel existing subscription 
-            // await entMgr.CancelSubscriptionByUser(username, entLookup);
+            await entMgr.CancelSubscriptionByUser(username, entLookup);
 
             var planOption = this.State.Plans.First(p => p.Lookup == plan);
 
@@ -171,6 +171,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             }
         }
 
+        public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entLookup, string username, string licenseType)
+        {
+            var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() { licenseType });
+
+            State.ExistingLicenseTypes = licenseAccess.Model;
+
+            return (licenseAccess != null) ? Status.Success : Status.Unauthorized.Clone($"No licenses found for user {username}");
+        }
+
         public virtual async Task DetermineRequiredOptIns(SecurityManagerClient secMgr, string entLookup, string username)
         {
             var thirdPartyData = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-USER-BILLING.TermsOfService", "LCU-USER-BILLING.EnterpriseAgreement");
@@ -201,7 +210,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             })?.PlanGroup;
         }
 
-        public virtual async Task Refresh(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entLookup, string username, string licenseType)
+        public virtual async Task Refresh(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entLookup, string username, string licenseType)
         {
             ResetStateCheck();
 
@@ -210,6 +219,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             SetUsername(username);
 
             await DetermineRequiredOptIns(secMgr, entLookup, username);
+
+            await ListLicenses(idMgr, entLookup, username, licenseType);
         }
 
         public virtual void ResetStateCheck(bool force = false)

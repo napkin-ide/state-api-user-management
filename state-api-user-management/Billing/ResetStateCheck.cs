@@ -14,6 +14,7 @@ using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using LCU.Personas.Client.Enterprises;
+using LCU.Personas.Client.Identity;
 using LCU.StateAPI.Utilities;
 using LCU.Personas.Client.Security;
 using LCU.State.API.NapkinIDE.UserManagement.State;
@@ -31,6 +32,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
     public class ResetStateCheck
     {
         protected readonly EnterpriseManagerClient entMgr;
+
+        protected readonly IdentityManagerClient idMgr;
 
         protected readonly SecurityManagerClient secMgr;
 
@@ -55,7 +58,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
                 harness.ResetStateCheck(force: true);
 
-                await harness.Refresh(entMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, dataReq.LicenseType);
+                await harness.Refresh(entMgr, idMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, dataReq.LicenseType);
 
                 return Status.Success;
             });

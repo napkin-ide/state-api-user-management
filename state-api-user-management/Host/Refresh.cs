@@ -17,6 +17,7 @@ using System.Linq;
 using LCU.Personas.Client.Applications;
 using LCU.StateAPI.Utilities;
 using System.Security.Claims;
+using LCU.Personas.Client.Identity;
 using LCU.Personas.Client.Enterprises;
 using LCU.Personas.Client.Security;
 using LCU.State.API.NapkinIDE.UserManagement.State;
@@ -47,13 +48,17 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
 
         protected readonly EnterpriseManagerClient entMgr;
 
+        protected readonly IdentityManagerClient idMgr;
+
         protected readonly SecurityManagerClient secMgr;
 
-        public Refresh(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
+        public Refresh(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr)
         {
             this.entArch = entArch;
 
             this.entMgr = entMgr;
+
+            this.idMgr = idMgr;
 
             this.secMgr = secMgr;
         }
@@ -88,7 +93,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
         #region Helpers
         protected virtual async Task<Status> refreshUserBilling(UserBillingStateHarness harness, ILogger log, StateDetails stateDetails, RefreshBillingRequest request)
         {
-            await harness.Refresh(entMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, request.LicenseType);
+            await harness.Refresh(entMgr, idMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, request.LicenseType);
 
             return Status.Success;
         }
