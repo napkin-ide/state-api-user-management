@@ -48,7 +48,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             string username,  string customerName, string plan)
         {
             //cancel existing subscription 
-            await entMgr.CancelSubscriptionByUser(username, entLookup);
+            var cancelResp = await entMgr.CancelSubscriptionByUser(username, entLookup);
 
             var planOption = this.State.Plans.First(p => p.Lookup == plan);
 
@@ -99,6 +99,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             State.SuccessRedirect = planOption.Metadata["SuccessRedirect"].ToString();
             }
+
+            await ListLicenses(idMgr, entLookup, username, licenseType);
+            
             State.Loading = false;
         }
         public virtual async Task CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr, string entLookup,
@@ -213,7 +216,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual void ResetStateCheck(bool force = false)
         {
-            if (force || State.PaymentStatus)
+            // if (force || State.PaymentStatus)
+            //     State = new UserBillingState();
+
+            if (force)
                 State = new UserBillingState();
         }
 
