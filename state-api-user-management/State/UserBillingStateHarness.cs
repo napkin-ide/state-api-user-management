@@ -104,6 +104,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             
             State.Loading = false;
         }
+
         public virtual async Task CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr, string entLookup,
             string username, string methodId, string customerName, string plan, int trialPeriodDays)
         {
@@ -162,15 +163,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             }
         }
 
-        public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entLookup, string username, string licenseType)
-        {
-            var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() { licenseType });
-
-            State.ExistingLicenseTypes = licenseAccess.Model;
-
-            return (licenseAccess != null) ? Status.Success : Status.Unauthorized.Clone($"No licenses found for user {username}");
-        }
-
         public virtual async Task DetermineRequiredOptIns(SecurityManagerClient secMgr, string entLookup, string username)
         {
             var thirdPartyData = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-USER-BILLING.TermsOfService", "LCU-USER-BILLING.EnterpriseAgreement");
@@ -182,6 +174,20 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             if (!thirdPartyData.Status || !thirdPartyData.Model.ContainsKey("LCU-USER-BILLING.EnterpriseAgreement"))
                 State.RequiredOptIns.Add("EA");
+        }
+
+        public virtual async Task<Status> HandleChargeFailed(Stripe.Event stripeEvent)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entLookup, string username, string licenseType)
+        {
+            var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() { licenseType });
+
+            State.ExistingLicenseTypes = licenseAccess.Model;
+
+            return (licenseAccess != null) ? Status.Success : Status.Unauthorized.Clone($"No licenses found for user {username}");
         }
 
         public virtual async Task LoadBillingPlans(EnterpriseManagerClient entMgr, string entLookup, string licenseType)
