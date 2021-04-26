@@ -19,6 +19,7 @@ using LCU.StateAPI.Utilities;
 using LCU.Personas.Client.Security;
 using LCU.State.API.NapkinIDE.UserManagement.State;
 using Stripe;
+using LCU.Presentation.State.ReqRes;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 {
@@ -48,22 +49,23 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
             var stripeEvent = EventUtility.ParseEvent(json);
 
-            var stateDetails = StateUtils.LoadStateDetails(req);
-
-            var entLookup = req.Query["lcu-ent-lookup"];
-
-            var hubName = UserManagementState.HUB_NAME;
-
             var lookAtMe = stripeEvent.RawJObject;
 
-            var username = "";//stripeEvent.Object.Something;
+            var stateDetails = new StateDetails()
+            {
+                EnterpriseLookup = req.Query["lcu-ent-lookup"],
+                HubName = UserManagementState.HUB_NAME,
+                StateKey = "billing",
+                Username = ""//stripeEvent.Object.Something;
+            };
 
-            var stateKey = "billing";
+            var stateBlob = blobContainer.GetBlockBlobReference($"{stateDetails.EnterpriseLookup}/{stateDetails.HubName}/{stateDetails.Username}/{stateDetails.StateKey}");
 
-            var stateBlob = blobContainer.GetBlockBlobReference($"{entLookup}/{hubName}/{username}/{stateKey}");
+            var exActReq = await req.LoadBody<ExecuteActionRequest>();
 
-            //MetadataModel
-            return await stateBlob.WithStateHarness<UserBillingState, Stripe.Event, UserBillingStateHarness>(req, signalRMessages, log,
+            //If Stripe.Event doesn't work... MetadataModel
+            return await stateBlob.WithStateHarness<UserBillingState, Stripe.Event, UserBillingStateHarness>(stateDetails, exActReq,
+                signalRMessages, log,
                 async (harness, dataReq) =>
             {
                 log.LogInformation($"Executing CompletePayment Action.");
