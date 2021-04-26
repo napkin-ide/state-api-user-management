@@ -51,12 +51,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
             var lookAtMe = stripeEvent.RawJObject;
 
+            //stripeEvent.Data.Object.BillingDetails.Email
+
             var stateDetails = new StateDetails()
             {
                 EnterpriseLookup = req.Query["lcu-ent-lookup"],
                 HubName = UserManagementState.HUB_NAME,
                 StateKey = "billing",
-                Username = ""//stripeEvent.Object.Something;
+                Username = "george.hatch@fathym.com"
             };
 
             var stateBlob = blobContainer.GetBlockBlobReference($"{stateDetails.EnterpriseLookup}/{stateDetails.HubName}/{stateDetails.Username}/{stateDetails.StateKey}");

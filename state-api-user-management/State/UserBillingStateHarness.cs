@@ -25,6 +25,8 @@ using LCU.Personas.Client.Identity;
 using Fathym.API;
 using LCU.Personas.Client.Security;
 using LCU.Graphs.Registry.Enterprises.Identity;
+using LCU.State.API.NapkinIDE.UserManagement.Management;
+using Newtonsoft.Json.Linq;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.State
 {
@@ -176,8 +178,37 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 State.RequiredOptIns.Add("EA");
         }
 
-        public virtual async Task<Status> HandleChargeFailed(Stripe.Event stripeEvent)
+        public virtual async Task<Status> HandleChargeFailed(EnterpriseManagerClient entMgr, string entLookup, Stripe.Event stripeEvent)
         {
+            string mrktEmail = "marketing@fathym.com";
+
+            State.SuspendAccountOn = DateTime.Now.AddDays(15);
+
+            string suspendOn = State.SuspendAccountOn.ToString();
+
+            State.PaymentStatus = Status.Conflict;
+
+            //email the user that their cc needs to be updated and the charge failed with link to update cc
+            var suspensionNotice = new SendNotificationRequest()
+                {
+                    EmailFrom = mrktEmail,
+                    EmailTo = State.CustomerName,
+                    Subject = "Subscription Suspension",
+                    Content = String.Format(@"Hi there\n\nThanks for trying out Fathym! Unfortunately the credit card on file failed to process when being charged for your subscription. \n\n
+                                Please update your card on file or your Fathym subscriptions will be suspended on {0}. \n\n
+                                Thanks again,\n
+                                Team Fathym", suspendOn),
+                    ReplyTo = ""
+                };
+            await SendNotification(entMgr, entLookup, State.CustomerName, suspensionNotice);
+
+
+            //pause the users account with fathym after 15 day grace period once event is recieved
+
+            //once 15 day grace period has passed suspend the users account and notify the user.
+
+            
+
             throw new NotImplementedException();
         }
         
@@ -232,6 +263,18 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual void SetUsername(string username)
         {
             State.Username = username;
+        }
+
+        public virtual async Task<Status> SendNotification(EnterpriseManagerClient entMgr, string entLookup, string username, SendNotificationRequest notification)
+        {
+            // Send email from app manager client 
+            var model = new MetadataModel();
+
+            model.Metadata.Add(new KeyValuePair<string, JToken>("SendNotificationRequest", JToken.Parse(JsonConvert.SerializeObject(notification))));
+
+            await entMgr.SendNotification(model, entLookup);
+
+            return Status.Success;
         }
 
         public virtual async Task UpdatePaymentInfo(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entLookup,
