@@ -202,6 +202,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 };
             await SendNotification(entMgr, entLookup, State.CustomerName, suspensionNotice);
 
+            //email fathym support about the card failure
             var cardFailedNotice = new SendNotificationRequest()
                 {
                     EmailFrom = supportEmail,
