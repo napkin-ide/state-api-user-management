@@ -180,7 +180,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> HandleChargeFailed(EnterpriseManagerClient entMgr, string entLookup, Stripe.Event stripeEvent)
         {
-            string mrktEmail = "marketing@fathym.com";
+            string supportEmail = "support@fathym.com";
 
             State.SuspendAccountOn = DateTime.Now.AddDays(15);
 
@@ -191,10 +191,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             //email the user that their cc needs to be updated and the charge failed with link to update cc
             var suspensionNotice = new SendNotificationRequest()
                 {
-                    EmailFrom = mrktEmail,
+                    EmailFrom = supportEmail,
                     EmailTo = State.CustomerName,
                     Subject = "Subscription Suspension",
-                    Content = String.Format(@"Hi there\n\nThanks for trying out Fathym! Unfortunately the credit card on file failed to process when being charged for your subscription. \n\n
+                    Content = String.Format(@"Hi there\n\n Thanks for trying out Fathym! Unfortunately the credit card on file failed to process when being charged for your subscription. \n\n
                                 Please update your card on file or your Fathym subscriptions will be suspended on {0}. \n\n
                                 Thanks again,\n
                                 Team Fathym", suspendOn),
@@ -202,10 +202,23 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 };
             await SendNotification(entMgr, entLookup, State.CustomerName, suspensionNotice);
 
+            var cardFailedNotice = new SendNotificationRequest()
+                {
+                    EmailFrom = supportEmail,
+                    EmailTo = supportEmail,
+                    Subject = "Customer Card Failed",
+                    Content = String.Format(@"Hi there\n\n Unfortunately a credit card on file failed to process when being charged for their subscription. \n\n
+                                The user: {0} will need to have their accounts manually suspended on {1} if they do not update their credit card information. \n\n
+                                Thanks again,\n
+                                Team Fathym", State.CustomerName, suspendOn),
+                    ReplyTo = ""
+                };
+            await SendNotification(entMgr, entLookup, State.CustomerName, cardFailedNotice);
 
-            //pause the users account with fathym after 15 day grace period once event is recieved
 
-            //once 15 day grace period has passed suspend the users account and notify the user.
+            //TODO automate pause the users account with fathym after 15 day grace period once event is recieved
+
+            //TODO automate once 15 day grace period has passed suspend the users account and notify the user.
 
             
 

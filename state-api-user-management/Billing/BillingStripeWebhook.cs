@@ -49,17 +49,34 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
             var stripeEvent = EventUtility.ParseEvent(json);
 
-            var lookAtMe = stripeEvent.RawJObject;
+            var stateDetails = new StateDetails();
 
-            //stripeEvent.Data.Object.BillingDetails.Email
-
-            var stateDetails = new StateDetails()
+            if(stripeEvent.Type == Events.ChargeFailed)
             {
-                EnterpriseLookup = req.Query["lcu-ent-lookup"],
-                HubName = UserManagementState.HUB_NAME,
-                StateKey = "billing",
-                Username = "george.hatch@fathym.com"
-            };
+
+                var charge = (Charge)stripeEvent.Data.Object;
+
+                var userEmail = charge.BillingDetails.Email;
+
+                stateDetails = new StateDetails()
+                {
+                    EnterpriseLookup = req.Query["lcu-ent-lookup"],
+                    HubName = UserManagementState.HUB_NAME,
+                    StateKey = "billing",
+                    Username = userEmail
+                };
+            }
+
+            else{
+                stateDetails = new StateDetails()
+                {
+                    EnterpriseLookup = req.Query["lcu-ent-lookup"],
+                    HubName = UserManagementState.HUB_NAME,
+                    StateKey = "billing",
+                    Username = ""
+                };
+
+            }
 
             var stateBlob = blobContainer.GetBlockBlobReference($"{stateDetails.EnterpriseLookup}/{stateDetails.HubName}/{stateDetails.Username}/{stateDetails.StateKey}");
 
@@ -89,6 +106,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
                 return status;
             });
+            
         }
     }
 }
