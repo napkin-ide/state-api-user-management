@@ -78,6 +78,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
             }
 
+            log.LogInformation($"State Details {stateDetails.ToJSON()}");
+
             var stateBlob = blobContainer.GetBlockBlobReference($"{stateDetails.EnterpriseLookup}/{stateDetails.HubName}/{stateDetails.Username}/{stateDetails.StateKey}");
 
             var exActReq = await req.LoadBody<ExecuteActionRequest>();
