@@ -25,6 +25,8 @@ using LCU.Personas.Client.Identity;
 using Fathym.API;
 using LCU.Personas.Client.Security;
 using LCU.Graphs.Registry.Enterprises.Identity;
+using LCU.State.API.NapkinIDE.UserManagement.Management;
+using Newtonsoft.Json.Linq;
 using Fathym.Design;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.State
@@ -105,6 +107,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             
             State.Loading = false;
         }
+
         public virtual async Task CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr, string entLookup,
             string username, string methodId, string customerName, string plan, int trialPeriodDays)
         {
@@ -174,15 +177,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             }
         }
 
-        public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entLookup, string username, string licenseType)
-        {
-            var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() { licenseType });
-
-            State.ExistingLicenseTypes = licenseAccess.Model;
-
-            return (licenseAccess != null) ? Status.Success : Status.Unauthorized.Clone($"No licenses found for user {username}");
-        }
-
         public virtual async Task DetermineRequiredOptIns(SecurityManagerClient secMgr, string entLookup, string username)
         {
             var thirdPartyData = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-USER-BILLING.TermsOfService", "LCU-USER-BILLING.EnterpriseAgreement");
@@ -194,6 +188,63 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             if (!thirdPartyData.Status || !thirdPartyData.Model.ContainsKey("LCU-USER-BILLING.EnterpriseAgreement"))
                 State.RequiredOptIns.Add("EA");
+        }
+
+        public virtual async Task<Status> HandleChargeFailed(EnterpriseManagerClient entMgr, string entLookup, Stripe.Event stripeEvent)
+        {
+            string supportEmail = "support@fathym.com";
+
+            State.SuspendAccountOn = DateTime.Now.AddDays(15);
+
+            string suspendOn = State.SuspendAccountOn.ToString();
+
+            State.PaymentStatus = Status.Conflict;
+
+            //email the user that their cc needs to be updated and the charge failed with link to update cc
+            var suspensionNotice = new SendNotificationRequest()
+                {
+                    EmailFrom = supportEmail,
+                    EmailTo = State.CustomerName,
+                    Subject = "Subscription Suspension",
+                    Content = String.Format(@"Hi there\n\n Thanks for trying out Fathym! Unfortunately the credit card on file failed to process when being charged for your subscription. \n\n
+                                Please update your card on file or your Fathym subscriptions will be suspended on {0}. \n\n
+                                Thanks again,\n
+                                Team Fathym", suspendOn),
+                    ReplyTo = ""
+                };
+            await SendNotification(entMgr, entLookup, State.CustomerName, suspensionNotice);
+
+            //email fathym support about the card failure
+            var cardFailedNotice = new SendNotificationRequest()
+                {
+                    EmailFrom = supportEmail,
+                    EmailTo = supportEmail,
+                    Subject = "Customer Card Failed",
+                    Content = String.Format(@"Hi there\n\n Unfortunately a credit card on file failed to process when being charged for their subscription. \n\n
+                                The user: {0} will need to have their accounts manually suspended on {1} if they do not update their credit card information. \n\n
+                                Thanks again,\n
+                                Team Fathym", State.CustomerName, suspendOn),
+                    ReplyTo = ""
+                };
+            await SendNotification(entMgr, entLookup, State.CustomerName, cardFailedNotice);
+
+
+            //TODO automate pause the users account with fathym after 15 day grace period once event is recieved
+
+            //TODO automate once 15 day grace period has passed suspend the users account and notify the user.
+
+            
+
+            throw new NotImplementedException();
+        }
+        
+        public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entLookup, string username, string licenseType)
+        {
+            var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() { licenseType });
+
+            State.ExistingLicenseTypes = licenseAccess.Model;
+
+            return (licenseAccess != null) ? Status.Success : Status.Unauthorized.Clone($"No licenses found for user {username}");
         }
 
         public virtual async Task LoadBillingPlans(EnterpriseManagerClient entMgr, string entLookup, string licenseType)
@@ -238,6 +289,18 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual void SetUsername(string username)
         {
             State.Username = username;
+        }
+
+        public virtual async Task<Status> SendNotification(EnterpriseManagerClient entMgr, string entLookup, string username, SendNotificationRequest notification)
+        {
+            // Send email from app manager client 
+            var model = new MetadataModel();
+
+            model.Metadata.Add(new KeyValuePair<string, JToken>("SendNotificationRequest", JToken.Parse(JsonConvert.SerializeObject(notification))));
+
+            await entMgr.SendNotification(model, entLookup);
+
+            return Status.Success;
         }
 
         public virtual async Task UpdatePaymentInfo(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entLookup,
