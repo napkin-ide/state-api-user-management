@@ -200,6 +200,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             State.PaymentStatus = Status.Conflict;
 
+            log.LogInformation($"Users State {State.ToJSON()}");
+
+
             //email the user that their cc needs to be updated and the charge failed with link to update cc
             var suspensionNotice = new SendNotificationRequest()
                 {
@@ -233,9 +236,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             //TODO automate once 15 day grace period has passed suspend the users account and notify the user.
 
-            
+            return Status.Success;
 
-            throw new NotImplementedException();
+            // throw new NotImplementedException();
         }
         
         public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entLookup, string username, string licenseType)
