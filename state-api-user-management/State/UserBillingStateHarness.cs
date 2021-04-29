@@ -301,7 +301,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             model.Metadata.Add(new KeyValuePair<string, JToken>("SendNotificationRequest", JToken.Parse(JsonConvert.SerializeObject(notification))));
 
-            await entMgr.SendNotificationEmail(model, entLookup);
+            await entMgr.SendNotificationEmail(entLookup, model);
 
             return Status.Success;
         }
