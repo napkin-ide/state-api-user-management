@@ -436,26 +436,26 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         // public virtual async Task<Status> ChangeSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entLookup, string username, string plan){
 
-            // await idMgr.RevokeLicenseAccess(entLookup, username, "lcu" );
+        // await idMgr.RevokeLicenseAccess(entLookup, username, "lcu" );
 
-            // var planOption = this.State.Plans.First(p => p.Lookup == plan);
+        // var planOption = this.State.Plans.First(p => p.Lookup == plan);
 
-            // var licenseType = planOption.Metadata["LicenseType"].ToString();
+        // var licenseType = planOption.Metadata["LicenseType"].ToString();
 
-            // await idMgr.IssueLicenseAccess(new LicenseAccessToken()
-            // {
-            //     AccessStartDate = System.DateTime.Now,
-            //     IsLocked = isLocked,
-            //     IsReset = isReset,
-            //     TrialPeriodDays = 0,
-            //     Username = username
-            // }, entLookup);
+        // await idMgr.IssueLicenseAccess(new LicenseAccessToken()
+        // {
+        //     AccessStartDate = System.DateTime.Now,
+        //     IsLocked = isLocked,
+        //     IsReset = isReset,
+        //     TrialPeriodDays = 0,
+        //     Username = username
+        // }, entLookup);
 
-            // var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-STRIPE-SUBSCRIPTION-ID");
+        // var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-STRIPE-SUBSCRIPTION-ID");
 
-            // string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"].ToString();
+        // string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"].ToString();
 
-            // await entMgr.CancelSubscription(subId, entLookup);
+        // await entMgr.CancelSubscription(subId, entLookup);
 
 
         // }
@@ -1356,9 +1356,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             {
                 var app = apps.First(a => a.ID == c.Key);
 
-                var check = Regex.IsMatch(app.PathRegex, appPath);
+                var check = Regex.IsMatch(app.Config.PathRegex, appPath);
 
-                log.LogInformation($"Completed check for {app.PathRegex} on {appPath}: {check}");
+                log.LogInformation($"Completed check for {app.Config.PathRegex} on {appPath}: {check}");
 
                 return check;
             }).Value;
@@ -1394,7 +1394,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             var status = Status.GeneralError.Clone("Freeboard not setup");
 
-            if (!apps.Any(app => app.PathRegex == "/freeboard*"))
+            if (!apps.Any(app => app.Config.PathRegex == "/freeboard*"))
             {
                 log.LogInformation("Setting up freeboard application.");
 
@@ -1404,7 +1404,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     {
                         Name = "Freeboard",
                         Description = "Freeboard is an open source tool for visualizing data.",
-                        PathRegex = "/freeboard*"
+                        Config = new ApplicationLookupConfiguration()
+                        {
+                            PathRegex = "/freeboard*"
+                        }
                     },
                     DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
                     {
@@ -1445,7 +1448,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             var status = Status.GeneralError.Clone("LCU Charts not setup");
 
-            if (!apps.Any(app => app.PathRegex == "/lcu-charts*"))
+            if (!apps.Any(app => app.Config.PathRegex == "/lcu-charts*"))
             {
                 log.LogInformation("Setting up lcu-charts application.");
 
@@ -1455,7 +1458,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     {
                         Name = "LCU Charts",
                         Description = "LCU Charts is an application based on Fathym's open source charting library that provides a great starting point for creating customized visualizations.",
-                        PathRegex = "/lcu-charts*"
+                        Config = new ApplicationLookupConfiguration()
+                        {
+                            PathRegex = "/lcu-charts*"
+                        }
                     },
                     DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
                     {
@@ -1496,7 +1502,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             var status = Status.GeneralError.Clone("Warm Query not setup");
 
-            if (!apps.Any(app => app.PathRegex == $"/api/data-flow/{dfLookup}/warm-query*"))
+            if (!apps.Any(app => app.Config.PathRegex == $"/api/data-flow/{dfLookup}/warm-query*"))
             {
                 log.LogInformation("Setting up warm query.");
 
@@ -1516,7 +1522,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                         {
                             Name = $"Warm Query APIs - {dfLookup} - {infraDet.DisplayName}",
                             Description = "These API proxies make it easy to connect and work with your observational data.",
-                            PathRegex = $"/api/data-flow/{dfLookup}/warm-query*"
+                            Config = new ApplicationLookupConfiguration()
+                            {
+                                PathRegex = $"/api/data-flow/{dfLookup}/warm-query*"
+                            }
                         },
                         DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
                         {
@@ -1550,7 +1559,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             var status = Status.GeneralError.Clone("Data Stream not setup");
 
-            if (!apps.Any(app => app.PathRegex == $"/api/data-flow/{dfLookup}/data-stream*"))
+            if (!apps.Any(app => app.Config.PathRegex == $"/api/data-flow/{dfLookup}/data-stream*"))
             {
                 log.LogInformation("Setting up data stream.");
 
@@ -1570,7 +1579,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                         {
                             Name = $"Data Stream APIs - {dfLookup} - {infraDet.DisplayName}",
                             Description = "This API proxies make it easy to connect and send your own device data.",
-                            PathRegex = $"/api/data-flow/{dfLookup}/data-stream*"
+                            Config = new ApplicationLookupConfiguration()
+                            {
+                                PathRegex = $"/api/data-flow/{dfLookup}/data-stream*"
+                            }
                         },
                         DAFApps = new List<Graphs.Registry.Enterprises.Apps.DAFApplication>()
                         {
