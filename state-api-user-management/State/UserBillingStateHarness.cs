@@ -192,11 +192,16 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> HandleChargeFailed(EnterpriseManagerClient entMgr, string entLookup, Stripe.Event stripeEvent)
         {
+
+            string fromEmail = "alerts@fathym.com";
+
             string supportEmail = "support@fathym.com";
+
+            string customerName = State.CustomerName;
 
             State.SuspendAccountOn = DateTime.Now.AddDays(15);
 
-            string suspendOn = State.SuspendAccountOn.ToString();
+            string suspendOnStr = State.SuspendAccountOn.ToString();
 
             State.PaymentStatus = Status.Conflict;
 
@@ -206,30 +211,31 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             //email the user that their cc needs to be updated and the charge failed with link to update cc
             var suspensionNotice = new SendNotificationRequest()
                 {
-                    EmailFrom = supportEmail,
-                    EmailTo = State.CustomerName,
-                    Subject = "Subscription Suspension",
-                    Content = String.Format(@"Hi there\n\n Thanks for trying out Fathym! Unfortunately the credit card on file failed to process when being charged for your subscription. \n\n
-                                Please update your card on file or your Fathym subscriptions will be suspended on {0}. \n\n
-                                Thanks again,\n
-                                Team Fathym", suspendOn),
-                    ReplyTo = ""
+                    
+                        EmailFrom = fromEmail,
+                        EmailTo = customerName,
+                        dynamic_template_data = new TemplateDataModel 
+                            {
+                                suspendOn = suspendOnStr
+                            },
+                        template_id = "d-b7fb6618e8d3466b94bffd27e5a43f16"
+                    
                 };
-            await SendNotification(entMgr, entLookup, State.CustomerName, suspensionNotice);
+            await SendTemplateEmail(entMgr, entLookup, suspensionNotice);
 
             //email fathym support about the card failure
             var cardFailedNotice = new SendNotificationRequest()
                 {
-                    EmailFrom = supportEmail,
+                    EmailFrom = fromEmail,
                     EmailTo = supportEmail,
-                    Subject = "Customer Card Failed",
-                    Content = String.Format(@"Hi there\n\n Unfortunately a credit card on file failed to process when being charged for their subscription. \n\n
-                                The user: {0} will need to have their accounts manually suspended on {1} if they do not update their credit card information. \n\n
-                                Thanks again,\n
-                                Team Fathym", State.CustomerName, suspendOn),
-                    ReplyTo = ""
+                    dynamic_template_data = new TemplateDataModel 
+                            {
+                                userName = customerName,
+                                suspendOn = suspendOnStr
+                            },
+                        template_id = "d-8048d19cfc264ca6a364a964d1deec76"
                 };
-            await SendNotification(entMgr, entLookup, State.CustomerName, cardFailedNotice);
+            await SendTemplateEmail(entMgr, entLookup, cardFailedNotice);
 
 
             //TODO automate pause the users account with fathym after 15 day grace period once event is recieved
@@ -302,6 +308,18 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             model.Metadata.Add(new KeyValuePair<string, JToken>("SendNotificationRequest", JToken.Parse(JsonConvert.SerializeObject(notification))));
 
             await entMgr.SendNotificationEmail(model, entLookup);
+
+            return Status.Success;
+        }
+
+        public virtual async Task<Status> SendTemplateEmail(EnterpriseManagerClient entMgr, string entLookup, SendNotificationRequest notification)
+        {
+            // Send email from app manager client 
+            var model = new MetadataModel();
+
+            model.Metadata.Add(new KeyValuePair<string, JToken>("TemplateEmail", JToken.Parse(JsonConvert.SerializeObject(notification))));
+
+            await entMgr.SendTemplateEmail(model, entLookup);
 
             return Status.Success;
         }

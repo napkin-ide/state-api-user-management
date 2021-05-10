@@ -74,4 +74,32 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         [DataMember]
         public virtual string Name { get; set; }
     }
+
+    [DataContract]
+    public class TemplateEmailModel
+    {
+        [DataMember]
+        public virtual string EmailFrom { get; set; }
+
+        [DataMember]
+        public virtual string EmailTo { get; set; }
+
+        [DataMember]
+        public virtual TemplateDataModel TemplateData { get; set; }
+                            
+        [DataMember]
+        public virtual string TemplateId { get; set; }
+
+    }
+
+    [DataContract]
+    public class TemplateDataModel
+    {
+        [DataMember]
+        public virtual string suspendOn { get; set; }
+
+        [DataMember]
+        public virtual string userName { get; set; }
+
+    }
 }

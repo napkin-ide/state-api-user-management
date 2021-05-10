@@ -342,6 +342,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual async Task<Status> CancelSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entLookup, string username, string reason)
         {
             string mrktEmail = "marketing@fathym.com";
+            
+            string fromEmail = "alerts@fathym.com";
 
             // get subscription token by user name
             var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-STRIPE-SUBSCRIPTION-ID");
@@ -370,7 +372,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 var cancelNotice = new SendNotificationRequest()
                 {
-                    EmailFrom = mrktEmail,
+                    EmailFrom = fromEmail,
                     EmailTo = username,
                     Subject = "Subscription Cancelled",
                     Content = @"Hi there\n\nThanks for trying out Fathym! We are constantly upgrading and improving our framework and hope see you again someday soon. \n\n
