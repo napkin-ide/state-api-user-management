@@ -39,6 +39,16 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
         
         [DataMember]
         public virtual string EmailFrom { get; set; }
+        
+        [DataMember]
+        public virtual string template_id { get; set; }
+
+        [DataMember]
+        public virtual object dynamic_template_data { get; set; }
+
+        [DataMember]
+        public virtual object TemplateEmail { get; set; }
+
     }
 
     public class SendNotification
