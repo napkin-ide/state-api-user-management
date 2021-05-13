@@ -96,7 +96,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
                 switch (stripeEvent.Type)
                 {
                     case Events.ChargeFailed:
-                        status = await harness.HandleChargeFailed(entMgr, stateDetails.EnterpriseLookup, stripeEvent);
+                        status = await harness.HandleChargeFailed(entMgr, stateDetails.EnterpriseLookup, stateDetails.Username, stripeEvent);
                         break;
 
                     default:
