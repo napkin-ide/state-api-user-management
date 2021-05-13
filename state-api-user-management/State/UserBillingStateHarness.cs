@@ -135,7 +135,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             State.PaymentStatus = completeResp.Status;
 
-            if (State.PaymentStatus)
+            if (State.PaymentStatus == Status.Success)
             {
                 State.PurchasedPlanLookup = plan;
 
@@ -190,14 +190,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 State.RequiredOptIns.Add("EA");
         }
 
-        public virtual async Task<Status> HandleChargeFailed(EnterpriseManagerClient entMgr, string entLookup, Stripe.Event stripeEvent)
+        public virtual async Task<Status> HandleChargeFailed(EnterpriseManagerClient entMgr, string entLookup, string userEmail, Stripe.Event stripeEvent)
         {
 
             string fromEmail = "alerts@fathym.com";
 
             string supportEmail = "support@fathym.com";
-
-            string customerName = State.CustomerName;
 
             State.SuspendAccountOn = DateTime.Now.AddDays(15);
 
@@ -213,7 +211,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 {
                     
                         EmailFrom = fromEmail,
-                        EmailTo = customerName,
+                        EmailTo = userEmail,
                         dynamic_template_data = new TemplateDataModel 
                             {
                                 suspendOn = suspendOnStr
@@ -230,7 +228,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     EmailTo = supportEmail,
                     dynamic_template_data = new TemplateDataModel 
                             {
-                                userName = customerName,
+                                userName = userEmail,
                                 suspendOn = suspendOnStr
                             },
                         template_id = "d-8048d19cfc264ca6a364a964d1deec76"
