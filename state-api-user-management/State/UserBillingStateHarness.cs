@@ -135,7 +135,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             State.PaymentStatus = completeResp.Status;
 
-            if (State.PaymentStatus == Status.Success)
+            if (State.PaymentStatus.Code == 0 )
             {
                 State.PurchasedPlanLookup = plan;
 
@@ -175,6 +175,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
                 State.SuccessRedirect = planOption.Metadata["SuccessRedirect"].ToString();
             }
+
+            else{
+                //TODO handle when payment fails but subscription is assigned
+            }
         }
 
         public virtual async Task DetermineRequiredOptIns(SecurityManagerClient secMgr, string entLookup, string username)
@@ -190,7 +194,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 State.RequiredOptIns.Add("EA");
         }
 
-        public virtual async Task<Status> HandleChargeFailed(EnterpriseManagerClient entMgr, string entLookup, string userEmail, Stripe.Event stripeEvent)
+        public virtual async Task<Status> HandleChargeFailed(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, string entLookup, string userEmail, Stripe.Event stripeEvent)
         {
 
             string fromEmail = "alerts@fathym.com";
@@ -205,8 +209,17 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             log.LogInformation($"Users State {State.ToJSON()}");
 
+            userEmail = "george.hatch@fathym.com";
 
-            //email the user that their cc needs to be updated and the charge failed with link to update cc
+            var usersLics = await entMgr.GetCustomersIncompleteLicenseTypes(userEmail, entLookup);
+
+            log.LogInformation($"Users licenses {usersLics}");
+
+            if(usersLics.Model.IsNullOrEmpty()){
+                //existing user with license              
+
+                //email the user that their cc needs to be updated and the charge failed with link to update cc
+            
             var suspensionNotice = new SendNotificationRequest()
                 {
                     
@@ -234,6 +247,21 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                         template_id = "d-8048d19cfc264ca6a364a964d1deec76"
                 };
             await SendTemplateEmail(entMgr, entLookup, cardFailedNotice);
+            }
+
+            if(!usersLics.Model.IsNullOrEmpty()){
+                //new user signup that failed
+
+                var ccFailedNotice = new SendNotificationRequest()
+                {
+                        EmailFrom = fromEmail,
+                        EmailTo = userEmail,
+                        dynamic_template_data = new TemplateDataModel 
+                            { },
+                        template_id = "d-ecd308931cc54e4f91f5d795f323cd95"
+                };
+            await SendTemplateEmail(entMgr, entLookup, ccFailedNotice);
+            }   
 
 
             //TODO automate pause the users account with fathym after 15 day grace period once event is recieved
@@ -286,8 +314,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual void ResetStateCheck(bool force = false)
         {
-            // if (force || State.PaymentStatus)
-            //     State = new UserBillingState();
+            if (force || State.PaymentStatus)
+                State = new UserBillingState();
 
             if (force)
                 State = new UserBillingState();
