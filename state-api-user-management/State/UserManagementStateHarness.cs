@@ -754,6 +754,16 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
+        public virtual async Task GetUserDetails(IdentityManagerClient idMgr, string entLookup, string username)
+        {       
+                State.EnvironmentLookup = Environment.GetEnvironmentVariable("EnvironmentLookup");
+                // get subscription details 
+                var userDetails = await idMgr.GetUserDetails(entLookup, State.EnvironmentLookup, username);
+
+                // TODO: need to return all subscriptions, not just one. Need to create new UI for subscription management
+                State.RegistrationDate = (DateTime)(userDetails.Model.Metadata["createdDateTime"]);
+        }
+
         public virtual async Task<Status> GrantAccess(ApplicationManagerClient appMgr, string entLookup, string token)
         {
             var response = await appMgr.GrantAccess(token, entLookup);
@@ -811,20 +821,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task LoadSubscriptionDetails(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entLookup, string username)
         {
-            // get subscription token by user name
-            var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-STRIPE-SUBSCRIPTION-ID");
-
-            string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"]?.ToString();
-
-            if (!String.IsNullOrEmpty(subId))
-            {
+                var request = new GetStripeSubscriptionsDetailsRequest(){
+                    Username = username
+                };
 
                 // get subscription details 
-                var subDetails = await entMgr.GetStripeSubscriptionDetails(subId, entLookup);
+                var subDetails = await entMgr.GetStripeSubscriptionsDetails(request, entLookup);
 
-                State.SubscriptionDetails = subDetails.Model;
-            }
-
+                // TODO: need to return all subscriptions, not just one. Need to create new UI for subscription management
+                State.SubscriptionDetails = subDetails.Model.FirstOrDefault();
         }
 
         public virtual async Task<Status> RequestAuthorization(SecurityManagerClient secMgr, ApplicationManagerClient appMgr, IdentityManagerClient idMgr, string userID, string enterpriseID, string hostName)
