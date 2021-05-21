@@ -84,6 +84,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
             var exActReq = await req.LoadBody<ExecuteActionRequest>();
 
+
+
             //If Stripe.Event doesn't work... MetadataModel
             return await stateBlob.WithStateHarness<UserBillingState, Stripe.Event, UserBillingStateHarness>(stateDetails, exActReq,
                 signalRMessages, log,
@@ -96,7 +98,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
                 switch (stripeEvent.Type)
                 {
                     case Events.ChargeFailed:
-                        status = await harness.HandleChargeFailed(entMgr, stateDetails.EnterpriseLookup, stateDetails.Username, stripeEvent);
+                        status = await harness.HandleChargeFailed(entMgr, idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, stripeEvent);
                         break;
 
                     default:
