@@ -209,8 +209,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             log.LogInformation($"Users State {State.ToJSON()}");
 
-            userEmail = "george.hatch@fathym.com";
-
             var usersLics = await entMgr.GetCustomersIncompleteLicenseTypes(userEmail, entLookup);
 
             log.LogInformation($"Users licenses {usersLics}");
