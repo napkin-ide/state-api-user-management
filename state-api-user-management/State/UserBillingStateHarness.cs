@@ -201,6 +201,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             string supportEmail = "support@fathym.com";
 
+            userEmail = "georgehatch91@gmail.com";
+
             State.SuspendAccountOn = DateTime.Now.AddDays(15);
 
             string suspendOnStr = State.SuspendAccountOn.ToString();
@@ -210,6 +212,27 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             log.LogInformation($"Users State {State.ToJSON()}");
 
             var usersLics = await entMgr.GetCustomersIncompleteLicenseTypes(userEmail, entLookup);
+
+            var usersCard = await entMgr.GetStripeCustomerCardDetails(userEmail, entLookup);
+
+            var usersProductInfo = await entMgr.GetCustomersIncompleteLicenseTypes(userEmail, entLookup);
+
+            //TODO hook up gist stuff 
+            //ensure userProductInfo is working
+            // idMgr.SendGistEvent();
+
+            var gistEvent = new {
+                event_name = "Card Failed",
+                email = userEmail,
+                properties = new {
+                    productName = "iot",
+                    productPlan = "pro",
+                    productFrequency = "monthly",
+                    purcahseDate = "date",
+                    cardBrand = usersCard.Model.Brand,
+                    lastFour = usersCard.Model.LastFour
+                }
+            };
 
             log.LogInformation($"Users licenses {usersLics}");
 
@@ -230,7 +253,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                         template_id = "d-b7fb6618e8d3466b94bffd27e5a43f16"
                     
                 };
-            await SendTemplateEmail(entMgr, entLookup, suspensionNotice);
+            // await SendTemplateEmail(entMgr, entLookup, suspensionNotice);
 
             //email fathym support about the card failure
             var cardFailedNotice = new SendNotificationRequest()
@@ -244,7 +267,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                             },
                         template_id = "d-8048d19cfc264ca6a364a964d1deec76"
                 };
-            await SendTemplateEmail(entMgr, entLookup, cardFailedNotice);
+            // await SendTemplateEmail(entMgr, entLookup, cardFailedNotice);
             }
 
             if(!usersLics.Model.IsNullOrEmpty()){
