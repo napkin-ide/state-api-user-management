@@ -28,6 +28,7 @@ using LCU.Graphs.Registry.Enterprises.Identity;
 using LCU.State.API.NapkinIDE.UserManagement.Management;
 using Newtonsoft.Json.Linq;
 using Fathym.Design;
+using LCU.Personas.Applications;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.State
 {
@@ -194,14 +195,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 State.RequiredOptIns.Add("EA");
         }
 
-        public virtual async Task<Status> HandleChargeFailed(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, string entLookup, string userEmail, Stripe.Event stripeEvent)
+        public virtual async Task<Status> HandleChargeFailed(EnterpriseManagerClient entMgr, ApplicationManagerClient appMgr, string entLookup, string userEmail, Stripe.Event stripeEvent)
         {
 
             string fromEmail = "alerts@fathym.com";
 
             string supportEmail = "support@fathym.com";
 
-            userEmail = "georgehatch91@gmail.com";
+            userEmail = "george.hatch@fathym.com";
 
             State.SuspendAccountOn = DateTime.Now.AddDays(15);
 
@@ -215,24 +216,29 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             var usersCard = await entMgr.GetStripeCustomerCardDetails(userEmail, entLookup);
 
-            var usersProductInfo = await entMgr.GetCustomersIncompleteLicenseTypes(userEmail, entLookup);
+            var usersProductInfo = await entMgr.GetCustomersIncompletePlanInfo(userEmail, entLookup);
 
             //TODO hook up gist stuff 
             //ensure userProductInfo is working
-            // idMgr.SendGistEvent();
 
-            var gistEvent = new {
+            if(usersProductInfo.Model != null)
+            {
+                var gistEvent = new GistEvent{
                 event_name = "Card Failed",
                 email = userEmail,
                 properties = new {
-                    productName = "iot",
-                    productPlan = "pro",
-                    productFrequency = "monthly",
-                    purcahseDate = "date",
+                    productName = usersProductInfo.Model.ProductName,
+                    productPlan = usersProductInfo.Model.ProductTier,
+                    productFrequency = usersProductInfo.Model.ProductFrequency,
+                    purcahseDate = usersProductInfo.Model.PurchaseDate,
                     cardBrand = usersCard.Model.Brand,
                     lastFour = usersCard.Model.LastFour
                 }
             };
+            //Issues in appMgr...
+            var gistEventResponse = await appMgr.SendGistEvent(gistEvent, entLookup);
+
+            }
 
             log.LogInformation($"Users licenses {usersLics}");
 

@@ -102,4 +102,6 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual string userName { get; set; }
 
     }
+
+     
 }

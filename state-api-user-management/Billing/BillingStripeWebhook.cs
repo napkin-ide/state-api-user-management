@@ -13,6 +13,7 @@ using Fathym;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using LCU.Personas.Client.Applications;
 using LCU.Personas.Client.Enterprises;
 using LCU.Personas.Client.Identity;
 using LCU.StateAPI.Utilities;
@@ -29,10 +30,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
         protected readonly IdentityManagerClient idMgr;
 
+        protected readonly ApplicationManagerClient appMgr;
+
         protected readonly SecurityManagerClient secMgr;
 
-        public BillingStripeWebhook(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
+        public BillingStripeWebhook(ApplicationManagerClient appMgr, EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
         {
+            this.appMgr = appMgr;
+
             this.entMgr = entMgr;
 
             this.secMgr = secMgr;
@@ -98,7 +103,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
                 switch (stripeEvent.Type)
                 {
                     case Events.ChargeFailed:
-                        status = await harness.HandleChargeFailed(entMgr, idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, stripeEvent);
+                        status = await harness.HandleChargeFailed(entMgr, appMgr, stateDetails.EnterpriseLookup, stateDetails.Username, stripeEvent);
                         break;
 
                     default:
