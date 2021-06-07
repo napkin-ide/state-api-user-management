@@ -339,16 +339,16 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> CancelSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entLookup, string username, string reason)
+        public virtual async Task<Status> CancelSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entLookup, string username, string reason, string licenseType)
         {
             string mrktEmail = "marketing@fathym.com";
             
             string fromEmail = "alerts@fathym.com";
 
             // get subscription token by user name
-            var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-STRIPE-SUBSCRIPTION-ID");
+            var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, $"LCU-STRIPE-SUBSCRIPTION-ID-{licenseType}");
 
-            string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"].ToString();
+            string subId = subIdToken.Model[$"LCU-STRIPE-SUBSCRIPTION-ID-{licenseType}"].ToString();
 
             if (String.IsNullOrEmpty(subId)) return Status.GeneralError.Clone($"No subscripton ID was found for user {username}");
 
@@ -360,7 +360,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             {
 
                 // Get the user's LATs from the graph db
-                var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() { "LCU" });
+                var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() {licenseType});
 
                 // Expire the LAT
                 foreach (LicenseAccessToken token in licenseAccess.Model)
@@ -809,12 +809,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             }
         }
 
-        public virtual async Task LoadSubscriptionDetails(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entLookup, string username)
+        public virtual async Task LoadSubscriptionDetails(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entLookup, string username, string licenseType)
         {
             // get subscription token by user name
-            var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-STRIPE-SUBSCRIPTION-ID");
+            var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, $"LCU-STRIPE-SUBSCRIPTION-ID-{licenseType}");
 
-            string subId = subIdToken.Model["LCU-STRIPE-SUBSCRIPTION-ID"]?.ToString();
+            string subId = subIdToken.Model[$"LCU-STRIPE-SUBSCRIPTION-ID-{licenseType}"]?.ToString();
 
             if (!String.IsNullOrEmpty(subId))
             {
@@ -1122,32 +1122,33 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual async Task<Status> ValidateSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr,
             string entLookup, string username, string subscriberId)
         {
-            // Get subscription status from Stripe for a user
-            var response = await entMgr.ValidateSubscription(subscriberId, entLookup);
+            // // Get subscription status from Stripe for a user
+            // var response = await entMgr.ValidateSubscription(subscriberId, entLookup);
 
-            // If subscription status is inactive
-            if (!response.Status)
-            {
+            // // If subscription status is inactive
+            // if (!response.Status)
+            // {
 
-                // Get the user's LATs from the graph db
-                var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() { "LCU" });
+            //     // Get the user's LATs from the graph db
+            //     var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() { "LCU" });
 
-                // If user has a LAT that is not limited trial, expire the LAT
-                foreach (LicenseAccessToken token in licenseAccess.Model)
-                {
+            //     // If user has a LAT that is not limited trial, expire the LAT
+            //     foreach (LicenseAccessToken token in licenseAccess.Model)
+            //     {
 
-                    token.IsLocked = true;
+            //         token.IsLocked = true;
 
-                    if (token.Lookup != "LCU.NapkinIDE.LimitedTrial")
-                    {
-                        await idMgr.IssueLicenseAccess(token, entLookup);
-                    }
-                }
+            //         if (token.Lookup != "LCU.NapkinIDE.LimitedTrial")
+            //         {
+            //             await idMgr.IssueLicenseAccess(token, entLookup);
+            //         }
+            //     }
 
-                return Status.Success;
-            }
+            //     return Status.Success;
+            // }
 
-            return response.Status;
+            // return response.Status;
+            throw new NotImplementedException();
         }
 
         public virtual async Task<Status> VerifyDAFInfrastructure(EnterpriseManagerClient entMgr, DevOpsArchitectClient devOpsArch,

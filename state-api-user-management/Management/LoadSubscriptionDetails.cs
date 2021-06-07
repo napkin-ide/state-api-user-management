@@ -46,7 +46,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                await harness.LoadSubscriptionDetails(engMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username);
+                //TODO: Remove hardcoded LCU
+                
+                await harness.LoadSubscriptionDetails(engMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, "LCU");
 
                 return Status.Success;
             });
