@@ -81,8 +81,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 var resp = await secMgr.SetIdentityThirdPartyData(entLookup, username, new Dictionary<string, string>()
                 {
                     { "LCU-USER-BILLING.TermsOfService", DateTimeOffset.UtcNow.ToString() },
-                    { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() },
-                    { "LCU-STRIPE-SUBSCRIPTION-ID", completeResp.SubscriptionID}
+                    { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() }
+                    // { "LCU-STRIPE-SUBSCRIPTION-ID", completeResp.SubscriptionID}
                 });
 
                 //issue new license access
@@ -143,7 +143,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 {
                     { "LCU-USER-BILLING.TermsOfService", DateTimeOffset.UtcNow.ToString() },
                     { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() },
-                    { "LCU-STRIPE-SUBSCRIPTION-ID", completeResp.SubscriptionID}
+                    // { "LCU-STRIPE-SUBSCRIPTION-ID", completeResp.SubscriptionID}
                 });
 
                 var setLicenseAccessResp = await DesignOutline.Instance.Chain<BaseResponse>()
