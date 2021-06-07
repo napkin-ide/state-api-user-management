@@ -28,6 +28,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
         [DataMember]
         public virtual string CancellationReason { get; set; }
 
+        [DataMember]
+        public virtual string LicenseType { get; set; }
+
     }
 
     public class CancelSubscription
@@ -59,7 +62,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                var status =  await harness.CancelSubscription(engMgr, idMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, reqData.CancellationReason);
+                var status =  await harness.CancelSubscription(engMgr, idMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, reqData.CancellationReason, reqData.LicenseType);
 
                 return status;
             });
