@@ -17,9 +17,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using System.Threading.Tasks;
 
-[assembly: FunctionsStartup(typeof(LCU.State.API.NapkinIDE.UserManagement.Host.Startup))]
+[assembly: FunctionsStartup(typeof(LCU.State.API.UserManagement.Host.Startup))]
 
-namespace LCU.State.API.NapkinIDE.UserManagement.Host
+namespace LCU.State.API.UserManagement.Host
 {
     public class Startup : StateAPIStartup
     {
