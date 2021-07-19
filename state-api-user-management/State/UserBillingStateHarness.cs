@@ -28,6 +28,7 @@ using LCU.Graphs.Registry.Enterprises.Identity;
 using LCU.State.API.NapkinIDE.UserManagement.Management;
 using Newtonsoft.Json.Linq;
 using Fathym.Design;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.State
 {
@@ -280,9 +281,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return (licenseAccess != null) ? Status.Success : Status.Unauthorized.Clone($"No licenses found for user {username}");
         }
 
-        public virtual async Task LoadBillingPlans(EnterpriseManagerClient entMgr, string entLookup, string licenseType)
+        public virtual async Task LoadBillingPlans(IEnterprisesBillingManagerService entBillingMgr, string entLookup, string licenseType)
         {
-            var plansResp = await entMgr.ListBillingPlanOptions(entLookup, licenseType);
+            var plansResp = await entBillingMgr.ListBillingPlanOptions(entLookup, licenseType);
 
             State.Plans = plansResp.Model ?? new List<BillingPlanOption>();
 
@@ -297,11 +298,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             })?.PlanGroup;
         }
 
-        public virtual async Task Refresh(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entLookup, string username, string licenseType)
+        public virtual async Task Refresh(IEnterprisesBillingManagerService entBillingMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entLookup, string username, string licenseType)
         {
             ResetStateCheck();
 
-            await LoadBillingPlans(entMgr, entLookup, licenseType);
+            await LoadBillingPlans(entBillingMgr, entLookup, licenseType);
 
             SetUsername(username);
 

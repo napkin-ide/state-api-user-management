@@ -21,6 +21,7 @@ using LCU.Personas.Client.Identity;
 using LCU.Personas.Client.Enterprises;
 using LCU.Personas.Client.Security;
 using LCU.State.API.NapkinIDE.UserManagement.State;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Host
 {
@@ -44,19 +45,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
 
     public class Refresh
     {
-        protected readonly EnterpriseArchitectClient entArch;
-
-        protected readonly EnterpriseManagerClient entMgr;
+        protected readonly IEnterprisesBillingManagerService entBillingMgr;
 
         protected readonly IdentityManagerClient idMgr;
 
         protected readonly SecurityManagerClient secMgr;
 
-        public Refresh(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr)
+        public Refresh(IEnterprisesBillingManagerService entBillingMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr)
         {
-            this.entArch = entArch;
-
-            this.entMgr = entMgr;
+            this.entBillingMgr = entBillingMgr;
 
             this.idMgr = idMgr;
 
@@ -93,7 +90,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
         #region Helpers
         protected virtual async Task<Status> refreshUserBilling(UserBillingStateHarness harness, ILogger log, StateDetails stateDetails, RefreshBillingRequest request)
         {
-            await harness.Refresh(entMgr, idMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, request.LicenseType);
+            await harness.Refresh(entBillingMgr, idMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, request.LicenseType);
 
             return Status.Success;
         }
