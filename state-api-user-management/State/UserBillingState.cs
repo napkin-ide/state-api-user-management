@@ -2,8 +2,8 @@ using System;
 using Fathym;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
-using LCU.Personas.Enterprises;
 using LCU.Graphs.Registry.Enterprises.Identity;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.State
 {

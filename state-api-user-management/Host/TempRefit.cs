@@ -64,7 +64,7 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
         Task<BaseResponse> CancelSubscriptionByUser(string username, string entLookup, string licenseType);
 	}
 
-    public interface IIdentityManagerClient
+    public interface IIdentityAccessService
     {
         [Get("{entLookup}/license/{username}/{allAny}")]
         Task<BaseResponse<Fathym.MetadataModel>> HasLicenseAccess(string entLookup,string username, Personas.AllAnyTypes allAny, List<string> licenseTypes);
@@ -138,19 +138,34 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
 		[Get("/api-management/{entLookup}/api/{subType}/keys/{apiKey}/validate")]
 		Task<BaseResponse<MetadataModel>> VerifyAPIKey(string entLookup, string subType, string apiKey);
 	}
+    
+    public interface ISecurityDataTokenService
+    {
+        [Get("/data-tokens/{tokenLookup}")]
+        Task<BaseResponse<DataToken>> GetDataToken(string tokenLookup,
+            [Query] string entLookup = null, [Query] string email = null, [Query] Guid? projectId = null,
+            [Query] Guid? appId = null, [Query] Guid? passportId = null, [Query] Guid? licenseId = null,
+            [Query] bool cascadeChecks = true);
+
+        [Post("/data-tokens")]
+        Task<BaseResponse<DataToken>> SetDataToken([Body] DataToken dataToken,
+            [Query] string entLookup = null, [Query] string email = null, [Query] Guid? projectId = null,
+            [Query] Guid? appId = null, [Query] Guid? passportId = null, [Query] Guid? licenseId = null);
+    }
 
     [DataContract]
-    public class APILowCodeUnit : LowCodeUnit
+    public class AccessRight : LCUVertex
     {
         [DataMember]
-        public virtual string APIRoot { get; set; }
+        public virtual string Description { get; set; }
 
         [DataMember]
-        public virtual string Security { get; set; }
+        public virtual string Lookup { get; set; }
 
-        //  TODO:  Fucntion mapping, AzureFunctionLowCodeUnit?
+        [DataMember]
+        public virtual string Name { get; set; }
     }
-	
+
     [DataContract]
     public class AzureCloud : Cloud
     {
@@ -167,6 +182,34 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
         public virtual string TenantID { get; set; }
     }
     
+    [DataContract]
+    public class BillingPlanOption : MetadataModel
+    {
+        [DataMember]
+        public virtual string Description { get; set; }
+
+        [DataMember]
+        public virtual decimal DiscountedFrom { get; set; }
+
+        [DataMember]
+        public virtual string Interval { get; set; }
+
+        [DataMember]
+        public virtual string Lookup { get; set; }
+
+        [DataMember]
+        public virtual string Name { get; set; }
+
+        [DataMember]
+        public virtual string PlanGroup { get; set; }
+
+        [DataMember]
+        public virtual decimal Price { get; set; }
+
+        [DataMember]
+        public virtual int Priority { get; set; }
+    }
+
     [DataContract]
     public class BootEnterpriseRequest : BaseRequest
     {
@@ -379,6 +422,48 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
     }
 
     [DataContract]
+    public class CompleteStripeSubscriptionResponse : BaseResponse
+    {
+        [DataMember]
+        public virtual string SubscriptionID { get; set; }
+    }
+
+    [DataContract]
+    public class CompleteStripeSubscriptionRequest : BaseRequest
+    {
+        [DataMember]
+        public virtual string CustomerName { get; set; }
+
+        [DataMember]
+        public virtual string PaymentMethodID { get; set; }
+
+        [DataMember]
+        public virtual string Plan { get; set; }
+
+        [DataMember]
+        public virtual int TrialPeriodDays { get; set; }
+
+        [DataMember]
+        public virtual string Username { get; set; }
+    }
+
+    [DataContract]
+    public class DataToken : LCUVertex
+    {
+        [DataMember]
+        public virtual string Description { get; set; }
+
+        [DataMember]
+        public virtual string Lookup { get; set; }
+
+        [DataMember]
+        public virtual string Name { get; set; }
+
+        [DataMember]
+        public virtual string Value { get; set; }
+    }
+
+    [DataContract]
     public class DeleteEnterpriseByLookupRequest : BaseRequest
     {
         [DataMember]
@@ -412,22 +497,6 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
     {
         [DataMember]
         public virtual string SubscriptionType { get; set; }
-    }
-  
-    [DataContract]
-    public class DataToken : LCUVertex
-    {
-        [DataMember]
-        public virtual string Description { get; set; }
-
-        [DataMember]
-        public virtual string Lookup { get; set; }
-
-        [DataMember]
-        public virtual string Name { get; set; }
-
-        [DataMember]
-        public virtual string Value { get; set; }
     }
 
     [DataContract]
@@ -663,6 +732,53 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
         [DataMember]
         public virtual string Version { get; set; }
     }
+    
+    [DataContract]
+    public class Plan : LCUVertex
+    {
+        [DataMember]
+        public virtual string Details { get; set; }
+
+        [DataMember]
+        public virtual string[] Features { get; set; }
+
+        [DataMember]
+        public virtual string Group { get; set; }
+
+        [DataMember]
+        public virtual string HeaderName { get; set; }
+        
+        [DataMember]
+        public virtual string Lookup { get; set; }
+
+        [DataMember]
+        public virtual string Name { get; set; }
+
+        [DataMember]
+        public virtual string Popular { get; set; }
+
+        [DataMember]
+        public virtual string Priorty { get; set; }
+
+        [DataMember]
+        public virtual string SuccessRedirect { get; set; }
+    }
+
+    [DataContract]
+    public class Price : LCUVertex
+    {
+        [DataMember]
+        public virtual string Currency { get; set; }
+
+        [DataMember]
+        public virtual float Discount { get; set; }
+
+        [DataMember]
+        public virtual string Interval { get; set; }
+
+        [DataMember]
+        public virtual float Value { get; set; }
+    }
 
     [DataContract]
     public class Secret : LCUVertex
@@ -684,6 +800,38 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
         public virtual string SPARoot { get; set; }
 
         //  TODO:  Fucntion mapping, AzureFunctionLowCodeUnit?
+    }
+
+    [DataContract]
+    public class StripeSubscriptionDetails
+    {
+        [DataMember]
+        public virtual DateTime BillingPeriodStart { get; set; }
+
+        [DataMember]
+        public virtual DateTime BillingPeriodEnd { get; set; }
+
+        [DataMember]
+        public virtual string BillingStatus { get; set; }
+
+        [DataMember]
+        public virtual string CollectionMethod { get; set; }
+
+        [DataMember]
+        public virtual DateTime SubscriptionCreated { get; set; }
+
+        [DataMember]
+        public virtual string CustomerId { get; set; }
+
+        [DataMember]
+        public virtual string SubscriptionId { get; set; }
+    }
+
+    [DataContract]
+    public class UpdateStripeSubscriptionResponse : BaseResponse
+    {
+        [DataMember]
+        public virtual string SubscriptionID { get; set; }
     }
 
     [DataContract]

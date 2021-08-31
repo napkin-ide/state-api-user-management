@@ -107,11 +107,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
 
             harness.DetermineSetupStep();
 
-            await harness.HasAzureOAuth(entMgr, stateDetails.EnterpriseLookup, stateDetails.Username);
+            // await harness.HasAzureOAuth(entMgr, stateDetails.EnterpriseLookup, stateDetails.Username);
             
             //TODO: Remove hardcoded LCU
             
-            await harness.LoadSubscriptionDetails(entMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, "LCU");
+            await harness.LoadSubscriptionDetails(entBillingMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, "LCU");
 
             await Task.WhenAll(new[]{
                 harness.LoadRegistrationHosts(entMgr, stateDetails.EnterpriseLookup),

@@ -32,6 +32,7 @@ using LCU.Personas.Security;
 using LCU.Personas;
 using LCU.State.API.NapkinIDE.UserManagement.Management;
 using LCU.Graphs.Registry.Enterprises.Apps;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.State
 {
@@ -761,12 +762,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return Status.Success;
         }
 
-        public virtual async Task HasAzureOAuth(EnterpriseManagerClient entMgr, string entLookup, string username)
-        {
-            // var hasDevOps = await entMgr.HasAzureOAuth(entLookup, username);
+        // public virtual async Task HasAzureOAuth(EnterpriseManagerClient entMgr, string entLookup, string username)
+        // {
+        //     // var hasDevOps = await entMgr.HasAzureOAuth(entLookup, username);
 
-            // State.HasAzureOAuth = hasDevOps.Status;
-        }
+        //     // State.HasAzureOAuth = hasDevOps.Status;
+        // }
 
         public virtual async Task<Status> HasLicenseAccessWithLookup(IdentityManagerClient idMgr, string entLookup, string username, string lookup)
         {
@@ -809,7 +810,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             }
         }
 
-        public virtual async Task LoadSubscriptionDetails(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entLookup, string username, string licenseType)
+        public virtual async Task LoadSubscriptionDetails(IEnterprisesBillingManagerService entBillingMgr, SecurityManagerClient secMgr, string entLookup, string username, string licenseType)
         {
             // get subscription token by user name
             var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, $"LCU-STRIPE-SUBSCRIPTION-ID-{licenseType}");
@@ -820,11 +821,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             {
 
                 // get subscription details 
-                var subDetails = await entMgr.GetStripeSubscriptionDetails(subId, entLookup);
+                var subDetails = await entBillingMgr.GetStripeSubscriptionDetails(subId, entLookup);
 
                 State.SubscriptionDetails = subDetails.Model;
             }
-
         }
 
         public virtual async Task<Status> RequestAuthorization(SecurityManagerClient secMgr, ApplicationManagerClient appMgr, IdentityManagerClient idMgr, string userID, string enterpriseID, string hostName)

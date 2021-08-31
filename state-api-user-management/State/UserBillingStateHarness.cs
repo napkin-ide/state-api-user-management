@@ -195,7 +195,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 State.RequiredOptIns.Add("EA");
         }
 
-        public virtual async Task<Status> HandleChargeFailed(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, string entLookup, string userEmail, Stripe.Event stripeEvent)
+        public virtual async Task<Status> HandleChargeFailed(IEnterprisesBillingManagerService entBillingMgr, IdentityManagerClient idMgr, string entLookup, string userEmail, Stripe.Event stripeEvent)
         {
 
             string fromEmail = "alerts@fathym.com";
@@ -210,7 +210,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             log.LogInformation($"Users State {State.ToJSON()}");
 
-            var usersLics = await entMgr.GetCustomersIncompleteLicenseTypes(userEmail, entLookup);
+            var usersLics = await entBillingMgr.GetCustomersIncompleteLicenseTypes(userEmail, entLookup);
 
             log.LogInformation($"Users licenses {usersLics}");
 
@@ -231,7 +231,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                         template_id = "d-b7fb6618e8d3466b94bffd27e5a43f16"
                     
                 };
-            await SendTemplateEmail(entMgr, entLookup, suspensionNotice);
+            await SendTemplateEmail(entBillingMgr, entLookup, suspensionNotice);
 
             //email fathym support about the card failure
             var cardFailedNotice = new SendNotificationRequest()
@@ -285,7 +285,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         {
             var plansResp = await entBillingMgr.ListBillingPlanOptions(entLookup, licenseType);
 
-            State.Plans = plansResp.Model ?? new List<BillingPlanOption>();
+            State.Plans = plansResp.Model ?? new List<API.UserManagement.Host.TempRefit.BillingPlanOption>();
 
             State.FeaturedPlanGroup = State.Plans.FirstOrDefault(plan =>
             {
