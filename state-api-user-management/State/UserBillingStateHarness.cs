@@ -17,9 +17,7 @@ using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Newtonsoft.Json.Converters;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
-using LCU.Personas.Client.Enterprises;
 using LCU.Personas.Client.DevOps;
-using LCU.Personas.Enterprises;
 using LCU.Personas.Client.Applications;
 using LCU.Personas.Client.Identity;
 using Fathym.API;
@@ -48,7 +46,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         #region API Methods
 
-        public virtual async Task ChangeSubscription(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr, string entLookup,
+        public virtual async Task ChangeSubscription(IEnterprisesBillingManagerService entMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr, string entLookup,
             string username, string customerName, string plan)
         {
             //cancel existing subscription 
@@ -109,7 +107,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.Loading = false;
         }
 
-        public virtual async Task CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr, string entLookup,
+        public virtual async Task CompletePayment(IEnterprisesBillingManagerService entMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr, string entLookup,
             string username, string methodId, string customerName, string plan, int trialPeriodDays)
         {
             State.CustomerName = customerName;
@@ -182,20 +180,22 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             }
         }
 
-        public virtual async Task DetermineRequiredOptIns(SecurityManagerClient secMgr, string entLookup, string username)
+        public virtual async Task DetermineRequiredOptIns(ISecurityDataTokenService secMgr, string entLookup, string username)
         {
-            var thirdPartyData = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-USER-BILLING.TermsOfService", "LCU-USER-BILLING.EnterpriseAgreement");
+            var tosDataToken = await secMgr.GetDataToken("LCU-USER-BILLING.TermsOfService", entLookup, username);
+
+            var eaDataToken = await secMgr.GetDataToken("LCU-USER-BILLING.EnterpriseAgreement", entLookup, username);
 
             State.RequiredOptIns = new List<string>();
 
-            if (!thirdPartyData.Status || !thirdPartyData.Model.ContainsKey("LCU-USER-BILLING.TermsOfService"))
+            if (!tosDataToken.Status || tosDataToken.Model.Lookup != "LCU-USER-BILLING.TermsOfService")
                 State.RequiredOptIns.Add("ToS");
 
-            if (!thirdPartyData.Status || !thirdPartyData.Model.ContainsKey("LCU-USER-BILLING.EnterpriseAgreement"))
+            if (!eaDataToken.Status || eaDataToken.Model.Lookup != "LCU-USER-BILLING.EnterpriseAgreement")
                 State.RequiredOptIns.Add("EA");
         }
 
-        public virtual async Task<Status> HandleChargeFailed(IEnterprisesBillingManagerService entBillingMgr, IdentityManagerClient idMgr, string entLookup, string userEmail, Stripe.Event stripeEvent)
+        public virtual async Task<Status> HandleChargeFailed(IEnterprisesBillingManagerService entBillingMgr, IIdentityAccessService idMgr, string entLookup, string userEmail, Stripe.Event stripeEvent)
         {
 
             string fromEmail = "alerts@fathym.com";
@@ -272,9 +272,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             // throw new NotImplementedException();
         }
         
-        public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entLookup, string username, string licenseType)
+        public virtual async Task<Status> ListLicenses(IIdentityAccessService idAccessSvc, string entLookup, string username, string licenseType)
         {
-            var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() { licenseType });
+            var licenseAccess = await idAccessSvc.ListLicensesByUsername(entLookup, username, new List<string>() { licenseType });
 
             State.ExistingLicenseTypes = licenseAccess.Model;
 
@@ -298,7 +298,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             })?.PlanGroup;
         }
 
-        public virtual async Task Refresh(IEnterprisesBillingManagerService entBillingMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entLookup, string username, string licenseType)
+        public virtual async Task Refresh(IEnterprisesBillingManagerService entBillingMgr, IIdentityAccessService idAccessSvc, ISecurityDataTokenService secMgr, string entLookup, string username, string licenseType)
         {
             ResetStateCheck();
 
@@ -308,7 +308,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
             await DetermineRequiredOptIns(secMgr, entLookup, username);
 
-            await ListLicenses(idMgr, entLookup, username, licenseType);
+            await ListLicenses(idAccessSvc, entLookup, username, licenseType);
         }
 
         public virtual void ResetStateCheck(bool force = false)
@@ -325,19 +325,19 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.Username = username;
         }
 
-        public virtual async Task<Status> SendNotification(EnterpriseManagerClient entMgr, string entLookup, string username, SendNotificationRequest notification)
-        {
-            // Send email from app manager client 
-            var model = new MetadataModel();
+        // public virtual async Task<Status> SendNotification(IEnterprisesBillingManagerService entMgr, string entLookup, string username, SendNotificationRequest notification)
+        // {
+        //     // Send email from app manager client 
+        //     var model = new MetadataModel();
 
-            model.Metadata.Add(new KeyValuePair<string, JToken>("SendNotificationRequest", JToken.Parse(JsonConvert.SerializeObject(notification))));
+        //     model.Metadata.Add(new KeyValuePair<string, JToken>("SendNotificationRequest", JToken.Parse(JsonConvert.SerializeObject(notification))));
 
-            await entMgr.SendNotificationEmail(model, entLookup);
+        //     await entMgr.SendNotificationEmail(model, entLookup);
 
-            return Status.Success;
-        }
+        //     return Status.Success;
+        // }
 
-        public virtual async Task<Status> SendTemplateEmail(EnterpriseManagerClient entMgr, string entLookup, SendNotificationRequest notification)
+        public virtual async Task<Status> SendTemplateEmail(IEnterprisesBillingManagerService entMgr, string entLookup, SendNotificationRequest notification)
         {
             // Send email from app manager client 
             var model = new MetadataModel();
@@ -349,7 +349,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return Status.Success;
         }
 
-        public virtual async Task UpdatePaymentInfo(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entLookup,
+        public virtual async Task UpdatePaymentInfo(IEnterprisesBillingManagerService entMgr, ISecurityDataTokenService secMgr, string entLookup,
             string username, string methodId, string customerName)
         {
             State.CustomerName = customerName;

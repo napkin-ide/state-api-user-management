@@ -52,7 +52,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         #region API Methods
 
-        public virtual async Task AreAzureEnvSettingsValid(EnterpriseManagerClient entMgr)
+        public virtual async Task AreAzureEnvSettingsValid(IEnterprisesBillingManagerService entMgr)
         {
             State.AzureInfrastructureInvalidComponent = String.Empty;
             State.AzureInfrastructureInvalidComponentError = String.Empty;
@@ -233,7 +233,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return status;
         }
 
-        public virtual async Task<Status> BootOrganizationEnvironment(EnterpriseManagerClient entMgr, DevOpsArchitectClient devOpsArch)
+        public virtual async Task<Status> BootOrganizationEnvironment(IEnterprisesBillingManagerService entMgr, DevOpsArchitectClient devOpsArch)
         {
             var status = Status.Success;
 
@@ -340,7 +340,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> CancelSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entLookup, string username, string reason, string licenseType)
+        public virtual async Task<Status> CancelSubscription(IEnterprisesBillingManagerService entMgr, IIdentityAccessService idMgr, ISecurityDataTokenService secMgr, string entLookup, string username, string reason, string licenseType)
         {
             string mrktEmail = "marketing@fathym.com";
             
@@ -437,7 +437,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return status;
         }
 
-        // public virtual async Task<Status> ChangeSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr, string entLookup, string username, string plan){
+        // public virtual async Task<Status> ChangeSubscription(IEnterprisesBillingManagerService entMgr, IIdentityAccessService idMgr, ISecurityDataTokenService secMgr, string entLookup, string username, string plan){
 
         // await idMgr.RevokeLicenseAccess(entLookup, username, "lcu" );
 
@@ -525,7 +525,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             });
         }
 
-        public virtual async Task ConfigureInfrastructure(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr, string infraType, bool useDefaultSettings,
+        public virtual async Task ConfigureInfrastructure(EnterpriseArchitectClient entArch, IEnterprisesBillingManagerService entMgr, string infraType, bool useDefaultSettings,
             MetadataModel settings, string template, bool shouldStep, string entLookup, string username)
         {
             var envLookup = $"{State.OrganizationLookup}-prd";
@@ -711,7 +711,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return Status.Success;
         }
 
-        public virtual async Task<Status> DeployIoTDataFlow(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr)
+        public virtual async Task<Status> DeployIoTDataFlow(ApplicationDeveloperClient appDev, IEnterprisesBillingManagerService entMgr)
         {
             if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
@@ -762,28 +762,28 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return Status.Success;
         }
 
-        // public virtual async Task HasAzureOAuth(EnterpriseManagerClient entMgr, string entLookup, string username)
+        // public virtual async Task HasAzureOAuth(IEnterprisesBillingManagerService entMgr, string entLookup, string username)
         // {
         //     // var hasDevOps = await entMgr.HasAzureOAuth(entLookup, username);
 
         //     // State.HasAzureOAuth = hasDevOps.Status;
         // }
 
-        public virtual async Task<Status> HasLicenseAccessWithLookup(IdentityManagerClient idMgr, string entLookup, string username, string lookup)
+        public virtual async Task<Status> HasLicenseAccessWithLookup(IIdentityAccessService idMgr, string entLookup, string username, string lookup)
         {
             var licenseAccess = await idMgr.HasLicenseAccess(entLookup, username, AllAnyTypes.All, new List<string>() { "lcu" });
 
             return licenseAccess.Status ? Status.Success : Status.Unauthorized.Clone($"No license found for user {username}");
         }
 
-        // public virtual async Task HasDevOpsOAuth(EnterpriseManagerClient entMgr, string entLookup, string username)
+        // public virtual async Task HasDevOpsOAuth(IEnterprisesBillingManagerService entMgr, string entLookup, string username)
         // {
         //     var hasDevOps = await entMgr.HasDevOpsOAuth(entLookup, username);
 
         //     State.HasDevOpsOAuth = hasDevOps.Status;
         // }
 
-        public virtual async Task ListSubscribers(IdentityManagerClient idMgr, string entLookup)
+        public virtual async Task ListSubscribers(IIdentityAccessService idMgr, string entLookup)
         {
             // Get the list of subscribers based on subscriber status
             var subscriberResp = await idMgr.ListLicensedSubscribers(entLookup);
@@ -791,7 +791,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.Subscribers = subscriberResp.Model;
         }
 
-        public virtual async Task<Status> ListLicenses(IdentityManagerClient idMgr, string entLookup, string username, string licenseType)
+        public virtual async Task<Status> ListLicenses(IIdentityAccessService idMgr, string entLookup, string username, string licenseType)
         {
             var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() { licenseType });
 
@@ -800,7 +800,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return (licenseAccess != null) ? Status.Success : Status.Unauthorized.Clone($"No licenses found for user {username}");
         }
 
-        public virtual async Task LoadRegistrationHosts(EnterpriseManagerClient entMgr, string entLookup)
+        public virtual async Task LoadRegistrationHosts(IEnterprisesBillingManagerService entMgr, string entLookup)
         {
             if (State.HostOptions.IsNullOrEmpty())
             {
@@ -810,7 +810,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             }
         }
 
-        public virtual async Task LoadSubscriptionDetails(IEnterprisesBillingManagerService entBillingMgr, SecurityManagerClient secMgr, string entLookup, string username, string licenseType)
+        public virtual async Task LoadSubscriptionDetails(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr, string entLookup, string username, string licenseType)
         {
             // get subscription token by user name
             var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, $"LCU-STRIPE-SUBSCRIPTION-ID-{licenseType}");
@@ -827,7 +827,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             }
         }
 
-        public virtual async Task<Status> RequestAuthorization(SecurityManagerClient secMgr, ApplicationManagerClient appMgr, IdentityManagerClient idMgr, string userID, string enterpriseID, string hostName)
+        public virtual async Task<Status> RequestAuthorization(ISecurityDataTokenService secMgr, ApplicationManagerClient appMgr, IIdentityAccessService idMgr, string userID, string enterpriseID, string hostName)
         {
             // Create an access request
             var accessRequest = new AccessRequest()
@@ -883,7 +883,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return Status.Success;
         }
 
-        public virtual async Task<Status> SecureHost(EnterpriseManagerClient entMgr)
+        public virtual async Task<Status> SecureHost(IEnterprisesBillingManagerService entMgr)
         {
             var root = State.HostOptions.FirstOrDefault();
 
@@ -929,7 +929,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 return Status.GeneralError.Clone("Boot not properly configured.");
         }
 
-        public virtual async Task<Status> SendFeedback(EnterpriseManagerClient entMgr, string entLookup, string username, string feedback)
+        public virtual async Task<Status> SendFeedback(IEnterprisesBillingManagerService entMgr, string entLookup, string username, string feedback)
         {
 
             // Send email from app manager client 
@@ -954,7 +954,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return Status.Success;
         }
 
-        public virtual async Task<Status> SendNotification(EnterpriseManagerClient entMgr, string entLookup, string username, SendNotificationRequest notification)
+        public virtual async Task<Status> SendNotification(IEnterprisesBillingManagerService entMgr, string entLookup, string username, SendNotificationRequest notification)
         {
             // Send email from app manager client 
             var model = new MetadataModel();
@@ -974,7 +974,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 ConfigureBootOptions();
         }
 
-        public virtual async Task<Status> SetLicenseAccess(IdentityManagerClient idMgr, string entLookup, string username, int trialLength, bool isLocked, bool isReset)
+        public virtual async Task<Status> SetLicenseAccess(IIdentityAccessService idMgr, string entLookup, string username, int trialLength, bool isLocked, bool isReset)
         {
             var response = await idMgr.IssueLicenseAccess(new LicenseAccessToken()
             {
@@ -987,7 +987,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return response.Status;
         }
 
-        public virtual async Task SetOrganizationDetails(EnterpriseManagerClient entMgr, string name, string description, string lookup, bool accepted)
+        public virtual async Task SetOrganizationDetails(IEnterprisesBillingManagerService entMgr, string name, string description, string lookup, bool accepted)
         {
             State.OrganizationName = name;
 
@@ -1021,7 +1021,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         }
 
         public virtual async Task<Status> SetupIoTWelcomeApps(ApplicationDeveloperClient appDev, ApplicationManagerClient appMgr,
-            EnterpriseManagerClient entMgr)
+            IEnterprisesBillingManagerService entMgr)
         {
             if (!State.NewEnterpriseLookup.IsNullOrEmpty() && !State.EnvironmentLookup.IsNullOrEmpty())
             {
@@ -1119,7 +1119,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.BootOptions.FirstOrDefault(bo => bo.Lookup == bootOptionLookup).Name = bootOption.Name;
         }
 
-        public virtual async Task<Status> ValidateSubscription(EnterpriseManagerClient entMgr, IdentityManagerClient idMgr,
+        public virtual async Task<Status> ValidateSubscription(IEnterprisesBillingManagerService entMgr, IIdentityAccessService idMgr,
             string entLookup, string username, string subscriberId)
         {
             // // Get subscription status from Stripe for a user
@@ -1151,7 +1151,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             throw new NotImplementedException();
         }
 
-        public virtual async Task<Status> VerifyDAFInfrastructure(EnterpriseManagerClient entMgr, DevOpsArchitectClient devOpsArch,
+        public virtual async Task<Status> VerifyDAFInfrastructure(IEnterprisesBillingManagerService entMgr, DevOpsArchitectClient devOpsArch,
             string username)
         {
             var status = Status.GeneralError;
@@ -1177,7 +1177,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return status;
         }
 
-        public virtual async Task<Status> VerifyDevOpsSetup(EnterpriseManagerClient entMgr)
+        public virtual async Task<Status> VerifyDevOpsSetup(IEnterprisesBillingManagerService entMgr)
         {
             var status = Status.GeneralError;
 
@@ -1290,7 +1290,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return status;
         }
 
-        public virtual async Task<Status> VerifyHosting(EnterpriseManagerClient entMgr)
+        public virtual async Task<Status> VerifyHosting(IEnterprisesBillingManagerService entMgr)
         {
             var status = Status.GeneralError;
 
@@ -1309,7 +1309,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return status;
         }
 
-        public virtual async Task<Status> VerifyOrganizationEnvironment(EnterpriseManagerClient entMgr)
+        public virtual async Task<Status> VerifyOrganizationEnvironment(IEnterprisesBillingManagerService entMgr)
         {
             var status = Status.GeneralError;
 
@@ -1386,7 +1386,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return status;
         }
 
-        protected virtual async Task<Dictionary<string, string>> loadEnvSettingsMeta(EnterpriseManagerClient entMgr)
+        protected virtual async Task<Dictionary<string, string>> loadEnvSettingsMeta(IEnterprisesBillingManagerService entMgr)
         {
             var envSettingsResp = await entMgr.GetEnvironmentSettings(State.NewEnterpriseLookup, State.EnvironmentLookup);
 
@@ -1500,7 +1500,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return status;
         }
 
-        protected virtual async Task<Status> setupWarmQueryApplication(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr,
+        protected virtual async Task<Status> setupWarmQueryApplication(ApplicationDeveloperClient appDev, IEnterprisesBillingManagerService entMgr,
             List<Application> apps, string dfLookup)
         {
             var status = Status.GeneralError.Clone("Warm Query not setup");
@@ -1557,7 +1557,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             return status;
         }
 
-        protected virtual async Task<Status> setupDataStreamApplication(ApplicationDeveloperClient appDev, EnterpriseManagerClient entMgr,
+        protected virtual async Task<Status> setupDataStreamApplication(ApplicationDeveloperClient appDev, IEnterprisesBillingManagerService entMgr,
             List<Application> apps, string dfLookup)
         {
             var status = Status.GeneralError.Clone("Data Stream not setup");

@@ -19,6 +19,7 @@ using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Storage.Blob;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Management
 {
@@ -33,12 +34,12 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
         protected EnterpriseArchitectClient entArch;
 
-        protected EnterpriseManagerClient entMgr;
+        protected IEnterprisesBillingManagerService entMgr;
         #endregion
 
         #region Constructors
         public BootOrganizationOrchestration(ApplicationDeveloperClient appDev, ApplicationManagerClient appMgr, DevOpsArchitectClient devOpsArch,
-            EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr)
+            EnterpriseArchitectClient entArch, IEnterprisesBillingManagerService entMgr)
         {
             this.appDev = appDev;
 

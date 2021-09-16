@@ -15,7 +15,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual string CustomerName { get; set; }
 
         [DataMember]
-        public virtual List<LicenseAccessToken> ExistingLicenseTypes { get; set; }
+        public virtual List<License> ExistingLicenseTypes { get; set; }
 
         [DataMember]
         public virtual string FeaturedPlanGroup { get; set; }

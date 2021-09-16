@@ -16,6 +16,7 @@ using LCU.Personas.Client.Enterprises;
 using LCU.Personas.Client.Security;
 using LCU.StateAPI.Utilities;
 using LCU.State.API.NapkinIDE.UserManagement.State;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Management
 {
@@ -23,13 +24,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
     public class LoadSubscriptionDetails
     {
-        protected EnterpriseManagerClient engMgr;
+        protected IEnterprisesBillingManagerService entBillingMgr;
 
-        protected SecurityManagerClient secMgr;
+        protected ISecurityDataTokenService secMgr;
 
-        public LoadSubscriptionDetails(EnterpriseManagerClient engMgr, SecurityManagerClient secMgr)
+        public LoadSubscriptionDetails(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr)
         {
-            this.engMgr = engMgr;
+            this.entBillingMgr = entBillingMgr;
 
             this.secMgr = secMgr;
         }
@@ -48,7 +49,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                 //TODO: Remove hardcoded LCU
                 
-                await harness.LoadSubscriptionDetails(engMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, "LCU");
+                await harness.LoadSubscriptionDetails(entBillingMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, "LCU");
 
                 return Status.Success;
             });

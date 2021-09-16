@@ -14,6 +14,7 @@ using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Fathym;
 using LCU.Personas.Client.Enterprises;
 using LCU.State.API.NapkinIDE.UserManagement.State;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.Setup.Management
 {
@@ -33,9 +34,9 @@ namespace LCU.State.API.NapkinIDE.Setup.Management
 
     public class SetOrganizationDetails
     {
-        protected EnterpriseManagerClient entMgr;
+        protected IEnterprisesBillingManagerService entMgr;
 
-        public SetOrganizationDetails(EnterpriseManagerClient entMgr)
+        public SetOrganizationDetails(IEnterprisesBillingManagerService entMgr)
         {
             this.entMgr = entMgr;
         }

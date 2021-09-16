@@ -30,9 +30,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 {
     public class ListBillingOptions
     {
-        protected readonly EnterpriseManagerClient entMgr;
+        protected readonly IEnterprisesBillingManagerService entMgr;
 
-        public ListBillingOptions(EnterpriseManagerClient entMgr)
+        public ListBillingOptions(IEnterprisesBillingManagerService entMgr)
         {
             this.entMgr = entMgr;
         }

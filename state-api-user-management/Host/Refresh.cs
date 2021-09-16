@@ -47,15 +47,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
     {
         protected readonly IEnterprisesBillingManagerService entBillingMgr;
 
-        protected readonly IdentityManagerClient idMgr;
+        protected readonly IIdentityAccessService idAccessSvc;
 
-        protected readonly SecurityManagerClient secMgr;
+        protected readonly ISecurityDataTokenService secMgr;
 
-        public Refresh(IEnterprisesBillingManagerService entBillingMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr)
+        public Refresh(IEnterprisesBillingManagerService entBillingMgr, IIdentityAccessService idAccessSvc, ISecurityDataTokenService secMgr)
         {
             this.entBillingMgr = entBillingMgr;
 
-            this.idMgr = idMgr;
+            this.idAccessSvc = idAccessSvc;
 
             this.secMgr = secMgr;
         }
@@ -90,7 +90,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
         #region Helpers
         protected virtual async Task<Status> refreshUserBilling(UserBillingStateHarness harness, ILogger log, StateDetails stateDetails, RefreshBillingRequest request)
         {
-            await harness.Refresh(entBillingMgr, idMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, request.LicenseType);
+            await harness.Refresh(entBillingMgr, idAccessSvc, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, request.LicenseType);
 
             return Status.Success;
         }

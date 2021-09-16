@@ -13,6 +13,7 @@ using LCU.Personas.Client.Enterprises;
 using LCU.StateAPI.Utilities;
 using LCU.Personas.Client.Security;
 using LCU.State.API.NapkinIDE.UserManagement.State;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 {
@@ -31,11 +32,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
     public class UpdatePaymentInfo
     {
-        protected readonly EnterpriseManagerClient entMgr;
+        protected readonly IEnterprisesBillingManagerService entMgr;
 
-        protected readonly SecurityManagerClient secMgr;
+        protected readonly ISecurityDataTokenService secMgr;
 
-        public UpdatePaymentInfo(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
+        public UpdatePaymentInfo(IEnterprisesBillingManagerService entMgr, ISecurityDataTokenService secMgr)
         {
             this.entMgr = entMgr;
 

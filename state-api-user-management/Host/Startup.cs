@@ -16,6 +16,7 @@ using LCU.StateAPI.Hosting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using System.Threading.Tasks;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 [assembly: FunctionsStartup(typeof(LCU.State.API.UserManagement.Host.Startup))]
 
@@ -32,48 +33,86 @@ namespace LCU.State.API.UserManagement.Host
         #endregion
 
         #region API Methods
-        // public override void Configure(IFunctionsHostBuilder builder)
-        // {
-        //     base.Configure(builder);
+        public override void Configure(IFunctionsHostBuilder builder)
+        {
+            base.Configure(builder);
 
-        //     var adB2cTenant = Environment.GetEnvironmentVariable("LCU-AZURE-AD-B2C-TENANT");
+            //  TODO: Refit client registration
+            // builder.Services.AddLCUPersonas(null, null, null);
+            var httpOpts = new LCUStartupHTTPClientOptions()
+            {
+                CircuitBreakDurationSeconds = 5,
+                CircuitFailuresAllowed = 5,
+                LongTimeoutSeconds = 60,
+                RetryCycles = 3,
+                RetrySleepDurationMilliseconds = 500,
+                TimeoutSeconds = 30,
+                Options = new System.Collections.Generic.Dictionary<string, LCUClientOptions>()
+                {
+                    {
+                        nameof(IApplicationsIoTService),
+                        new LCUClientOptions()
+                        {
+                            BaseAddress = Environment.GetEnvironmentVariable($"{typeof(IApplicationsIoTService).FullName}.BaseAddress")
+                        }
+                    },
 
-        //     var adB2cPolicy = Environment.GetEnvironmentVariable("LCU-AZURE-AD-B2C-POLICY");
+                    {
+                        nameof(IEnterprisesAPIManagementService),
+                        new LCUClientOptions()
+                        {
+                            BaseAddress = Environment.GetEnvironmentVariable($"{typeof(IEnterprisesAPIManagementService).FullName}.BaseAddress")
+                        }
+                    },
 
-        //     var adB2cApiName = Environment.GetEnvironmentVariable("LCU-AZURE-AD-B2C-APINAME");
+                    {
+                        nameof(IEnterprisesHostingManagerService),
+                        new LCUClientOptions()
+                        {
+                            BaseAddress = Environment.GetEnvironmentVariable($"{typeof(IEnterprisesHostingManagerService).FullName}.BaseAddress")
+                        }
+                    },
 
-        //     var adB2cClientId = Environment.GetEnvironmentVariable("LCU-AZURE-AD-B2C-CLIENTID");
+                    {
+                        nameof(IEnterprisesManagementService),
+                        new LCUClientOptions()
+                        {
+                            BaseAddress = Environment.GetEnvironmentVariable($"{typeof(IEnterprisesManagementService).FullName}.BaseAddress")
+                        }                 
+                    },
 
-        //     var storageAccountConn = Environment.GetEnvironmentVariable("LCU-STORAGE-CONNECTION");
+                    {
+                        nameof(IIdentityAccessService),
+                        new LCUClientOptions()
+                        {
+                            BaseAddress = Environment.GetEnvironmentVariable($"{typeof(IIdentityAccessService).FullName}.BaseAddress")
+                        }
+                    },
 
-        //     // var storageAccount = CloudStorageAccount.Parse(storageAccountConn);
+                    {
+                        nameof(ISecurityDataTokenService),
+                        new LCUClientOptions()
+                        {
+                            BaseAddress = Environment.GetEnvironmentVariable($"{typeof(ISecurityDataTokenService).FullName}.BaseAddress")
+                        }
+                    }
+                }
+            };
 
-        //     // builder.Services.AddLCUDataProtection(storageAccount);
+            var registry = builder.Services.AddLCUPollyRegistry(httpOpts);
 
-        //     builder.Services.AddAuthentication(options =>
-        //     {
-        //         options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-        //     })
-        //     .AddJwtBearer(jwtOptions =>
-        //     {
-        //         jwtOptions.Authority = $"https://{adB2cTenant}.b2clogin.com/{adB2cTenant}.onmicrosoft.com/{adB2cPolicy}/v2.0/";
+            builder.Services.AddLCUHTTPClient<IApplicationsIoTService>(registry, httpOpts);
 
-        //         jwtOptions.Audience = adB2cClientId;
+            builder.Services.AddLCUHTTPClient<IEnterprisesAPIManagementService>(registry, httpOpts);
 
-        //         jwtOptions.Events = new JwtBearerEvents
-        //         {
-        //             OnAuthenticationFailed = authenticationFailed
-        //         };
-        //     });
+            builder.Services.AddLCUHTTPClient<IEnterprisesHostingManagerService>(registry, httpOpts);
 
-        //     // builder.Services.AddAuthorization(options =>
-        //     // {
-        //     //     options.AddPolicy("OnlyAdmins", policyBuilder =>
-        //     //     {
-        //     //         // configure my policy requirements
-        //     //     });
-        //     // });
-        // }
+            builder.Services.AddLCUHTTPClient<IEnterprisesManagementService>(registry, httpOpts);
+
+            builder.Services.AddLCUHTTPClient<IIdentityAccessService>(registry, httpOpts);
+
+            builder.Services.AddLCUHTTPClient<ISecurityDataTokenService>(registry, httpOpts);
+        }
         #endregion
 
         #region Helpers
