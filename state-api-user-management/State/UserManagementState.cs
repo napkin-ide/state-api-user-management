@@ -122,7 +122,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual Status Status { get; set; }
 
         [DataMember]
-        public virtual List<LicenseAccessToken> Subscribers { get; set; }
+        public virtual List<License> Subscribers { get; set; }
 
         [DataMember]
         public virtual StripeSubscriptionDetails SubscriptionDetails { get; set; }
@@ -144,7 +144,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual string Username { get; set; }
 
         [DataMember]
-        public List<LicenseAccessToken> UserLicenses { get; set; }
+        public List<License> UserLicenses { get; set; }
     }
 
     [DataContract]

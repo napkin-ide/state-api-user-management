@@ -7,6 +7,7 @@ using Fathym;
 using Fathym.API;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using Polly;
 using Polly.Registry;
 using Refit;
 
@@ -119,13 +120,7 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
         Task<BaseResponse> SendCloudMessage([Body] MetadataModel request, string entLookup, string deviceName,
             [Query] string envLookup = null);
     }
-    
-    public interface IEnterprisesBootService
-    {
-        [Post("/boot/registry")]
-        Task<BaseResponse<EnterpriseContext>> Boot([Body] BootEnterpriseRequest request, bool cleanBoot = false);
-    }
-   
+  
     public interface IEnterprisesManagementService
     {
         //Management
@@ -140,10 +135,6 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
 
 		[Get("/management/enterprises/{entLookup}/children")]
 		Task<BaseResponse<List<Enterprise>>> ListChildEnterprises(string entLookup);
-
-        //Billing
-        [Post("/billing/{entLookup}/stripe/subscription/user/{username}/{licenseType}/cancel")]
-        Task<BaseResponse> CancelSubscriptionByUser(string username, string entLookup, string licenseType);
 	}
 
     public interface IIdentityAccessService

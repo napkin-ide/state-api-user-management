@@ -347,9 +347,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             string fromEmail = "alerts@fathym.com";
 
             // get subscription token by user name
-            var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, $"LCU-STRIPE-SUBSCRIPTION-ID-{licenseType}");
+            var subIdToken = await secMgr.GetDataToken($"LCU-STRIPE-SUBSCRIPTION-ID-{licenseType}", entLookup, username);
 
-            string subId = subIdToken.Model[$"LCU-STRIPE-SUBSCRIPTION-ID-{licenseType}"].ToString();
+            string subId = subIdToken.Model.Lookup;
 
             if (String.IsNullOrEmpty(subId)) return Status.GeneralError.Clone($"No subscripton ID was found for user {username}");
 
@@ -793,7 +793,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> ListLicenses(IIdentityAccessService idMgr, string entLookup, string username, string licenseType)
         {
-            var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() { licenseType });
+            var licenseAccess = await idMgr.ListLicensesByUsername(entLookup, username, new List<string>() { licenseType });
 
             State.UserLicenses = licenseAccess.Model;
 
@@ -813,14 +813,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual async Task LoadSubscriptionDetails(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr, string entLookup, string username, string licenseType)
         {
             // get subscription token by user name
-            var subIdToken = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, $"LCU-STRIPE-SUBSCRIPTION-ID-{licenseType}");
+            var subIdToken = await secMgr.GetDataToken($"LCU-STRIPE-SUBSCRIPTION-ID-{licenseType}", entLookup, username);
 
-            string subId = subIdToken.Model[$"LCU-STRIPE-SUBSCRIPTION-ID-{licenseType}"]?.ToString();
+            string subId = subIdToken.Model.Lookup;
 
             if (!String.IsNullOrEmpty(subId))
-            {
-
                 // get subscription details 
+            {
                 var subDetails = await entBillingMgr.GetStripeSubscriptionDetails(subId, entLookup);
 
                 State.SubscriptionDetails = subDetails.Model;
