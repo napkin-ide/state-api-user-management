@@ -64,8 +64,8 @@ namespace LCU.State.API.NapkinIDE.Setup.Management
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                await harness.ConfigureInfrastructure(entArch, entMgr, reqData.InfrastructureType, reqData.UseDefaultSettings, reqData.Settings, 
-                    reqData.Template, reqData.ShouldStep, stateDetails.EnterpriseLookup, stateDetails.Username);
+                // await harness.ConfigureInfrastructure(entArch, entMgr, reqData.InfrastructureType, reqData.UseDefaultSettings, reqData.Settings, 
+                //     reqData.Template, reqData.ShouldStep, stateDetails.EnterpriseLookup, stateDetails.Username);
 
                 return Status.Success;
             });

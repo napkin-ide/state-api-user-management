@@ -25,16 +25,17 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using LCU.StateAPI;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 {
     public class ListBillingOptions
     {
-        protected readonly IEnterprisesBillingManagerService entMgr;
+        protected readonly IEnterprisesBillingManagerService entBillingMgr;
 
-        public ListBillingOptions(IEnterprisesBillingManagerService entMgr)
+        public ListBillingOptions(IEnterprisesBillingManagerService entBillingMgr)
         {
-            this.entMgr = entMgr;
+            this.entBillingMgr = entBillingMgr;
         }
 
         [FunctionName("ListBillingOptions")]
@@ -47,7 +48,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
             log.LogInformation($"ListBillingPlanOptions with {entLookup} for {licenseType}.");
 
-            var plansResp = await entMgr.ListBillingPlanOptions(entLookup, licenseType);
+            var plansResp = await entBillingMgr.ListBillingPlanOptions(entLookup, licenseType);
 
             log.LogInformation($"Plans response: {plansResp.Status.ToJSON()}");
 

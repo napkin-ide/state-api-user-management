@@ -123,7 +123,6 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
   
     public interface IEnterprisesManagementService
     {
-        //Management
         [Delete("/management/enterprises/by-host/{host}")]
         Task<BaseResponse> DeleteEnterpriseByHost(string host, [Body] DeleteEnterpriseByLookupRequest request);
 
@@ -157,8 +156,8 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
         [Delete("/access/{entLookup}/license/{username}/{licenseType}")]
         Task<BaseResponse> RevokeLicense(string entLookup, string username, string licenseType);
 
-        [Delete("/access/{entLookup}/passport/{username}")]
-        Task<BaseResponse> RevokePassport(string entLookup, string username);
+        [Delete("/access/{entLookup}/provider/{providerLookup}/passport/{username}")]
+        Task<BaseResponse> RevokePassport(string entLookup, string username, string providerLookup);
     }
     
     public interface IEnterprisesBillingManagerService
@@ -200,7 +199,7 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
         Task<BaseResponse<EnterpriseContext>> ResolveHost(string host);
     }
 
-   	public interface IEnterprisesAPIManagementService
+	public interface IEnterprisesAPIManagementService
 	{
 		[Post("/api-management/{entLookup}/api/subscription")]
 		Task<BaseResponse> EnsureAPISubscription([Body] EnsureAPISubscriptionRequest request, string entLookup, [Query] string username);
@@ -222,6 +221,16 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
             [Query] string entLookup = null, [Query] string email = null, [Query] Guid? projectId = null,
             [Query] Guid? appId = null, [Query] Guid? passportId = null, [Query] Guid? licenseId = null,
             [Query] bool cascadeChecks = true);
+
+        [Get("/data-tokens")]
+        Task<BaseResponse<DataToken>> ListDataTokens(string tokenLookup,
+            [Query] string entLookup = null, [Query] string email = null, [Query] Guid? projectId = null,
+            [Query] Guid? appId = null, [Query] Guid? passportId = null, [Query] Guid? licenseId = null,
+            [Query] bool cascadeChecks = true);
+
+        [Post("/data-tokens/save")]
+        Task<BaseResponse<DataToken>> SaveDataToken([Body] DataToken dataToken,
+            [Query] string entLookup = null, [Query] string email = null);
 
         [Post("/data-tokens")]
         Task<BaseResponse<DataToken>> SetDataToken([Body] DataToken dataToken,

@@ -42,15 +42,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
     public class CompletePayment
     {
-        protected readonly IEnterprisesBillingManagerService entMgr;
+        protected readonly IEnterprisesBillingManagerService entBillingMgr;
 
         protected readonly IIdentityAccessService idMgr;
 
         protected readonly ISecurityDataTokenService secMgr;
 
-        public CompletePayment(IEnterprisesBillingManagerService entMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr)
+        public CompletePayment(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr)
         {
-            this.entMgr = entMgr;
+            this.entBillingMgr = entBillingMgr;
 
             this.idMgr = idMgr;
 
@@ -69,7 +69,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
             {
                 log.LogInformation($"Executing CompletePayment Action.");
 
-                await harness.CompletePayment(entMgr, secMgr, idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan, payReq.TrialPeriodDays);
+                await harness.CompletePayment(entBillingMgr, secMgr, idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan, payReq.TrialPeriodDays);
 
                 //  TODO:  Set State Status and Loading
 

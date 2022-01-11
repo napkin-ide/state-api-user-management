@@ -66,6 +66,14 @@ namespace LCU.State.API.UserManagement.Host
                     },
 
                     {
+                        nameof(IEnterprisesBillingManagerService),
+                        new LCUClientOptions()
+                        {
+                            BaseAddress = Environment.GetEnvironmentVariable($"{typeof(IEnterprisesBillingManagerService).FullName}.BaseAddress")
+                        }
+                    },
+
+                    {
                         nameof(IEnterprisesHostingManagerService),
                         new LCUClientOptions()
                         {
@@ -104,6 +112,8 @@ namespace LCU.State.API.UserManagement.Host
             builder.Services.AddLCUHTTPClient<IApplicationsIoTService>(registry, httpOpts);
 
             builder.Services.AddLCUHTTPClient<IEnterprisesAPIManagementService>(registry, httpOpts);
+
+            builder.Services.AddLCUHTTPClient<IEnterprisesBillingManagerService>(registry, httpOpts);
 
             builder.Services.AddLCUHTTPClient<IEnterprisesHostingManagerService>(registry, httpOpts);
 

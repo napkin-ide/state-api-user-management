@@ -32,11 +32,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
         protected readonly ISecurityDataTokenService secMgr;
 
-        public BillingStripeWebhook(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr)
+        public BillingStripeWebhook(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr)
         {
             this.entBillingMgr = entBillingMgr;
 
             this.secMgr = secMgr;
+
+            this.idMgr = idMgr;
         }
 
         [FunctionName("BillingStripeWebhook")]

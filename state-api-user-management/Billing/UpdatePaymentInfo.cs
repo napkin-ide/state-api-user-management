@@ -32,13 +32,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
     public class UpdatePaymentInfo
     {
-        protected readonly IEnterprisesBillingManagerService entMgr;
+        protected readonly IEnterprisesBillingManagerService entBillingMgr;
 
         protected readonly ISecurityDataTokenService secMgr;
 
-        public UpdatePaymentInfo(IEnterprisesBillingManagerService entMgr, ISecurityDataTokenService secMgr)
+        public UpdatePaymentInfo(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr)
         {
-            this.entMgr = entMgr;
+            this.entBillingMgr = entBillingMgr;
 
             this.secMgr = secMgr;
         }
@@ -55,7 +55,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
             {
                 log.LogInformation($"Executing UpdatePaymentInfo Action.");
 
-                await harness.UpdatePaymentInfo(entMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, payReq.MethodID, payReq.CustomerName);
+                await harness.UpdatePaymentInfo(entBillingMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, payReq.MethodID, payReq.CustomerName);
 
                 //  TODO:  Set State Status and Loading
 

@@ -68,7 +68,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
         {
             var stateDetails = StateUtils.LoadStateDetails(req);
 
-            if (stateDetails.StateKey.StartsWith("billing"))
+            // if (stateDetails.StateKey.StartsWith("billing"))
                 return await stateBlob.WithStateHarness<UserBillingState, RefreshBillingRequest, UserBillingStateHarness>(req, signalRMessages, log,
                     async (harness, refreshReq, actReq) =>
                 {
@@ -76,14 +76,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
 
                     return await refreshUserBilling(harness, log, stateDetails, refreshReq);
                 });
-            else
-                return await stateBlob.WithStateHarness<UserManagementState, RefreshUserRequest, UserManagementStateHarness>(req, signalRMessages, log,
-                    async (harness, refreshReq, actReq) =>
-                {
-                    log.LogInformation($"Refreshing user management state");
+            // else
+            //     return await stateBlob.WithStateHarness<UserManagementState, RefreshUserRequest, UserManagementStateHarness>(req, signalRMessages, log,
+            //         async (harness, refreshReq, actReq) =>
+            //     {
+            //         log.LogInformation($"Refreshing user management state");
 
-                    return await refreshUserManagement(harness, log, stateDetails, refreshReq);
-                });
+            //         // return await refreshUserManagement(harness, log, stateDetails, refreshReq);
+            //     });
         }
         #endregion
 
@@ -95,34 +95,34 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Host
             return Status.Success;
         }
 
-        protected virtual async Task<Status> refreshUserManagement(UserManagementStateHarness harness, ILogger log, StateDetails stateDetails, RefreshUserRequest request)
-        {
-            harness.ConfigureInfrastructureOptions();
+        // protected virtual async Task<Status> refreshUserManagement(UserManagementStateHarness harness, ILogger log, StateDetails stateDetails, RefreshUserRequest request)
+        // {
+        //     // harness.ConfigureInfrastructureOptions();
 
-            //harness.ConfigureJourneys();
+        //     // //harness.ConfigureJourneys();
 
-            //harness.ConfigurePersonas();
+        //     // //harness.ConfigurePersonas();
 
-            //harness.SetUserType(harness.State.Personas.FirstOrDefault().Lookup.As<UserTypes>());
+        //     // //harness.SetUserType(harness.State.Personas.FirstOrDefault().Lookup.As<UserTypes>());
 
-            harness.DetermineSetupStep();
+        //     // harness.DetermineSetupStep();
 
-            // await harness.HasAzureOAuth(entMgr, stateDetails.EnterpriseLookup, stateDetails.Username);
+        //     // // await harness.HasAzureOAuth(entMgr, stateDetails.EnterpriseLookup, stateDetails.Username);
             
-            //TODO: Remove hardcoded LCU
+        //     // //TODO: Remove hardcoded LCU
             
-            await harness.LoadSubscriptionDetails(entBillingMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, "LCU");
+        //     // await harness.LoadSubscriptionDetails(entBillingMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, "LCU");
 
-            await Task.WhenAll(new[]{
-                harness.LoadRegistrationHosts(entMgr, stateDetails.EnterpriseLookup),
-                // harness.HasDevOpsOAuth(entMgr, stateDetails.EnterpriseLookup, stateDetails.Username)
-            });
+        //     // await Task.WhenAll(new[]{
+        //     //     harness.LoadRegistrationHosts(entMgr, stateDetails.EnterpriseLookup),
+        //     //     // harness.HasDevOpsOAuth(entMgr, stateDetails.EnterpriseLookup, stateDetails.Username)
+        //     // });
 
-            // TODO: may need to track auth requests in the future
-            harness.State.RequestAuthorizationSent = String.Empty;
+        //     // // TODO: may need to track auth requests in the future
+        //     // harness.State.RequestAuthorizationSent = String.Empty;
             
-            return Status.Success;
-        }
+        //     // return Status.Success;
+        // }
         #endregion
     }
 }

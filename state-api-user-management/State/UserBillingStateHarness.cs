@@ -46,30 +46,28 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         #region API Methods
 
-        public virtual async Task ChangeSubscription(IEnterprisesBillingManagerService entMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr, string entLookup,
+        public virtual async Task ChangeSubscription(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr, string entLookup,
             string username, string customerName, string plan)
         {
             //cancel existing subscription 
-            var cancelResp = await entMgr.CancelSubscriptionByUser(username, entLookup);
+            var cancelResp = await entBillingMgr.CancelSubscriptionByUser(username, entLookup);
 
             var planOption = this.State.Plans.First(p => p.Lookup == plan);
 
             var licenseType = planOption.Metadata["LicenseType"].ToString();
 
             //Remove license access
-            await idMgr.RevokeLicenseAccess(entLookup, username, licenseType);
-
-
+            await idMgr.RevokeLicense(entLookup, username, licenseType);
 
             // create new subscription
-            var completeResp = await entMgr.CompleteStripeSubscription(entLookup, licenseType,
+            var completeResp = await entBillingMgr.CompleteStripeSubscription(
                     new CompleteStripeSubscriptionRequest()
                     {
                         CustomerName = State.CustomerName,
                         Plan = plan,
                         Username = username,
                         TrialPeriodDays = 0
-                    });
+                    }, entLookup, licenseType);
 
             State.PaymentStatus = completeResp.Status;
 
@@ -77,11 +75,18 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             {
                 State.PurchasedPlanLookup = plan;
 
-                var resp = await secMgr.SetIdentityThirdPartyData(entLookup, username, new Dictionary<string, string>()
-                {
-                    { "LCU-USER-BILLING.TermsOfService", DateTimeOffset.UtcNow.ToString() },
-                    { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() }
-                    // { "LCU-STRIPE-SUBSCRIPTION-ID", completeResp.SubscriptionID}
+                var tosResp = await secMgr.SetDataToken(new DataToken(){
+                    Lookup = "LCU-USER-BILLING.TermsOfService",
+                    Name = "LCU-USER-BILLING.TermsOfService",
+                    Description = "Billing Terms of Service",
+                    Value = DateTimeOffset.UtcNow.ToString(),                  
+                });
+
+                var eaResp = await secMgr.SetDataToken(new DataToken(){
+                    Lookup = "LCU-USER-BILLING.EnterpriseAgreement",
+                    Name = "LCU-USER-BILLING.EnterpriseAgreement",
+                    Description = "Billing Enterprise Agreement",
+                    Value = DateTimeOffset.UtcNow.ToString(),                  
                 });
 
                 //issue new license access
@@ -122,7 +127,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 planOption.Metadata["LicenseTypeOverrides"].ToString().Split('|', StringSplitOptions.RemoveEmptyEntries) : 
                 new[] { licenseTypeCore };
 
-            var completeResp = await entMgr.CompleteStripeSubscription(entLookup, licenseTypeCore,
+            var completeResp = await entMgr.CompleteStripeSubscription(
                 new CompleteStripeSubscriptionRequest()
                 {
                     CustomerName = State.CustomerName,
@@ -130,7 +135,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     Plan = plan,
                     TrialPeriodDays = trialPeriodDays,
                     Username = username
-                });
+                }, entLookup, licenseTypeCore);
 
             State.PaymentStatus = completeResp.Status;
 
@@ -138,11 +143,18 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             {
                 State.PurchasedPlanLookup = plan;
 
-                var resp = await secMgr.SetIdentityThirdPartyData(entLookup, username, new Dictionary<string, string>()
-                {
-                    { "LCU-USER-BILLING.TermsOfService", DateTimeOffset.UtcNow.ToString() },
-                    { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() },
-                    // { "LCU-STRIPE-SUBSCRIPTION-ID", completeResp.SubscriptionID}
+                var tosResp = await secMgr.SetDataToken(new DataToken(){
+                    Lookup = "LCU-USER-BILLING.TermsOfService",
+                    Name = "LCU-USER-BILLING.TermsOfService",
+                    Description = "Billing Terms of Service",
+                    Value = DateTimeOffset.UtcNow.ToString(),                  
+                });
+
+                var eaResp = await secMgr.SetDataToken(new DataToken(){
+                    Lookup = "LCU-USER-BILLING.EnterpriseAgreement",
+                    Name = "LCU-USER-BILLING.EnterpriseAgreement",
+                    Description = "Billing Enterprise Agreement",
+                    Value = DateTimeOffset.UtcNow.ToString(),                  
                 });
 
                 var setLicenseAccessResp = await DesignOutline.Instance.Chain<BaseResponse>()
@@ -245,7 +257,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                             },
                         template_id = "d-8048d19cfc264ca6a364a964d1deec76"
                 };
-            await SendTemplateEmail(entMgr, entLookup, cardFailedNotice);
+            await SendTemplateEmail(entBillingMgr, entLookup, cardFailedNotice);
             }
 
             if(!usersLics.Model.IsNullOrEmpty()){
@@ -259,7 +271,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                             { },
                         template_id = "d-ecd308931cc54e4f91f5d795f323cd95"
                 };
-            await SendTemplateEmail(entMgr, entLookup, ccFailedNotice);
+            await SendTemplateEmail(entBillingMgr, entLookup, ccFailedNotice);
             }   
 
 
@@ -337,26 +349,26 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         //     return Status.Success;
         // }
 
-        public virtual async Task<Status> SendTemplateEmail(IEnterprisesBillingManagerService entMgr, string entLookup, SendNotificationRequest notification)
+        public virtual async Task<Status> SendTemplateEmail(IEnterprisesBillingManagerService entBillingMgr, string entLookup, SendNotificationRequest notification)
         {
             // Send email from app manager client 
             var model = new MetadataModel();
 
             model.Metadata.Add(new KeyValuePair<string, JToken>("TemplateEmail", JToken.Parse(JsonConvert.SerializeObject(notification))));
 
-            await entMgr.SendTemplateEmail(model, entLookup);
+            // await entBillingMgr.SendTemplateEmail(model, entLookup);
 
             return Status.Success;
         }
 
-        public virtual async Task UpdatePaymentInfo(IEnterprisesBillingManagerService entMgr, ISecurityDataTokenService secMgr, string entLookup,
+        public virtual async Task UpdatePaymentInfo(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr, string entLookup,
             string username, string methodId, string customerName)
         {
             State.CustomerName = customerName;
 
             State.PaymentMethodID = methodId;
 
-            var updateResp = await entMgr.UpdateStripeSubscription(entLookup,
+            var updateResp = await entBillingMgr.UpdateStripeSubscription(entLookup,
                     new UpdateStripeSubscriptionRequest()
                     {
                         CustomerName = State.CustomerName,
@@ -369,10 +381,18 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             if (State.PaymentStatus)
             {
 
-                var resp = await secMgr.SetIdentityThirdPartyData(entLookup, username, new Dictionary<string, string>()
-                {
-                    { "LCU-USER-BILLING.TermsOfService", DateTimeOffset.UtcNow.ToString() },
-                    { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() },
+                var tosResp = await secMgr.SetDataToken(new DataToken(){
+                    Lookup = "LCU-USER-BILLING.TermsOfService",
+                    Name = "LCU-USER-BILLING.TermsOfService",
+                    Description = "Billing Terms of Service",
+                    Value = DateTimeOffset.UtcNow.ToString(),                  
+                });
+
+                var eaResp = await secMgr.SetDataToken(new DataToken(){
+                    Lookup = "LCU-USER-BILLING.EnterpriseAgreement",
+                    Name = "LCU-USER-BILLING.EnterpriseAgreement",
+                    Description = "Billing Enterprise Agreement",
+                    Value = DateTimeOffset.UtcNow.ToString(),                  
                 });
             }
 

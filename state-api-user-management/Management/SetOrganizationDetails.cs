@@ -51,7 +51,7 @@ namespace LCU.State.API.NapkinIDE.Setup.Management
             {
                 log.LogInformation($"Executing SetOrganizationDetails Action.");
 
-                await harness.SetOrganizationDetails(entMgr, reqData.Name, reqData.Description, reqData.Lookup, true);
+                // await harness.SetOrganizationDetails(entMgr, reqData.Name, reqData.Description, reqData.Lookup, true);
 
                 return Status.Success;
             });

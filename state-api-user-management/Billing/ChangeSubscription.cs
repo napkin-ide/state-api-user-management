@@ -37,15 +37,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
     public class ChangeSubscription
     {
-        protected readonly IEnterprisesBillingManagerService entMgr;
+        protected readonly IEnterprisesBillingManagerService entBillingMgr;
 
         protected readonly IIdentityAccessService idMgr;
 
         protected readonly ISecurityDataTokenService secMgr;
 
-        public ChangeSubscription(IEnterprisesBillingManagerService entMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr)
+        public ChangeSubscription(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr)
         {
-            this.entMgr = entMgr;
+            this.entBillingMgr = entBillingMgr;
 
             this.idMgr = idMgr;
 
@@ -64,7 +64,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
             {
                 log.LogInformation($"Executing ChangeSubscription Action.");
 
-                await harness.ChangeSubscription(entMgr, secMgr, idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, payReq.CustomerName, payReq.Plan);
+                await harness.ChangeSubscription(entBillingMgr, secMgr, idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, payReq.CustomerName, payReq.Plan);
 
                 //  TODO:  Set State Status and Loading
 
