@@ -58,9 +58,11 @@ namespace LCU.State.API.NapkinIDE.Setup.Management
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                var status =  await harness.SetLicenseAccess(idMgr, stateDetails.EnterpriseLookup, reqData.UserName, reqData.TrialLength, reqData.IsLocked, reqData.IsReset);
+                // var status =  await harness.SetLicenseAccess(idMgr, stateDetails.EnterpriseLookup, reqData.UserName, reqData.TrialLength, reqData.IsLocked, reqData.IsReset);
 
-                return status;
+                // return status;
+
+                return Status.Success;
             });
         }
     }

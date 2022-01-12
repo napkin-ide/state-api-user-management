@@ -703,15 +703,16 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
 
     public class License : LCUVertex
     {
-        public DateTimeOffset AccessStartDate { get; set; }
-        public Fathym.MetadataModel Details { get; set; }
+        // public DateTimeOffset AccessStartDate { get; set; }
+        public string Details { get; set; }
         public DateTimeOffset ExpirationDate { get; set; }
-        public bool EnterpriseOverride { get; set; }
+        // public bool EnterpriseOverride { get; set; }
         public bool IsLocked { get; set; }
-        public bool IsReset { get; set; }
+        // public bool IsReset { get; set; }
         public string Lookup { get; set; }
-        public int TrialPeriodDays { get; set; }
-        public string Username { get; set; }
+        public string Type { get; set; }
+        // public int TrialPeriodDays { get; set; }
+        // public string Username { get; set; }
     }
 
     public class RevokeAccessCardRequest : BaseRequest

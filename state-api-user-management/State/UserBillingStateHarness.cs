@@ -90,17 +90,24 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 });
 
                 //issue new license access
-                var setLicenseAccessResp = await idMgr.IssueLicenseAccess(new LicenseAccessToken()
-                {
-                    AccessStartDate = System.DateTime.Now,
-                    Details = planOption.JSONConvert<MetadataModel>(),
-                    EnterpriseLookup = entLookup,
-                    Lookup = licenseType,
-                    TrialPeriodDays = 0,
-                    Username = username
-                }, entLookup);
+                // var setLicenseAccessResp = await idMgr.IssueLicenseAccess(new LicenseAccessToken()
+                // {
+                //     AccessStartDate = System.DateTime.Now,
+                //     Details = planOption.JSONConvert<MetadataModel>(),
+                //     EnterpriseLookup = entLookup,
+                //     Lookup = licenseType,
+                //     TrialPeriodDays = 0,
+                //     Username = username
+                // }, entLookup);
 
-                State.PaymentStatus = setLicenseAccessResp.Status;
+                // var setLicenseAccessResp = await idMgr.IssueLicense(new License() 
+                // {
+                //     Details = planOption.JSONConvert<string>(),
+                //     Lookup = licenseType,
+                //     Type = licenseType,
+                // }, entLookup);
+
+                // State.PaymentStatus = setLicenseAccessResp.Status;
 
                 State.SubscriptionID = completeResp.SubscriptionID;
 
@@ -157,30 +164,30 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     Value = DateTimeOffset.UtcNow.ToString(),                  
                 });
 
-                var setLicenseAccessResp = await DesignOutline.Instance.Chain<BaseResponse>()
-                    .AddResponsibilities(licenseTypes.Select<string, Func<BaseResponse>>(licenseType =>
-                    {
-                        return () =>
-                        {
-                            var token = new LicenseAccessToken()
-                            {
-                                Details = planOption.JSONConvert<MetadataModel>(),
-                                EnterpriseLookup = entLookup,
-                                Lookup = licenseType,
-                                AccessStartDate = DateTime.Now,
-                                TrialPeriodDays = trialPeriodDays,
-                                Username = username
-                            };
+                // var setLicenseAccessResp = await DesignOutline.Instance.Chain<BaseResponse>()
+                //     .AddResponsibilities(licenseTypes.Select<string, Func<BaseResponse>>(licenseType =>
+                //     {
+                //         return () =>
+                //         {
+                //             var token = new LicenseAccessToken()
+                //             {
+                //                 Details = planOption.JSONConvert<MetadataModel>(),
+                //                 EnterpriseLookup = entLookup,
+                //                 Lookup = licenseType,
+                //                 AccessStartDate = DateTime.Now,
+                //                 TrialPeriodDays = trialPeriodDays,
+                //                 Username = username
+                //             };
 
-                            var latResp = idMgr.IssueLicenseAccess(token, entLookup).Result;
+                //             var latResp = idMgr.IssueLicenseAccess(token, entLookup).Result;
 
-                            return latResp;
-                        };
-                    }).ToArray())
-                    .SetShouldContinue(latResp => latResp.Status)
-                    .Run();
+                //             return latResp;
+                //         };
+                //     }).ToArray())
+                //     .SetShouldContinue(latResp => latResp.Status)
+                //     .Run();
 
-                State.PaymentStatus = setLicenseAccessResp.Status;
+                // State.PaymentStatus = setLicenseAccessResp.Status;
 
                 State.SubscriptionID = completeResp.SubscriptionID;
 

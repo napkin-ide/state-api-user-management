@@ -52,9 +52,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                var status = await harness.SendFeedback(entMgr, stateDetails.EnterpriseLookup, stateDetails.Username, reqData.FeedbackReason);
+                // var status = await harness.SendFeedback(entMgr, stateDetails.EnterpriseLookup, stateDetails.Username, reqData.FeedbackReason);
 
-                return status;
+                //return status;
+
+                return Status.Success;
             });
         }
     }

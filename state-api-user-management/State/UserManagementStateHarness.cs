@@ -361,14 +361,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             {
 
                 // Get the user's LATs from the graph db
-                var licenseAccess = await idMgr.ListLicenseAccessTokens(entLookup, username, new List<string>() {licenseType});
+                var licenseAccess = await idMgr.ListLicensesByUsername(entLookup, username, new List<string>() {licenseType});
 
                 // Expire the LAT
-                foreach (LicenseAccessToken token in licenseAccess.Model)
+                foreach (License license in licenseAccess.Model)
                 {
-                    token.IsLocked = true;
-                    token.ExpirationDate = System.DateTime.Now;
-                    await idMgr.IssueLicenseAccess(token, entLookup);
+                    license.IsLocked = true;
+                    license.ExpirationDate = System.DateTime.Now;
+                    // await idMgr.IssueLicenseAccess(token, entLookup);
                 }
 
                 var cancelNotice = new SendNotificationRequest()
@@ -384,10 +384,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 };
 
                 // Send email to let  the cancellation took place 
-                await SendFeedback(entMgr, entLookup, mrktEmail, reason);
+                // await SendFeedback(entMgr, entLookup, mrktEmail, reason);
 
                 // Send email to user to let them know cancellation has taken place
-                await SendNotification(entMgr, entLookup, username, cancelNotice);
+                // await SendNotification(entMgr, entLookup, username, cancelNotice);
 
                 return Status.Success;
             }
@@ -771,7 +771,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         public virtual async Task<Status> HasLicenseAccessWithLookup(IIdentityAccessService idMgr, string entLookup, string username, string lookup)
         {
-            var licenseAccess = await idMgr.HasLicenseAccess(entLookup, username, AllAnyTypes.All, new List<string>() { "lcu" });
+            var licenseAccess = await idMgr.HasLicenseAccess(entLookup, username, API.UserManagement.Host.TempRefit.AllAnyTypes.All, new List<string>() { "lcu" });
 
             return licenseAccess.Status ? Status.Success : Status.Unauthorized.Clone($"No license found for user {username}");
         }
@@ -786,7 +786,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual async Task ListSubscribers(IIdentityAccessService idMgr, string entLookup)
         {
             // Get the list of subscribers based on subscriber status
-            var subscriberResp = await idMgr.ListLicensedSubscribers(entLookup);
+            var subscriberResp = await idMgr.ListLicenses(entLookup);
 
             State.Subscribers = subscriberResp.Model;
         }
