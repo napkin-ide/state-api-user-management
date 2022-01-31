@@ -141,6 +141,9 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
         [Get("/access/{entLookup}/license/{username}/{allAny}")]
         Task<BaseResponse<MetadataModel>> HasLicenseAccess(string entLookup, string username, AllAnyTypes allAny, [Query] List<string> licenseTypes);
 
+        [Post("/access/{entLookup}/issue/license/{username}/{projectId}/{price}/{licenseLookup}")]
+        Task<BaseResponse<License>> IssueLicense([Body] License license, string entLookup, string username, string projectId, string price, string licenseLookup);
+
         [Get("/access/{entLookup}/{projectId}/access-rights/{username}")]
         Task<BaseResponse<List<AccessRight>>> ListAccessRights(string entLookup, Guid projectId, string username);
 
@@ -186,7 +189,7 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
         [Post("/billing/{entLookup}/stripe/customer/update")]
         Task<UpdateStripeSubscriptionResponse> UpdateStripeSubscription(string entLookup, [Body] UpdateStripeSubscriptionRequest request);
 
-        [Post("/billing/{entLookup}/stripe/subscription/{subscriptionId}")]
+        [Post("/billing/{entLookup}/stripe/subscription/verify/{subscriptionId}")]
         Task<BaseResponse> VerifySubscription(string subscriptionId, string entLookup);
     }
     
@@ -701,25 +704,27 @@ namespace LCU.State.API.UserManagement.Host.TempRefit
         public virtual Guid? ProjectID { get; set; }
     }
 
+    [DataContract]
     public class License : LCUVertex
     {
-        // public DateTimeOffset AccessStartDate { get; set; }
+        [DataMember]
         public string Details { get; set; }
+
+        [DataMember]
         public DateTimeOffset ExpirationDate { get; set; }
-        // public bool EnterpriseOverride { get; set; }
+
+        [DataMember]
         public bool IsLocked { get; set; }
-        // public bool IsReset { get; set; }
-        public string Lookup { get; set; }
-        public string Type { get; set; }
-        // public int TrialPeriodDays { get; set; }
-        // public string Username { get; set; }
     }
 
+    [DataContract]
     public class RevokeAccessCardRequest : BaseRequest
     {
         //public RevokeAccessCardRequest();
+        [DataMember]
         public virtual string AccessConfiguration { get; set; }
-
+        
+        [DataMember]
         public virtual string Username { get; set; }
     }
 

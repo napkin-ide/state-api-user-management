@@ -64,12 +64,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
         {
             var stateDetails = StateUtils.LoadStateDetails(req);
 
+            var projectId = req.Headers["lcu-project-id"];
+
             return await stateBlob.WithStateHarness<UserBillingState, CompletePaymentRequest, UserBillingStateHarness>(req, signalRMessages, log,
                 async (harness, payReq) =>
             {
                 log.LogInformation($"Executing CompletePayment Action.");
-
-                await harness.CompletePayment(entBillingMgr, secMgr, idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan, payReq.TrialPeriodDays);
+                
+                await harness.CompletePayment(entBillingMgr, secMgr, idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan, payReq.TrialPeriodDays, projectId);
 
                 //  TODO:  Set State Status and Loading
 

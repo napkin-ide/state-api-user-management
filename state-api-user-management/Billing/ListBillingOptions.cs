@@ -42,7 +42,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
         [FunctionResponseCache(600, ResponseCacheLocation.Any)]
         public virtual async Task<HttpResponseMessage> Run([HttpTrigger] HttpRequest req, ILogger log)
         {
-            var entLookup = req.Headers["lcu-ent-lookup"];
+            var stateDetails = StateUtils.LoadStateDetails(req);
+
+            var entLookup = stateDetails.EnterpriseLookup;
 
             var licenseType = req.Query["licenseType"];
 

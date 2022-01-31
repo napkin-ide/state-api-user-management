@@ -119,8 +119,8 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.Loading = false;
         }
 
-        public virtual async Task CompletePayment(IEnterprisesBillingManagerService entMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr, string entLookup,
-            string username, string methodId, string customerName, string plan, int trialPeriodDays)
+        public virtual async Task CompletePayment(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr, string entLookup,
+            string username, string methodId, string customerName, string plan, int trialPeriodDays, string projectId)
         {
             State.CustomerName = customerName;
 
@@ -134,7 +134,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 planOption.Metadata["LicenseTypeOverrides"].ToString().Split('|', StringSplitOptions.RemoveEmptyEntries) : 
                 new[] { licenseTypeCore };
 
-            var completeResp = await entMgr.CompleteStripeSubscription(
+            var completeResp = await entBillingMgr.CompleteStripeSubscription(
                 new CompleteStripeSubscriptionRequest()
                 {
                     CustomerName = State.CustomerName,
@@ -155,39 +155,22 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     Name = "LCU-USER-BILLING.TermsOfService",
                     Description = "Billing Terms of Service",
                     Value = DateTimeOffset.UtcNow.ToString(),                  
-                });
+                }, entLookup, email:username, projectId: Guid.Parse(projectId));
 
                 var eaResp = await secMgr.SetDataToken(new DataToken(){
                     Lookup = "LCU-USER-BILLING.EnterpriseAgreement",
                     Name = "LCU-USER-BILLING.EnterpriseAgreement",
                     Description = "Billing Enterprise Agreement",
                     Value = DateTimeOffset.UtcNow.ToString(),                  
-                });
+                }, entLookup, email:username, projectId: Guid.Parse(projectId));
 
-                // var setLicenseAccessResp = await DesignOutline.Instance.Chain<BaseResponse>()
-                //     .AddResponsibilities(licenseTypes.Select<string, Func<BaseResponse>>(licenseType =>
-                //     {
-                //         return () =>
-                //         {
-                //             var token = new LicenseAccessToken()
-                //             {
-                //                 Details = planOption.JSONConvert<MetadataModel>(),
-                //                 EnterpriseLookup = entLookup,
-                //                 Lookup = licenseType,
-                //                 AccessStartDate = DateTime.Now,
-                //                 TrialPeriodDays = trialPeriodDays,
-                //                 Username = username
-                //             };
+                var licenseResponse = await idMgr.IssueLicense(new License(){
+                    Details = JsonConvert.SerializeObject(planOption.Metadata),
+                    ExpirationDate = DateTimeOffset.Now.AddYears(50),
+                    IsLocked = false
+                }, entLookup, username, projectId, plan, licenseTypeCore);
 
-                //             var latResp = idMgr.IssueLicenseAccess(token, entLookup).Result;
-
-                //             return latResp;
-                //         };
-                //     }).ToArray())
-                //     .SetShouldContinue(latResp => latResp.Status)
-                //     .Run();
-
-                // State.PaymentStatus = setLicenseAccessResp.Status;
+                State.PaymentStatus = licenseResponse.Status;
 
                 State.SubscriptionID = completeResp.SubscriptionID;
 
