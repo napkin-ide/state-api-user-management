@@ -11,6 +11,7 @@ using System.IO;
 using LCU.StateAPI.Utilities;
 using LCU.Personas.Client.Identity;
 using LCU.State.API.NapkinIDE.UserManagement.State;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Management
 {
@@ -25,9 +26,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
     public class ListSubcribers
     {
-        protected IdentityManagerClient idMgr;
+        protected IIdentityAccessService idMgr;
 
-        public ListSubcribers(IdentityManagerClient idMgr)
+        public ListSubcribers(IIdentityAccessService idMgr)
         {
             this.idMgr = idMgr;
         }

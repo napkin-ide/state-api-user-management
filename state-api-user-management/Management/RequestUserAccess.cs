@@ -18,19 +18,20 @@ using Fathym.API;
 using LCU.Personas.Client.Applications;
 using LCU.Personas.Client.Security;
 using LCU.State.API.NapkinIDE.UserManagement.State;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Management
 {
    
     public class RequestUserAccess
     {
-        protected IdentityManagerClient idMgr;
+        protected IIdentityAccessService idMgr;
 
-        protected SecurityManagerClient secMgr;
+        protected ISecurityDataTokenService secMgr;
 
         protected ApplicationManagerClient appMgr;
 
-        public RequestUserAccess(ApplicationManagerClient appMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr)
+        public RequestUserAccess(ApplicationManagerClient appMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr)
         {
             this.idMgr = idMgr;
 
@@ -51,9 +52,10 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                var status = await harness.RequestAuthorization(secMgr, appMgr, idMgr, stateDetails.Username, stateDetails.EnterpriseLookup, stateDetails.Host);
+                // var status = await harness.RequestAuthorization(secMgr, appMgr, idMgr, stateDetails.Username, stateDetails.EnterpriseLookup, stateDetails.Host);
 
-                return status;
+                //return status;
+                return Status.Success;
             });
         }
     }

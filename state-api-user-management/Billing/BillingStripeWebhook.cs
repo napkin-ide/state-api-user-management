@@ -20,22 +20,25 @@ using LCU.Personas.Client.Security;
 using LCU.State.API.NapkinIDE.UserManagement.State;
 using Stripe;
 using LCU.Presentation.State.ReqRes;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 {
     public class BillingStripeWebhook
     {
-        protected readonly EnterpriseManagerClient entMgr;
+        protected readonly IEnterprisesBillingManagerService entBillingMgr;
 
-        protected readonly IdentityManagerClient idMgr;
+        protected readonly IIdentityAccessService idMgr;
 
-        protected readonly SecurityManagerClient secMgr;
+        protected readonly ISecurityDataTokenService secMgr;
 
-        public BillingStripeWebhook(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
+        public BillingStripeWebhook(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr)
         {
-            this.entMgr = entMgr;
+            this.entBillingMgr = entBillingMgr;
 
             this.secMgr = secMgr;
+
+            this.idMgr = idMgr;
         }
 
         [FunctionName("BillingStripeWebhook")]
@@ -98,7 +101,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
                 switch (stripeEvent.Type)
                 {
                     case Events.ChargeFailed:
-                        status = await harness.HandleChargeFailed(entMgr, idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, stripeEvent);
+                        status = await harness.HandleChargeFailed(entBillingMgr, idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, stripeEvent);
                         break;
 
                     default:

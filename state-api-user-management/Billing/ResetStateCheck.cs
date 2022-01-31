@@ -18,6 +18,7 @@ using LCU.Personas.Client.Identity;
 using LCU.StateAPI.Utilities;
 using LCU.Personas.Client.Security;
 using LCU.State.API.NapkinIDE.UserManagement.State;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 {
@@ -31,17 +32,19 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
     public class ResetStateCheck
     {
-        protected readonly EnterpriseManagerClient entMgr;
+        protected readonly IEnterprisesBillingManagerService entBillingMgr;
 
-        protected readonly IdentityManagerClient idMgr;
+        protected readonly IIdentityAccessService idMgr;
 
-        protected readonly SecurityManagerClient secMgr;
+        protected readonly ISecurityDataTokenService secMgr;
 
-        public ResetStateCheck(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
+        public ResetStateCheck(IEnterprisesBillingManagerService entBillingMgr, IIdentityAccessService idMgr, ISecurityDataTokenService secMgr)
         {
-            this.entMgr = entMgr;
+            this.entBillingMgr = entBillingMgr;
 
-            this.secMgr = secMgr;
+            this.idMgr = idMgr;
+
+            this.secMgr = secMgr;            
         }
 
         [FunctionName("ResetStateCheck")]
@@ -58,7 +61,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
                 harness.ResetStateCheck(force: true);
 
-                await harness.Refresh(entMgr, idMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, dataReq.LicenseType);
+                await harness.Refresh(entBillingMgr, idMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, dataReq.LicenseType);
 
                 return Status.Success;
             });

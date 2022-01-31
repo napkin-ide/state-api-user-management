@@ -13,6 +13,7 @@ using LCU.Personas.Client.Enterprises;
 using LCU.StateAPI.Utilities;
 using LCU.Personas.Client.Security;
 using LCU.State.API.NapkinIDE.UserManagement.State;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 {
@@ -31,13 +32,13 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
     public class UpdatePaymentInfo
     {
-        protected readonly EnterpriseManagerClient entMgr;
+        protected readonly IEnterprisesBillingManagerService entBillingMgr;
 
-        protected readonly SecurityManagerClient secMgr;
+        protected readonly ISecurityDataTokenService secMgr;
 
-        public UpdatePaymentInfo(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr)
+        public UpdatePaymentInfo(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr)
         {
-            this.entMgr = entMgr;
+            this.entBillingMgr = entBillingMgr;
 
             this.secMgr = secMgr;
         }
@@ -54,7 +55,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
             {
                 log.LogInformation($"Executing UpdatePaymentInfo Action.");
 
-                await harness.UpdatePaymentInfo(entMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, payReq.MethodID, payReq.CustomerName);
+                await harness.UpdatePaymentInfo(entBillingMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, payReq.MethodID, payReq.CustomerName);
 
                 //  TODO:  Set State Status and Loading
 

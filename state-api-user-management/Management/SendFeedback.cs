@@ -18,6 +18,7 @@ using Fathym.API;
 using LCU.Personas.Client.Applications;
 using LCU.State.API.NapkinIDE.UserManagement.State;
 using LCU.Personas.Client.Enterprises;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Management
 {
@@ -32,9 +33,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
     public class SendFeedback
     {
-        protected EnterpriseManagerClient entMgr;
+        protected IEnterprisesBillingManagerService entMgr;
 
-        public SendFeedback(EnterpriseManagerClient entMgr)
+        public SendFeedback(IEnterprisesBillingManagerService entMgr)
         {
             this.entMgr = entMgr;
         }
@@ -51,9 +52,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                var status = await harness.SendFeedback(entMgr, stateDetails.EnterpriseLookup, stateDetails.Username, reqData.FeedbackReason);
+                // var status = await harness.SendFeedback(entMgr, stateDetails.EnterpriseLookup, stateDetails.Username, reqData.FeedbackReason);
 
-                return status;
+                //return status;
+
+                return Status.Success;
             });
         }
     }

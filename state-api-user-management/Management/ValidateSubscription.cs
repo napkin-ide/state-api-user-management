@@ -16,6 +16,7 @@ using LCU.Personas.Client.Enterprises;
 using LCU.Personas.Client.Identity;
 using LCU.StateAPI.Utilities;
 using LCU.State.API.NapkinIDE.UserManagement.State;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Management
 {
@@ -31,11 +32,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
     public class ValidateSubscription
     {
-        protected EnterpriseManagerClient engMgr;
+        protected IEnterprisesBillingManagerService engMgr;
 
-        protected IdentityManagerClient idMgr;
+        protected IIdentityAccessService idMgr;
 
-        public ValidateSubscription(EnterpriseManagerClient engMgr, IdentityManagerClient idMgr)
+        public ValidateSubscription(IEnterprisesBillingManagerService engMgr, IIdentityAccessService idMgr)
         {
             this.engMgr = engMgr;
 
