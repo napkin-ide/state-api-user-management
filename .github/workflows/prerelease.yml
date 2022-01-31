@@ -18,8 +18,8 @@ jobs:
   build:
     name: Build and Publish
     runs-on: ubuntu-latest
-    strategy:
     environment: integration
+    strategy: 
       matrix:
         dotnet: [ '3.1.x' ]    
     steps:
