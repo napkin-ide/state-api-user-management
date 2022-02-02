@@ -17,15 +17,16 @@ using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Newtonsoft.Json.Converters;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
-using LCU.Personas.Client.Enterprises;
 using LCU.Personas.Client.DevOps;
-using LCU.Personas.Enterprises;
 using LCU.Personas.Client.Applications;
 using LCU.Personas.Client.Identity;
 using Fathym.API;
 using LCU.Personas.Client.Security;
 using LCU.Graphs.Registry.Enterprises.Identity;
+using LCU.State.API.NapkinIDE.UserManagement.Management;
+using Newtonsoft.Json.Linq;
 using Fathym.Design;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.State
 {
@@ -45,30 +46,28 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         #region API Methods
 
-        public virtual async Task ChangeSubscription(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr, string entLookup,
+        public virtual async Task ChangeSubscription(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr, string entLookup,
             string username, string customerName, string plan)
         {
             //cancel existing subscription 
-            // await entMgr.CancelSubscriptionByUser(username, entLookup);
+            var cancelResp = await entBillingMgr.CancelSubscriptionByUser(username, entLookup);
 
             var planOption = this.State.Plans.First(p => p.Lookup == plan);
 
             var licenseType = planOption.Metadata["LicenseType"].ToString();
 
             //Remove license access
-            await idMgr.RevokeLicenseAccess(entLookup, username, licenseType);
-
-
+            await idMgr.RevokeLicense(entLookup, username, licenseType);
 
             // create new subscription
-            var completeResp = await entMgr.CompleteStripeSubscription(entLookup, licenseType,
+            var completeResp = await entBillingMgr.CompleteStripeSubscription(
                     new CompleteStripeSubscriptionRequest()
                     {
                         CustomerName = State.CustomerName,
                         Plan = plan,
                         Username = username,
                         TrialPeriodDays = 0
-                    });
+                    }, entLookup, licenseType);
 
             State.PaymentStatus = completeResp.Status;
 
@@ -76,34 +75,52 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             {
                 State.PurchasedPlanLookup = plan;
 
-                var resp = await secMgr.SetIdentityThirdPartyData(entLookup, username, new Dictionary<string, string>()
-                {
-                    { "LCU-USER-BILLING.TermsOfService", DateTimeOffset.UtcNow.ToString() },
-                    { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() },
-                    { "LCU-STRIPE-SUBSCRIPTION-ID", completeResp.SubscriptionID}
+                var tosResp = await secMgr.SetDataToken(new DataToken(){
+                    Lookup = "LCU-USER-BILLING.TermsOfService",
+                    Name = "LCU-USER-BILLING.TermsOfService",
+                    Description = "Billing Terms of Service",
+                    Value = DateTimeOffset.UtcNow.ToString(),                  
+                });
+
+                var eaResp = await secMgr.SetDataToken(new DataToken(){
+                    Lookup = "LCU-USER-BILLING.EnterpriseAgreement",
+                    Name = "LCU-USER-BILLING.EnterpriseAgreement",
+                    Description = "Billing Enterprise Agreement",
+                    Value = DateTimeOffset.UtcNow.ToString(),                  
                 });
 
                 //issue new license access
-                var setLicenseAccessResp = await idMgr.IssueLicenseAccess(new LicenseAccessToken()
-                {
-                    AccessStartDate = System.DateTime.Now,
-                    Details = planOption.JSONConvert<MetadataModel>(),
-                    EnterpriseLookup = entLookup,
-                    Lookup = licenseType,
-                    TrialPeriodDays = 0,
-                    Username = username
-                }, entLookup);
+                // var setLicenseAccessResp = await idMgr.IssueLicenseAccess(new LicenseAccessToken()
+                // {
+                //     AccessStartDate = System.DateTime.Now,
+                //     Details = planOption.JSONConvert<MetadataModel>(),
+                //     EnterpriseLookup = entLookup,
+                //     Lookup = licenseType,
+                //     TrialPeriodDays = 0,
+                //     Username = username
+                // }, entLookup);
 
-                State.PaymentStatus = setLicenseAccessResp.Status;
+                // var setLicenseAccessResp = await idMgr.IssueLicense(new License() 
+                // {
+                //     Details = planOption.JSONConvert<string>(),
+                //     Lookup = licenseType,
+                //     Type = licenseType,
+                // }, entLookup);
+
+                // State.PaymentStatus = setLicenseAccessResp.Status;
 
                 State.SubscriptionID = completeResp.SubscriptionID;
 
                 State.SuccessRedirect = planOption.Metadata["SuccessRedirect"].ToString();
             }
+
+            await ListLicenses(idMgr, entLookup, username, licenseType);
+            
             State.Loading = false;
         }
-        public virtual async Task CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr, string entLookup,
-            string username, string methodId, string customerName, string plan, int trialPeriodDays)
+
+        public virtual async Task CompletePayment(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr, string entLookup,
+            string username, string methodId, string customerName, string plan, int trialPeriodDays, string projectId)
         {
             State.CustomerName = customerName;
 
@@ -117,7 +134,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                 planOption.Metadata["LicenseTypeOverrides"].ToString().Split('|', StringSplitOptions.RemoveEmptyEntries) : 
                 new[] { licenseTypeCore };
 
-            var completeResp = await entMgr.CompleteStripeSubscription(entLookup, licenseTypeCore,
+            var completeResp = await entBillingMgr.CompleteStripeSubscription(
                 new CompleteStripeSubscriptionRequest()
                 {
                     CustomerName = State.CustomerName,
@@ -125,70 +142,152 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
                     Plan = plan,
                     TrialPeriodDays = trialPeriodDays,
                     Username = username
-                });
+                }, entLookup, licenseTypeCore);
 
             State.PaymentStatus = completeResp.Status;
 
-            if (State.PaymentStatus)
+            if (State.PaymentStatus.Code == 0 )
             {
                 State.PurchasedPlanLookup = plan;
 
-                var resp = await secMgr.SetIdentityThirdPartyData(entLookup, username, new Dictionary<string, string>()
-                {
-                    { "LCU-USER-BILLING.TermsOfService", DateTimeOffset.UtcNow.ToString() },
-                    { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() },
-                    { "LCU-STRIPE-SUBSCRIPTION-ID", completeResp.SubscriptionID}
-                });
+                var tosResp = await secMgr.SetDataToken(new DataToken(){
+                    Lookup = "LCU-USER-BILLING.TermsOfService",
+                    Name = "LCU-USER-BILLING.TermsOfService",
+                    Description = "Billing Terms of Service",
+                    Value = DateTimeOffset.UtcNow.ToString(),                  
+                }, entLookup, email:username, projectId: Guid.Parse(projectId));
 
-                var setLicenseAccessResp = await DesignOutline.Instance.Chain<BaseResponse>()
-                    .AddResponsibilities(licenseTypes.Select<string, Func<BaseResponse>>(licenseType =>
-                    {
-                        return () =>
-                        {
-                            var token = new LicenseAccessToken()
-                            {
-                                Details = planOption.JSONConvert<MetadataModel>(),
-                                EnterpriseLookup = entLookup,
-                                Lookup = licenseType,
-                                AccessStartDate = DateTime.Now,
-                                TrialPeriodDays = trialPeriodDays,
-                                Username = username
-                            };
+                var eaResp = await secMgr.SetDataToken(new DataToken(){
+                    Lookup = "LCU-USER-BILLING.EnterpriseAgreement",
+                    Name = "LCU-USER-BILLING.EnterpriseAgreement",
+                    Description = "Billing Enterprise Agreement",
+                    Value = DateTimeOffset.UtcNow.ToString(),                  
+                }, entLookup, email:username, projectId: Guid.Parse(projectId));
 
-                            var latResp = idMgr.IssueLicenseAccess(token, entLookup).Result;
+                var licenseResponse = await idMgr.IssueLicense(new License(){
+                    Details = JsonConvert.SerializeObject(planOption.Metadata),
+                    ExpirationDate = DateTimeOffset.Now.AddYears(50),
+                    IsLocked = false
+                }, entLookup, username, projectId, plan, licenseTypeCore);
 
-                            return latResp;
-                        };
-                    }).ToArray())
-                    .SetShouldContinue(latResp => latResp.Status)
-                    .Run();
-
-                State.PaymentStatus = setLicenseAccessResp.Status;
+                State.PaymentStatus = licenseResponse.Status;
 
                 State.SubscriptionID = completeResp.SubscriptionID;
 
                 State.SuccessRedirect = planOption.Metadata["SuccessRedirect"].ToString();
             }
+
+            else{
+                //TODO handle when payment fails but subscription is assigned
+            }
         }
 
-        public virtual async Task DetermineRequiredOptIns(SecurityManagerClient secMgr, string entLookup, string username)
+        public virtual async Task DetermineRequiredOptIns(ISecurityDataTokenService secMgr, string entLookup, string username)
         {
-            var thirdPartyData = await secMgr.RetrieveIdentityThirdPartyData(entLookup, username, "LCU-USER-BILLING.TermsOfService", "LCU-USER-BILLING.EnterpriseAgreement");
+            var tosDataToken = await secMgr.GetDataToken("LCU-USER-BILLING.TermsOfService", entLookup, username);
+
+            var eaDataToken = await secMgr.GetDataToken("LCU-USER-BILLING.EnterpriseAgreement", entLookup, username);
 
             State.RequiredOptIns = new List<string>();
 
-            if (!thirdPartyData.Status || !thirdPartyData.Model.ContainsKey("LCU-USER-BILLING.TermsOfService"))
+            if (!tosDataToken.Status || tosDataToken.Model.Lookup != "LCU-USER-BILLING.TermsOfService")
                 State.RequiredOptIns.Add("ToS");
 
-            if (!thirdPartyData.Status || !thirdPartyData.Model.ContainsKey("LCU-USER-BILLING.EnterpriseAgreement"))
+            if (!eaDataToken.Status || eaDataToken.Model.Lookup != "LCU-USER-BILLING.EnterpriseAgreement")
                 State.RequiredOptIns.Add("EA");
         }
 
-        public virtual async Task LoadBillingPlans(EnterpriseManagerClient entMgr, string entLookup, string licenseType)
+        public virtual async Task<Status> HandleChargeFailed(IEnterprisesBillingManagerService entBillingMgr, IIdentityAccessService idMgr, string entLookup, string userEmail, Stripe.Event stripeEvent)
         {
-            var plansResp = await entMgr.ListBillingPlanOptions(entLookup, licenseType);
 
-            State.Plans = plansResp.Model ?? new List<BillingPlanOption>();
+            string fromEmail = "alerts@fathym.com";
+
+            string supportEmail = "support@fathym.com";
+
+            State.SuspendAccountOn = DateTime.Now.AddDays(15);
+
+            string suspendOnStr = State.SuspendAccountOn.ToString();
+
+            State.PaymentStatus = Status.Conflict;
+
+            log.LogInformation($"Users State {State.ToJSON()}");
+
+            var usersLics = await entBillingMgr.GetCustomersIncompleteLicenseTypes(userEmail, entLookup);
+
+            log.LogInformation($"Users licenses {usersLics}");
+
+            if(usersLics.Model.IsNullOrEmpty()){
+                //existing user with license              
+
+                //email the user that their cc needs to be updated and the charge failed with link to update cc
+            
+            var suspensionNotice = new SendNotificationRequest()
+                {
+                    
+                        EmailFrom = fromEmail,
+                        EmailTo = userEmail,
+                        dynamic_template_data = new TemplateDataModel 
+                            {
+                                suspendOn = suspendOnStr
+                            },
+                        template_id = "d-b7fb6618e8d3466b94bffd27e5a43f16"
+                    
+                };
+            await SendTemplateEmail(entBillingMgr, entLookup, suspensionNotice);
+
+            //email fathym support about the card failure
+            var cardFailedNotice = new SendNotificationRequest()
+                {
+                    EmailFrom = fromEmail,
+                    EmailTo = supportEmail,
+                    dynamic_template_data = new TemplateDataModel 
+                            {
+                                userName = userEmail,
+                                suspendOn = suspendOnStr
+                            },
+                        template_id = "d-8048d19cfc264ca6a364a964d1deec76"
+                };
+            await SendTemplateEmail(entBillingMgr, entLookup, cardFailedNotice);
+            }
+
+            if(!usersLics.Model.IsNullOrEmpty()){
+                //new user signup that failed
+
+                var ccFailedNotice = new SendNotificationRequest()
+                {
+                        EmailFrom = fromEmail,
+                        EmailTo = userEmail,
+                        dynamic_template_data = new TemplateDataModel 
+                            { },
+                        template_id = "d-ecd308931cc54e4f91f5d795f323cd95"
+                };
+            await SendTemplateEmail(entBillingMgr, entLookup, ccFailedNotice);
+            }   
+
+
+            //TODO automate pause the users account with fathym after 15 day grace period once event is recieved
+
+            //TODO automate once 15 day grace period has passed suspend the users account and notify the user.
+
+            return Status.Success;
+
+            // throw new NotImplementedException();
+        }
+        
+        public virtual async Task<Status> ListLicenses(IIdentityAccessService idAccessSvc, string entLookup, string username, string licenseType)
+        {
+            var licenseAccess = await idAccessSvc.ListLicensesByUsername(entLookup, username, new List<string>() { licenseType });
+
+            State.ExistingLicenseTypes = licenseAccess.Model;
+
+            return (licenseAccess != null) ? Status.Success : Status.Unauthorized.Clone($"No licenses found for user {username}");
+        }
+
+        public virtual async Task LoadBillingPlans(IEnterprisesBillingManagerService entBillingMgr, string entLookup, string licenseType)
+        {
+            var plansResp = await entBillingMgr.ListBillingPlanOptions(entLookup, licenseType);
+
+            State.Plans = plansResp.Model ?? new List<API.UserManagement.Host.TempRefit.BillingPlanOption>();
 
             State.FeaturedPlanGroup = State.Plans.FirstOrDefault(plan =>
             {
@@ -201,20 +300,25 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             })?.PlanGroup;
         }
 
-        public virtual async Task Refresh(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entLookup, string username, string licenseType)
+        public virtual async Task Refresh(IEnterprisesBillingManagerService entBillingMgr, IIdentityAccessService idAccessSvc, ISecurityDataTokenService secMgr, string entLookup, string username, string licenseType)
         {
             ResetStateCheck();
 
-            await LoadBillingPlans(entMgr, entLookup, licenseType);
+            await LoadBillingPlans(entBillingMgr, entLookup, licenseType);
 
             SetUsername(username);
 
             await DetermineRequiredOptIns(secMgr, entLookup, username);
+
+            await ListLicenses(idAccessSvc, entLookup, username, licenseType);
         }
 
         public virtual void ResetStateCheck(bool force = false)
         {
             if (force || State.PaymentStatus)
+                State = new UserBillingState();
+
+            if (force)
                 State = new UserBillingState();
         }
 
@@ -223,14 +327,38 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             State.Username = username;
         }
 
-        public virtual async Task UpdatePaymentInfo(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, string entLookup,
+        // public virtual async Task<Status> SendNotification(IEnterprisesBillingManagerService entMgr, string entLookup, string username, SendNotificationRequest notification)
+        // {
+        //     // Send email from app manager client 
+        //     var model = new MetadataModel();
+
+        //     model.Metadata.Add(new KeyValuePair<string, JToken>("SendNotificationRequest", JToken.Parse(JsonConvert.SerializeObject(notification))));
+
+        //     await entMgr.SendNotificationEmail(model, entLookup);
+
+        //     return Status.Success;
+        // }
+
+        public virtual async Task<Status> SendTemplateEmail(IEnterprisesBillingManagerService entBillingMgr, string entLookup, SendNotificationRequest notification)
+        {
+            // Send email from app manager client 
+            var model = new MetadataModel();
+
+            model.Metadata.Add(new KeyValuePair<string, JToken>("TemplateEmail", JToken.Parse(JsonConvert.SerializeObject(notification))));
+
+            // await entBillingMgr.SendTemplateEmail(model, entLookup);
+
+            return Status.Success;
+        }
+
+        public virtual async Task UpdatePaymentInfo(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr, string entLookup,
             string username, string methodId, string customerName)
         {
             State.CustomerName = customerName;
 
             State.PaymentMethodID = methodId;
 
-            var updateResp = await entMgr.UpdateStripeSubscription(entLookup,
+            var updateResp = await entBillingMgr.UpdateStripeSubscription(entLookup,
                     new UpdateStripeSubscriptionRequest()
                     {
                         CustomerName = State.CustomerName,
@@ -243,10 +371,18 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
             if (State.PaymentStatus)
             {
 
-                var resp = await secMgr.SetIdentityThirdPartyData(entLookup, username, new Dictionary<string, string>()
-                {
-                    { "LCU-USER-BILLING.TermsOfService", DateTimeOffset.UtcNow.ToString() },
-                    { "LCU-USER-BILLING.EnterpriseAgreement", DateTimeOffset.UtcNow.ToString() },
+                var tosResp = await secMgr.SetDataToken(new DataToken(){
+                    Lookup = "LCU-USER-BILLING.TermsOfService",
+                    Name = "LCU-USER-BILLING.TermsOfService",
+                    Description = "Billing Terms of Service",
+                    Value = DateTimeOffset.UtcNow.ToString(),                  
+                });
+
+                var eaResp = await secMgr.SetDataToken(new DataToken(){
+                    Lookup = "LCU-USER-BILLING.EnterpriseAgreement",
+                    Name = "LCU-USER-BILLING.EnterpriseAgreement",
+                    Description = "Billing Enterprise Agreement",
+                    Value = DateTimeOffset.UtcNow.ToString(),                  
                 });
             }
 

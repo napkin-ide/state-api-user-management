@@ -16,6 +16,7 @@ using LCU.Personas.Client.Identity;
 using LCU.StateAPI.Utilities;
 using Fathym.API;
 using LCU.State.API.NapkinIDE.UserManagement.State;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Management
 {
@@ -23,14 +24,16 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
     [DataContract]
     public class ListLicensesRequest : BaseRequest
     {
+        [DataMember]
+        public string LicenseType { get; set; }
 
     }
 
     public class ListLicenses
     {
-        protected IdentityManagerClient idMgr;
+        protected IIdentityAccessService idMgr;
 
-        public ListLicenses(IdentityManagerClient idMgr)
+        public ListLicenses(IIdentityAccessService idMgr)
         {
             this.idMgr = idMgr;
         }
@@ -47,7 +50,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                var status = await harness.ListLicenses(idMgr, stateDetails.EnterpriseLookup, stateDetails.Username);
+                var status = await harness.ListLicenses(idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, reqData.LicenseType);
 
                 return status;
             });

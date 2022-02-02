@@ -2,7 +2,8 @@ using System;
 using Fathym;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
-using LCU.Personas.Enterprises;
+using LCU.Graphs.Registry.Enterprises.Identity;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.State
 {
@@ -12,6 +13,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
     {
         [DataMember]
         public virtual string CustomerName { get; set; }
+
+        [DataMember]
+        public virtual List<License> ExistingLicenseTypes { get; set; }
 
         [DataMember]
         public virtual string FeaturedPlanGroup { get; set; }
@@ -54,6 +58,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual string SuccessRedirect { get; set; }
 
         [DataMember]
+        public virtual DateTime SuspendAccountOn { get; set; }
+
+        [DataMember]
         public virtual string Username { get; set; }
         
     }
@@ -66,5 +73,33 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
 
         [DataMember]
         public virtual string Name { get; set; }
+    }
+
+    [DataContract]
+    public class TemplateEmailModel
+    {
+        [DataMember]
+        public virtual string EmailFrom { get; set; }
+
+        [DataMember]
+        public virtual string EmailTo { get; set; }
+
+        [DataMember]
+        public virtual TemplateDataModel TemplateData { get; set; }
+                            
+        [DataMember]
+        public virtual string TemplateId { get; set; }
+
+    }
+
+    [DataContract]
+    public class TemplateDataModel
+    {
+        [DataMember]
+        public virtual string suspendOn { get; set; }
+
+        [DataMember]
+        public virtual string userName { get; set; }
+
     }
 }

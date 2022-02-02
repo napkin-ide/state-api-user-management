@@ -25,29 +25,32 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using LCU.StateAPI;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 {
     public class ListBillingOptions
     {
-        protected readonly EnterpriseManagerClient entMgr;
+        protected readonly IEnterprisesBillingManagerService entBillingMgr;
 
-        public ListBillingOptions(EnterpriseManagerClient entMgr)
+        public ListBillingOptions(IEnterprisesBillingManagerService entBillingMgr)
         {
-            this.entMgr = entMgr;
+            this.entBillingMgr = entBillingMgr;
         }
 
         [FunctionName("ListBillingOptions")]
         [FunctionResponseCache(600, ResponseCacheLocation.Any)]
         public virtual async Task<HttpResponseMessage> Run([HttpTrigger] HttpRequest req, ILogger log)
         {
-            var entLookup = req.Headers["lcu-ent-lookup"];
+            var stateDetails = StateUtils.LoadStateDetails(req);
+
+            var entLookup = stateDetails.EnterpriseLookup;
 
             var licenseType = req.Query["licenseType"];
 
             log.LogInformation($"ListBillingPlanOptions with {entLookup} for {licenseType}.");
 
-            var plansResp = await entMgr.ListBillingPlanOptions(entLookup, licenseType);
+            var plansResp = await entBillingMgr.ListBillingPlanOptions(entLookup, licenseType);
 
             log.LogInformation($"Plans response: {plansResp.Status.ToJSON()}");
 

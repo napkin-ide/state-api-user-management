@@ -19,6 +19,7 @@ using LCU.Personas.Client.Security;
 using Microsoft.Extensions.Configuration;
 using LCU.State.API.NapkinIDE.UserManagement.State;
 using LCU.Personas.Client.Identity;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 {
@@ -41,15 +42,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
     public class CompletePayment
     {
-        protected readonly EnterpriseManagerClient entMgr;
+        protected readonly IEnterprisesBillingManagerService entBillingMgr;
 
-        protected readonly IdentityManagerClient idMgr;
+        protected readonly IIdentityAccessService idMgr;
 
-        protected readonly SecurityManagerClient secMgr;
+        protected readonly ISecurityDataTokenService secMgr;
 
-        public CompletePayment(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr)
+        public CompletePayment(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr)
         {
-            this.entMgr = entMgr;
+            this.entBillingMgr = entBillingMgr;
 
             this.idMgr = idMgr;
 
@@ -63,12 +64,14 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
         {
             var stateDetails = StateUtils.LoadStateDetails(req);
 
+            var projectId = req.Headers["lcu-project-id"];
+
             return await stateBlob.WithStateHarness<UserBillingState, CompletePaymentRequest, UserBillingStateHarness>(req, signalRMessages, log,
                 async (harness, payReq) =>
             {
                 log.LogInformation($"Executing CompletePayment Action.");
-
-                await harness.CompletePayment(entMgr, secMgr, idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan, payReq.TrialPeriodDays);
+                
+                await harness.CompletePayment(entBillingMgr, secMgr, idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, payReq.MethodID, payReq.CustomerName, payReq.Plan, payReq.TrialPeriodDays, projectId);
 
                 //  TODO:  Set State Status and Loading
 

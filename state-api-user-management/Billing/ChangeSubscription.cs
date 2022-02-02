@@ -19,6 +19,7 @@ using LCU.Personas.Client.Security;
 using Microsoft.Extensions.Configuration;
 using LCU.State.API.NapkinIDE.UserManagement.State;
 using LCU.Personas.Client.Identity;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 {
@@ -36,15 +37,15 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
 
     public class ChangeSubscription
     {
-        protected readonly EnterpriseManagerClient entMgr;
+        protected readonly IEnterprisesBillingManagerService entBillingMgr;
 
-        protected readonly IdentityManagerClient idMgr;
+        protected readonly IIdentityAccessService idMgr;
 
-        protected readonly SecurityManagerClient secMgr;
+        protected readonly ISecurityDataTokenService secMgr;
 
-        public ChangeSubscription(EnterpriseManagerClient entMgr, SecurityManagerClient secMgr, IdentityManagerClient idMgr)
+        public ChangeSubscription(IEnterprisesBillingManagerService entBillingMgr, ISecurityDataTokenService secMgr, IIdentityAccessService idMgr)
         {
-            this.entMgr = entMgr;
+            this.entBillingMgr = entBillingMgr;
 
             this.idMgr = idMgr;
 
@@ -63,7 +64,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Billing
             {
                 log.LogInformation($"Executing ChangeSubscription Action.");
 
-                await harness.ChangeSubscription(entMgr, secMgr, idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, payReq.CustomerName, payReq.Plan);
+                await harness.ChangeSubscription(entBillingMgr, secMgr, idMgr, stateDetails.EnterpriseLookup, stateDetails.Username, payReq.CustomerName, payReq.Plan);
 
                 //  TODO:  Set State Status and Loading
 

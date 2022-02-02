@@ -17,6 +17,7 @@ using LCU.Personas.Client.Identity;
 using LCU.Personas.Client.Security;
 using LCU.StateAPI.Utilities;
 using LCU.State.API.NapkinIDE.UserManagement.State;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Management
 {
@@ -28,17 +29,20 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
         [DataMember]
         public virtual string CancellationReason { get; set; }
 
+        [DataMember]
+        public virtual string LicenseType { get; set; }
+
     }
 
     public class CancelSubscription
     {
-        protected EnterpriseManagerClient engMgr;
+        protected IEnterprisesBillingManagerService engMgr;
 
-        protected IdentityManagerClient idMgr;
+        protected IIdentityAccessService idMgr;
 
-        protected SecurityManagerClient secMgr;
+        protected ISecurityDataTokenService secMgr;
 
-        public CancelSubscription(EnterpriseManagerClient engMgr, IdentityManagerClient idMgr, SecurityManagerClient secMgr)
+        public CancelSubscription(IEnterprisesBillingManagerService engMgr, IIdentityAccessService idMgr, ISecurityDataTokenService secMgr)
         {
             this.engMgr = engMgr;
 
@@ -59,7 +63,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                var status =  await harness.CancelSubscription(engMgr, idMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, reqData.CancellationReason);
+                var status =  await harness.CancelSubscription(engMgr, idMgr, secMgr, stateDetails.EnterpriseLookup, stateDetails.Username, reqData.CancellationReason, reqData.LicenseType);
 
                 return status;
             });

@@ -15,6 +15,7 @@ using Microsoft.Azure.Storage.Blob;
 using LCU.Personas.Client.Enterprises;
 using LCU.State.API.NapkinIDE.UserManagement.State;
 using LCU.StateAPI.Utilities;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.Setup.Management
 {
@@ -42,9 +43,9 @@ namespace LCU.State.API.NapkinIDE.Setup.Management
     {
         protected EnterpriseArchitectClient entArch;
 
-        protected EnterpriseManagerClient entMgr;
+        protected IEnterprisesBillingManagerService entMgr;
 
-        public ConfigureInfrastructure(EnterpriseArchitectClient entArch, EnterpriseManagerClient entMgr)
+        public ConfigureInfrastructure(EnterpriseArchitectClient entArch, IEnterprisesBillingManagerService entMgr)
         {
             this.entArch = entArch;
 
@@ -63,8 +64,8 @@ namespace LCU.State.API.NapkinIDE.Setup.Management
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                await harness.ConfigureInfrastructure(entArch, entMgr, reqData.InfrastructureType, reqData.UseDefaultSettings, reqData.Settings, 
-                    reqData.Template, reqData.ShouldStep, stateDetails.EnterpriseLookup, stateDetails.Username);
+                // await harness.ConfigureInfrastructure(entArch, entMgr, reqData.InfrastructureType, reqData.UseDefaultSettings, reqData.Settings, 
+                //     reqData.Template, reqData.ShouldStep, stateDetails.EnterpriseLookup, stateDetails.Username);
 
                 return Status.Success;
             });

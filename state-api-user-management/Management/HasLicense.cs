@@ -16,6 +16,7 @@ using LCU.Personas.Client.Identity;
 using LCU.StateAPI.Utilities;
 using Fathym.API;
 using LCU.State.API.NapkinIDE.UserManagement.State;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Management
 {
@@ -30,9 +31,9 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
     public class HasLicense
     {
-        protected IdentityManagerClient idMgr;
+        protected IIdentityAccessService idMgr;
 
-        public HasLicense(IdentityManagerClient idMgr)
+        public HasLicense(IIdentityAccessService idMgr)
         {
             this.idMgr = idMgr;
         }

@@ -39,16 +39,16 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
         #endregion
 
         #region API Methods
-        [FunctionName("BootOrganization")]
-        public virtual async Task<IActionResult> Run([HttpTrigger] HttpRequest req, ILogger log,
-            [DurableClient] IDurableOrchestrationClient starter,
-            [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
-            [Blob("state-api/{headers.lcu-ent-lookup}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
-        {
-            await initializeBoot(req, log, signalRMessages, stateBlob);
+        // [FunctionName("BootOrganization")]
+        // public virtual async Task<IActionResult> Run([HttpTrigger] HttpRequest req, ILogger log,
+        //     [DurableClient] IDurableOrchestrationClient starter,
+        //     [SignalR(HubName = UserManagementState.HUB_NAME)]IAsyncCollector<SignalRMessage> signalRMessages,
+        //     [Blob("state-api/{headers.lcu-ent-lookup}/{headers.lcu-hub-name}/{headers.x-ms-client-principal-id}/{headers.lcu-state-key}", FileAccess.ReadWrite)] CloudBlockBlob stateBlob)
+        // {
+        //     // await initializeBoot(req, log, signalRMessages, stateBlob);
 
-            return await starter.StartAction("BootOrganizationOrchestration", req, log);
-        }
+        //     // return await starter.StartAction("BootOrganizationOrchestration", req, log);
+        // }
         #endregion
 
         #region Helpers
@@ -58,11 +58,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
             return await stateBlob.WithStateHarness<UserManagementState, BootOrganizationRequest, UserManagementStateHarness>(req, signalRMessages, log,
                 async (harness, reqData) =>
             {
-                harness.SetBootOptionsLoading();
+                // harness.SetBootOptionsLoading();
 
-                harness.UpdateBootOption("Environment", 1, status: Status.Initialized.Clone("Configuring Workspace Environment..."));
+                // harness.UpdateBootOption("Environment", 1, status: Status.Initialized.Clone("Configuring Workspace Environment..."));
 
-                harness.UpdateStatus(null);
+                // harness.UpdateStatus(null);
 
                 return Status.Success;
             });

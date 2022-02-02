@@ -18,6 +18,7 @@ using Fathym.API;
 using LCU.Personas.Client.Applications;
 using LCU.State.API.NapkinIDE.UserManagement.State;
 using LCU.Personas.Client.Enterprises;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.Management
 {
@@ -39,13 +40,23 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
         
         [DataMember]
         public virtual string EmailFrom { get; set; }
+        
+        [DataMember]
+        public virtual string template_id { get; set; }
+
+        [DataMember]
+        public virtual object dynamic_template_data { get; set; }
+
+        [DataMember]
+        public virtual object TemplateEmail { get; set; }
+
     }
 
     public class SendNotification
     {
-        protected EnterpriseManagerClient entMgr;
+        protected IEnterprisesBillingManagerService entMgr;
 
-        public SendNotification(EnterpriseManagerClient entMgr)
+        public SendNotification(IEnterprisesBillingManagerService entMgr)
         {
             this.entMgr = entMgr;
         }
@@ -62,9 +73,11 @@ namespace LCU.State.API.NapkinIDE.UserManagement.Management
 
                 var stateDetails = StateUtils.LoadStateDetails(req);
 
-                var status = await harness.SendNotification(entMgr, stateDetails.EnterpriseLookup, stateDetails.Username, reqData);
+                // var status = await harness.SendNotification(entMgr, stateDetails.EnterpriseLookup, stateDetails.Username, reqData);
 
-                return status;
+                // return status;
+
+                return Status.Success;
             });
         }
     }

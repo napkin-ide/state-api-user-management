@@ -12,12 +12,13 @@ using Fathym;
 using LCU.Presentation.State.ReqRes;
 using LCU.StateAPI.Utilities;
 using LCU.StateAPI;
-using LCU.Personas.Enterprises;
+// using LCU.Personas.Enterprises;
 using LCU.Graphs.Registry.Enterprises.Identity;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Newtonsoft.Json.Converters;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
+using LCU.State.API.UserManagement.Host.TempRefit;
 
 namespace LCU.State.API.NapkinIDE.UserManagement.State
 {
@@ -121,7 +122,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual Status Status { get; set; }
 
         [DataMember]
-        public virtual List<LicenseAccessToken> Subscribers { get; set; }
+        public virtual List<License> Subscribers { get; set; }
 
         [DataMember]
         public virtual StripeSubscriptionDetails SubscriptionDetails { get; set; }
@@ -143,7 +144,7 @@ namespace LCU.State.API.NapkinIDE.UserManagement.State
         public virtual string Username { get; set; }
 
         [DataMember]
-        public List<LicenseAccessToken> UserLicenses { get; set; }
+        public List<License> UserLicenses { get; set; }
     }
 
     [DataContract]
